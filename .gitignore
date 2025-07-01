@@ -1,0 +1,16 @@
+*.out
+*.o
+*.txt
+*.bin
+.idea
+.cache
+.vscode
+main
+cruxpass
+cruxpass/
+test.c
+test*
+*.db
+*.csv
+basic*
+subcommands*
