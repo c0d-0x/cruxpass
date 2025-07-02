@@ -140,7 +140,8 @@ void import_pass(sqlite3 *db, char *import_file) {
   while (fgets(buffer, BUFFMAX, fp) != NULL) {
     buffer[strcspn(buffer, "\n")] = '\0';
 
-    if (!process_field(password_obj->username, ACCLENGTH, strtok_r(buffer, ",", &saveptr), "Username", line_number)) {
+    if (!process_field(password_obj->username, USERNAMELENGTH, strtok_r(buffer, ",", &saveptr), "Username",
+                       line_number)) {
       line_number++;
       continue;
     }

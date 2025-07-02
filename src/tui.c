@@ -17,8 +17,8 @@
 #define ESC_KEY 27
 #define LEN(arr) (sizeof(arr) / sizeof((arr)[0]))
 
-static RecordArray records = {NULL, 0, 0};
-static volatile int current_position = 1;
+static record_array_t records = {0, 0, NULL};
+static volatile int64_t current_position = 1;
 static volatile int current_page = 0;
 static int records_per_page = 10;
 static int term_height, term_width;
@@ -78,12 +78,29 @@ static void display_ascii_art(void) {
   if (start_y < 0) start_y = 0;
   if (start_x < 0) start_x = 0;
 
+  clear();
   for (int i = 0; i < art_lines; i++) {
     if (start_y + i < term_height - 1) {
       mvaddwstr(start_y + i, start_x, ascii_art[i]);
     }
   }
   refresh();
+}
+
+char *get_input(const char *prompt, char *input, const int input_len, int cod_y, int cod_x) {
+  if (prompt == NULL) {
+    fprintf(stderr, "Error: No prompt provided\n");
+    return NULL;
+  }
+
+  init_ncurses();
+  curs_set(1);
+  echo();
+
+  mvprintw(cod_y, cod_x, prompt, NULL);
+  getnstr(input, input_len);
+  reset_term();
+  return input;
 }
 
 char *get_password(const char *prompt) {
@@ -98,8 +115,8 @@ char *get_password(const char *prompt) {
   ssize_t center_y;
   ssize_t center_x;
 
-  display_ascii_art();
   init_ncurses();
+  display_ascii_art();
   curs_set(1);
 
   if (sodium_init() == -1) {
@@ -142,8 +159,7 @@ char *get_password(const char *prompt) {
 
     } else if (ch == KEY_BACKSPACE || ch == 127 || ch == '\b') {
       if (i > 0) {
-        i--;
-        password[i] = '\0';
+        password[--i] = '\0';
 
         move(center_y, center_x + prompt_len + i);
         addch(' ');
@@ -170,8 +186,7 @@ int main_tui(sqlite3 *db) {
   records.data = NULL;
   records.size = 0;
   records.capacity = 0;
-
-  int ch;
+  int ch = 0;
   char status_msg[100] = {0};
 
   if (!load_data_from_db(db, &records)) {
@@ -264,10 +279,10 @@ int main_tui(sqlite3 *db) {
   return 1;
 }
 
-void add_record(RecordArray *arr, Record rec) {
+void add_record(record_array_t *arr, record_t rec) {
   if (arr->size >= arr->capacity) {
     int new_capacity = arr->capacity == 0 ? 8 : arr->capacity * 2;
-    Record *new_data = realloc(arr->data, new_capacity * sizeof(Record));
+    record_t *new_data = realloc(arr->data, new_capacity * sizeof(record_t));
     if (!new_data) {
       fprintf(stderr, "Error: Memory allocation failed\n");
       return;
@@ -279,7 +294,7 @@ void add_record(RecordArray *arr, Record rec) {
   arr->data[arr->size++] = rec;
 }
 
-void free_records(RecordArray *arr) {
+void free_records(record_array_t *arr) {
   if (arr->data != NULL) {
     free(arr->data);
     arr->data = NULL;
@@ -289,8 +304,8 @@ void free_records(RecordArray *arr) {
 }
 
 int callback(void *data, int argc, char **argv, char **azColName) {
-  RecordArray *arr = (RecordArray *)data;
-  Record rec;
+  record_array_t *arr = (record_array_t *)data;
+  record_t rec;
 
   rec.id = argv[0] ? atoi(argv[0]) : 0;
 
@@ -311,12 +326,8 @@ int callback(void *data, int argc, char **argv, char **azColName) {
 }
 
 void display_table() {
-  if (current_page > INT_MAX / records_per_page) {
-    records_per_page /= 2;
-  }
-
-  int start_idx = current_page * records_per_page;
-  int end_idx = start_idx + records_per_page;
+  int64_t start_idx = current_page * records_per_page;
+  int64_t end_idx = start_idx + records_per_page;
   if (end_idx > records.size) end_idx = records.size;
 
   int table_width = ID_WIDTH + USERNAME_WIDTH + DESC_WIDTH + 2;
@@ -329,10 +340,11 @@ void display_table() {
 
   mvprintw(2, start_x, "%.*s", table_width,
            "-------------------------------------------------------------------------------------------------------");
-
-  for (int i = start_idx; i < end_idx; i++) {
-    Record *rec = &records.data[i];
-    int row = 3 + (i - start_idx);
+  record_t *rec = NULL;
+  int64_t row;
+  for (int64_t i = start_idx; i < end_idx; i++) {
+    rec = &records.data[i];
+    row = 3 + (i - start_idx);
 
     if (current_position == i) attron(COLOR_PAIR(2) | A_BOLD);
 
@@ -342,8 +354,8 @@ void display_table() {
       attron(COLOR_PAIR(5));
     }
 
-    mvprintw(row, start_x, "%-*d %-*s %-*.*s", ID_WIDTH, rec->id, USERNAME_WIDTH, rec->username, DESC_WIDTH, DESC_WIDTH,
-             rec->description);
+    mvprintw(row, start_x, "%-*ld %-*s %-*.*s", ID_WIDTH, rec->id, USERNAME_WIDTH, rec->username, DESC_WIDTH,
+             DESC_WIDTH, rec->description);
 
     if (current_position == i)
       attroff(COLOR_PAIR(2) | A_BOLD);
@@ -362,7 +374,7 @@ void display_table() {
 void display_pagination_info() {
   int total_pages = (records.size + records_per_page - 1) / records_per_page;
   char pagination_info[100];
-  snprintf(pagination_info, sizeof(pagination_info), "Status: Page %d of %d | Record %d of %d", current_page + 1,
+  snprintf(pagination_info, sizeof(pagination_info), "Status: Page %d of %d | Record %ld of %d", current_page + 1,
            total_pages, current_position + 1, records.size);
 
   int info_len = strnlen(pagination_info, 100);
@@ -408,7 +420,7 @@ void search_next() {
   int i;
   for (i = 0; i < records.size; i++) {
     int pos = (start_pos + i) % records.size;
-    Record *rec = &records.data[pos];
+    record_t *rec = &records.data[pos];
 
     if (strstr(rec->username, search_pattern) || strstr(rec->description, search_pattern)) {
       current_position = pos;
@@ -424,10 +436,10 @@ void search_next() {
 void yank_current_record() {
   if (current_position < 0 || current_position >= records.size) return;
 
-  Record *rec = &records.data[current_position];
+  record_t *rec = &records.data[current_position];
 
   // TODO: fetch password and copy to clipboard
-  snprintf(yank_buffer, sizeof(yank_buffer), "ID: %d, Username: %s, Description: %s", rec->id, rec->username,
+  snprintf(yank_buffer, sizeof(yank_buffer), "ID: %ld, Username: %s, Description: %s", rec->id, rec->username,
            rec->description);
 }
 

@@ -7,10 +7,8 @@
 .vscode
 main
 cruxpass
-cruxpass/
-test.c
+.cruxpass/*
+.cruxpass/
 test*
 *.db
 *.csv
-basic*
-subcommands*

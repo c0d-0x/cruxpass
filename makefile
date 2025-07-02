@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Wformat-security -Wstrict-overflow=4 -g  -fsanitize=signed-integer-overflow #-O2 
+CFLAGS = -Wall -Wextra -Wformat-security 
 
 # Libraries and paths
 LIBS = -lsodium -lncurses -lm -Llib -lsqlcipher -largparse -ldl -lpthread -lcrypto
@@ -22,7 +22,7 @@ all: $(BIN)
 
 # Build executable
 $(BIN): $(OBJ)
-	$(CC) $(CFLAGS) $(OBJ) -o $@ $(LIBS)
+	@$(CC) $(CFLAGS) $(OBJ) -o $@ $(LIBS)
 
 # Compile source files into object files
 %.o: %.c

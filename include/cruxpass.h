@@ -27,15 +27,15 @@
 #define PASS_MIN 8
 #define PASSLENGTH 45
 #define CHUNK_SIZE 4096
-#define ACCLENGTH 30
-#define DESCLENGTH 256
+#define USERNAMELENGTH 30
+#define DESCLENGTH 100
 #define CRUXPASS_DB "cruxpass.db"
 #define AUTH_DB "auth.db"
-#define PATH "/workspaces/cruxpass_project/cruxpass"
+#define PATH "/workspaces/cruxpass/.cruxpass"
 
 typedef struct {
   size_t id;
-  char username[ACCLENGTH + 1];
+  char username[USERNAMELENGTH + 1];
   char passd[PASSLENGTH + 1];
   char description[DESCLENGTH + 1];
 } password_t;

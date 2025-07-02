@@ -339,7 +339,7 @@ int update_password(char *db_name, char *description, char *passwd_hash, char *u
   return 1;
 }
 
-int load_data_from_db(sqlite3 *db, RecordArray *records) {
+int load_data_from_db(sqlite3 *db, record_array_t *records) {
   char *err_msg = 0;
 
   const char *sql = "SELECT id_password, username, description FROM passwords ORDER BY id_password;";

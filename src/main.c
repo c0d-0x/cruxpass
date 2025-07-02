@@ -13,8 +13,6 @@
 #include "../include/sqlcipher.h"
 #include "../include/tui.h"
 
-// #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)))
-
 static const char *const usages[] = {
     "cruxpass --options [FILE]",
     NULL,
@@ -35,7 +33,6 @@ int parse_options(int argc, const char **argv);
 int main(int argc, const char **argv) {
   sqlite3 *db = NULL;
   unsigned char *key = NULL;
-  password_t *password_obj = NULL;
 
   if (!parse_options(argc, argv)) return EXIT_FAILURE;
   if (new_password != 0) {
@@ -43,10 +40,7 @@ int main(int argc, const char **argv) {
     if ((db = initcrux()) == NULL) return EXIT_SUCCESS;
     sqlite3_close(db);
 
-    if ((master_passd = get_password("Master Password: ")) == NULL) {
-      return EXIT_FAILURE;
-    }
-
+    if ((master_passd = get_password("Master Password: ")) == NULL) return EXIT_FAILURE;
     if (!create_new_master_passd(master_passd)) {
       fprintf(stderr, "Error: Failed to Creat a New Password\n");
       sodium_memzero(master_passd, PASSLENGTH);
@@ -56,6 +50,14 @@ int main(int argc, const char **argv) {
   }
 
   if (save != 0) {
+    password_t password_obj = {0};
+    get_input("> username: ", password_obj.username, USERNAMELENGTH, 2, 0);
+    get_input("> password: ", password_obj.passd, PASSLENGTH, 3, 0);
+    get_input("> description: ", password_obj.description, DESCLENGTH, 4, 0);
+
+    if ((db = initcrux()) == NULL) return EXIT_SUCCESS;
+    if ((key = decryption_helper(db)) == NULL) return EXIT_FAILURE;
+    if (!insert_password(db, &password_obj)) return EXIT_FAILURE;
   }
 
   if (password_len != 0) {
@@ -75,8 +77,8 @@ int main(int argc, const char **argv) {
     }
 
     char *real_path;
-    if ((real_path = realpath(argv[2], NULL)) == NULL) {
-      fprintf(stderr, "Error: Failed to get realpath for: %s", argv[2]);
+    if ((real_path = realpath(import_file, NULL)) == NULL) {
+      fprintf(stderr, "Error: Failed to get realpath for: %s", import_file);
       return EXIT_FAILURE;
     }
 
@@ -109,7 +111,7 @@ int main(int argc, const char **argv) {
     if ((key = decryption_helper(db)) == NULL) return EXIT_FAILURE;
     if (!export_pass(db, export_file_path)) {
       sqlite3_close(db);
-      fprintf(stdout, "Note: Passwords exported to: %s\n", export_file);
+      fprintf(stdout, "Info: Passwords exported to: %s\n", export_file);
       return EXIT_FAILURE;
     };
 

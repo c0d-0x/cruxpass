@@ -6,23 +6,21 @@
 
 #define MAX_FIELD_LEN 100
 #define ID_WIDTH 6
-#define USERNAME_WIDTH 20
-#define DESC_WIDTH 50
+#define USERNAME_WIDTH 30
+#define DESC_WIDTH 51
 #define CTRL(x) ((x) & 0x1f)
 
-// Structure to hold our data
 typedef struct {
-  int id;
+  int64_t id;
   char username[MAX_FIELD_LEN];
   char description[MAX_FIELD_LEN];
-} Record;
+} record_t;
 
-// Structure for a dynamically growing array
 typedef struct {
-  Record *data;
   int size;
   int capacity;
-} RecordArray;
+  record_t *data;
+} record_array_t;
 
 /**
  * Gets a password from the user, displaying '*' for each character
@@ -33,16 +31,16 @@ typedef struct {
  * @param max_len Maximum length of password
  * @return The length of the password entered (0 if canceled with ESC)
  */
-
 char *get_password(const char *prompt);
 void init_ncurses();
+char *get_input(const char *prompt, char *input, const int text_len, int cod_y, int cod_x);
 int main_tui(sqlite3 *db);
 int callback(void *data, int argc, char **argv, char **column_name);
 void display_table();
 void display_pagination_info();
 void cleanup();
-void add_record(RecordArray *arr, Record rec);
-void free_records(RecordArray *arr);
+void add_record(record_array_t *arr, record_t rec);
+void free_records(record_array_t *arr);
 void handle_search();
 void search_next();
 void yank_current_record();

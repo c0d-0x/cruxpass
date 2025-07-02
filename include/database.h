@@ -30,7 +30,7 @@ int init_sqlite(char *db_name);
 sqlite3 *open_db(char *db_name, int flags);
 hashed_pass_t *fetch_hash(void);
 int list_all_passwords_v2(sqlite3 *db);
-int load_data_from_db(sqlite3 *db, RecordArray *records);
+int load_data_from_db(sqlite3 *db, record_array_t *records);
 int update_secret(hashed_pass_t *hash_obj);
 int lookup_password(char *db_name, char *searchstr);
 int delete_password_v2(sqlite3 *db, int password_id);

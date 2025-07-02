@@ -23,20 +23,21 @@
 ---
 
 ## 🚀 Available Options
-| Short | Long                       | Description                                                |
-| ----- | -------------------------- | ---------------------------------------------------------- |
-| `-h`  | `--help`                   | Show help message                                          |
-| `-d`  | `--delete <id>`            | Delete a password by its ID                                |
-| `-e`  | `--export <file>`          | Export all saved passwords to a CSV file                   |
-| `-i`  | `--import <file>`          | Import passwords from a CSV file                           |
-| `-g`  | `--generate-rand <length>` | Generate a random password of given length                 |
-| `-l`  | `--list`                   | List all stored passwords                                  |
-| `-n`  | `--new-password`           | Create a new master password                               |
-| `-s`  | `--save`                   | Save a password with its metadata (prompts interactively) |
-| `-v`  | `--version`                | Show cruxPass version                                      |
 
+| Short | Long                       | Description                                               |
+| ----- | -------------------------- | --------------------------------------------------------- |
+| `-h`  | `--help`                   | Show help message                                         |
+| `-d`  | `--delete <id>`            | Delete a password by its ID                               |
+| `-e`  | `--export <file>`          | Export all saved passwords to a CSV file                  |
+| `-i`  | `--import <file>`          | Import passwords from a CSV file                          |
+| `-g`  | `--generate-rand <length>` | Generate a random password of given length                |
+| `-l`  | `--list`                   | List all stored passwords                                 |
+| `-n`  | `--new-password`           | Create a new master password                              |
+| `-s`  | `--save`                   | Save a password with its metadata (prompts interactively) |
+| `-v`  | `--version`                | Show cruxPass version                                     |
 
 ⚙️ Installation
+
 ```bash
 # Clone the repository
 git clone https://github.com/c0d-0x/cruxpass
@@ -53,10 +54,11 @@ cruxpass <option> <argument>
 # To uninstall
 make uninstall
 ```
+
 🛡️ Security
 Encrypted Storage: All data is securely stored using an encrypted SQLite database (SQLCipher) at ~/.local/share/cruxpass/.
 
-Authentication: A master password is required to access or modify any stored data.
+Authentication: A master password is required to access or modify any stored data. By default, cruxpass uses: `cruxpassisgr8!` as it's master password.
 
 CLI Best Practices: For maximum security, consider clearing your shell history after using options like -s that include plaintext passwords.
 
@@ -75,4 +77,4 @@ Future enhancements may include:
 Contributions are welcome! Please open issues or submit pull requests to help improve cruxPass.
 
 📄 License
-cruxPass is licensed under the MIT License. See the LICENSE file for details.
+cruxPass is licensed under the GPL License. See the LICENSE file for details.
