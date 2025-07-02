@@ -43,6 +43,7 @@ cruxpass <option> <argument>
 #Uninstallation
 make uninstall
 ```
+
 Use this code with caution!!!
 
 ## Security Considerations
@@ -70,7 +71,11 @@ For any questions or feedback, please contact <c0d_0x007@proton.me>.
 ## Additional Notes
 
 This project is currently under development.
-Future plans include:
+
+> [!WARNING]
+> DO NOT USE THIS BRANCH
+> This branch is left here for only refrence purposes.
+> Future plans include:
 
 - Better encryption implementation
 - Integration with other password management tools
