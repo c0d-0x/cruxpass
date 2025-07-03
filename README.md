@@ -77,4 +77,4 @@ Future enhancements may include:
 Contributions are welcome! Please open issues or submit pull requests to help improve cruxPass.
 
 📄 License
-cruxPass is licensed under the GPL License. See the LICENSE file for details.
+cruxPass is licensed under the MIT License. See the LICENSE file for details.
