@@ -15,6 +15,9 @@
 #define EDIT_PASSWORD 0x02
 #define EDIT_USERNAME 0x04
 
+#define P_DB 0x01
+#define S_DB 0x02
+
 /**
  * @brief Initializes a SQLite database connection.
  *
@@ -26,8 +29,10 @@
  * stored.
  * @return A pointer to the initialized sqlite3 database object.
  */
-int init_sqlite(char *db_name);
-sqlite3 *open_db(char *db_name, int flags);
+int init_sqlite(void);
+void cleanup_paths(void);
+/* sqlite3 *open_db(char *db_name, int flags); */
+sqlite3 *open_db_wrap(int8_t db_name_flag, int flags);
 hashed_pass_t *fetch_hash(void);
 int list_all_passwords_v2(sqlite3 *db);
 int load_data_from_db(sqlite3 *db, record_array_t *records);

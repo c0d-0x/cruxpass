@@ -1,11 +1,11 @@
 #include "../include/cruxpass.h"
 
 #include <errno.h>
-#include <linux/limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 #include "../include/database.h"
 #include "../include/enc.h"
@@ -40,29 +40,22 @@ char *random_password(int password_len) {
 }
 
 /*TODO: use defined paths instead of changing dir*/
-int setpath(char *cruxpass_root_dir) {
-  char *path = NULL;
+char *setpath(char *relative_path) {
+  char *abs_path = NULL;
   char *home = NULL;
-  if ((path = calloc(PATH_MAX + 1, sizeof(char))) == NULL) {
+  if ((abs_path = calloc(PATH_MAX + 1, sizeof(char))) == NULL) {
     fprintf(stderr, "Error: Memory Allocation Failed: calloc\n");
-    return 0;
+    return NULL;
   }
   if ((home = getenv("HOME")) == NULL) {
     perror("Error: Failed to get home path");
-    free(path);
-    return 0;
+    free(abs_path);
+    return NULL;
   }
 
-  snprintf(path, PATH_MAX, "%s", home);
-  strncat(path, cruxpass_root_dir, (PATH_MAX - strlen(home)));
-  if (chdir(path) != 0) {
-    fprintf(stderr, "Error: No DB Directory Found. [Run: make install]\n");
-    free(path);
-    return 0;
-  }
-
-  free(path);
-  return 1;
+  snprintf(abs_path, PATH_MAX, "%s/", home);
+  strncat(abs_path, relative_path, (PATH_MAX - strlen(home)));
+  return abs_path;
 }
 
 int export_pass(sqlite3 *db, const char *export_file) {
@@ -170,12 +163,10 @@ void import_pass(sqlite3 *db, char *import_file) {
 
 sqlite3 *initcrux() {
   sqlite3 *db = NULL;
-  if (!setpath(PATH)) return NULL;
-
-  int inited = init_sqlite(CRUXPASS_DB);
+  int inited = init_sqlite();
   if (inited == C_RET_OKK)
     printf("Warning: Default password is: 'cruxpassisgr8!'. \nWarning: Change it with<< cruxpass -n >>\n");
-  if (inited != C_ERR) db = open_db(CRUXPASS_DB, SQLITE_OPEN_READWRITE);
+  if (inited != C_ERR) db = open_db_wrap(P_DB, SQLITE_OPEN_READWRITE);
 
   return db;
 }

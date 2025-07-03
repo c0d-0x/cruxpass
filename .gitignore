@@ -5,6 +5,7 @@
 .idea
 .cache
 .vscode
+.gdb_history
 main
 cruxpass
 .cruxpass/*

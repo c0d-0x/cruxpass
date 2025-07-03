@@ -72,29 +72,21 @@ hashed_pass_t *authenticate(char *master_passd) {
   return hash_obj;
 }
 
-int create_new_master_passd(char *master_passd) {
+int create_new_master_passd(sqlite3 *db, unsigned char *key) {
   int ret = 0;
-  char *temp_passd;
-  sqlite3 *db = NULL;
   char *new_passd = NULL;
-  unsigned char *key = NULL;
+  char *temp_passd = NULL;
   unsigned char *new_key = NULL;
-  hashed_pass_t *old_hashed_password = NULL;
   hashed_pass_t *new_hashed_password = NULL;
 
-  if ((old_hashed_password = authenticate(master_passd)) == NULL) {
-    return ret;
-  }
   // TODO: Refactor _get_new_password
   if ((new_passd = get_password("New Password: ")) == NULL ||
       (temp_passd = get_password("Confirm New Password: ")) == NULL) {
-    free(old_hashed_password);
     return ret;
   }
 
   if (strncmp(new_passd, temp_passd, PASSLENGTH) != 0) {
     fprintf(stderr, "Error: Passwords do not match\n");
-    free(old_hashed_password);
     sodium_free(new_passd);
     sodium_free(temp_passd);
     return ret;
@@ -102,38 +94,26 @@ int create_new_master_passd(char *master_passd) {
 
   if (sodium_init() == -1) {
     fprintf(stderr, "Error: Failed to initialize libsodium");
-    free(old_hashed_password);
     sodium_free(new_passd);
     sodium_free(temp_passd);
     return ret;
   }
 
   new_hashed_password = calloc(1, sizeof(hashed_pass_t));
-  key = (unsigned char *)sodium_malloc(sizeof(unsigned char) * KEY_LEN);
   new_key = (unsigned char *)sodium_malloc(sizeof(unsigned char) * KEY_LEN);
 
   if (new_hashed_password == NULL || key == NULL || new_key == NULL) {
     fprintf(stderr, "Error: Memory Allocation Fail\n");
     sodium_free(new_passd);
     sodium_free(temp_passd);
-    free(old_hashed_password);
     return ret;
   }
 
   randombytes_buf(new_hashed_password->salt, sizeof(unsigned char) * SALT_HASH_LEN);
-  if (!generate_key_pass_hash(key, NULL, (const char *const)master_passd, (unsigned char *)old_hashed_password->salt,
-                              GEN_KEY)) {
-    goto free_all;
-  }
 
   if (!generate_key_pass_hash(new_key, new_hashed_password->hash, (const char *const)new_passd,
                               new_hashed_password->salt, GEN_KEY | GEN_HASH)) {
     fprintf(stderr, "Error: Failed to Create New Password\n");
-    goto free_all;
-  }
-
-  if ((db = open_db(CRUXPASS_DB, SQLITE_OPEN_READWRITE)) == NULL || (db = decrypt(db, key)) == NULL) {
-    fprintf(stderr, "Error: Failed  to and decrypt CRUXPASS_DB: %s", sqlite3_errmsg(db));
     goto free_all;
   }
 
@@ -150,14 +130,9 @@ int create_new_master_passd(char *master_passd) {
 
   ret = 1;
 free_all:
-  if (db != NULL) sqlite3_close(db);
-  free(old_hashed_password);
   free(new_hashed_password);
-  sodium_memzero(key, KEY_LEN);
-  sodium_memzero(new_key, KEY_LEN);
   sodium_free(new_passd);
   sodium_free(temp_passd);
-  sodium_free(key);
   sodium_free(new_key);
   return ret;
 }

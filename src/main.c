@@ -35,29 +35,9 @@ int main(int argc, const char **argv) {
   unsigned char *key = NULL;
 
   if (!parse_options(argc, argv)) return EXIT_FAILURE;
-  if (new_password != 0) {
-    // WARNING: db object never used but necessary to initcrux()
-    if ((db = initcrux()) == NULL) return EXIT_SUCCESS;
-    sqlite3_close(db);
-
-    if ((master_passd = get_password("Master Password: ")) == NULL) return EXIT_FAILURE;
-    if (!create_new_master_passd(master_passd)) {
-      fprintf(stderr, "Error: Failed to Creat a New Password\n");
-      sodium_memzero(master_passd, PASSLENGTH);
-      sodium_free(master_passd);
-      return EXIT_FAILURE;
-    }
-  }
-
-  if (save != 0) {
-    password_t password_obj = {0};
-    get_input("> username: ", password_obj.username, USERNAMELENGTH, 2, 0);
-    get_input("> password: ", password_obj.passd, PASSLENGTH, 3, 0);
-    get_input("> description: ", password_obj.description, DESCLENGTH, 4, 0);
-
-    if ((db = initcrux()) == NULL) return EXIT_SUCCESS;
-    if ((key = decryption_helper(db)) == NULL) return EXIT_FAILURE;
-    if (!insert_password(db, &password_obj)) return EXIT_FAILURE;
+  if (version != 0) {
+    fprintf(stdout, "cruxpass version: %s\n", VERSION);
+    fprintf(stdout, "Authur: %s\n", AUTHUR);
   }
 
   if (password_len != 0) {
@@ -68,37 +48,54 @@ int main(int argc, const char **argv) {
 
     fprintf(stdout, "%s\n", secret);
     free(secret);
+    return EXIT_SUCCESS;
+  }
+
+  if ((db = initcrux()) == NULL) return EXIT_FAILURE;
+  if ((key = decryption_helper(db)) == NULL) return EXIT_FAILURE;
+
+  if (new_password != 0) {
+    if (!create_new_master_passd(db, key)) {
+      fprintf(stderr, "Error: Failed to Creat a New Password\n");
+      return EXIT_FAILURE;
+    }
+  }
+
+  if (save != 0) {
+    password_t password_obj = {0};
+    get_input("> username: ", password_obj.username, USERNAMELENGTH, 2, 0);
+    get_input("> password: ", password_obj.passd, PASSLENGTH, 3, 0);
+    get_input("> description: ", password_obj.description, DESCLENGTH, 4, 0);
+    if (!insert_password(db, &password_obj)) return EXIT_FAILURE;
   }
 
   if (import_file != NULL) {
     if (strlen(import_file) > 20) {
       fprintf(stderr, "Warning: Import file name too long\n");
+      sqlite3_close(db);
       return EXIT_FAILURE;
     }
 
     char *real_path;
     if ((real_path = realpath(import_file, NULL)) == NULL) {
       fprintf(stderr, "Error: Failed to get realpath for: %s", import_file);
-      return EXIT_FAILURE;
-    }
-
-    if ((db = initcrux()) == NULL) return EXIT_SUCCESS;
-    if ((key = decryption_helper(db)) == NULL) {
+      sqlite3_close(db);
       return EXIT_FAILURE;
     }
 
     import_pass(db, real_path);
-    sqlite3_close(db);
   }
 
   if (export_file != NULL) {
     if (strlen(export_file) > 15) {
       fprintf(stderr, "Warning: Export file name too long: MAX_LEN =>15\n");
+      sqlite3_close(db);
       return EXIT_FAILURE;
     }
 
     char export_file_path[256];
     if (getcwd(export_file_path, sizeof(export_file_path)) == NULL) {
+      sqlite3_close(db);
       perror("Error: Failed to get current path");
       return EXIT_FAILURE;
     }
@@ -107,52 +104,32 @@ int main(int argc, const char **argv) {
     strncat(export_file_path, export_file, sizeof(char) * 15);
     // TODO: fix set path to set paths to CRUXPASS_DB instead.
 
-    if ((db = initcrux()) == NULL) return EXIT_SUCCESS;
-    if ((key = decryption_helper(db)) == NULL) return EXIT_FAILURE;
     if (!export_pass(db, export_file_path)) {
       sqlite3_close(db);
       fprintf(stdout, "Info: Passwords exported to: %s\n", export_file);
       return EXIT_FAILURE;
     };
-
-    sqlite3_close(db);
   }
 
   if (password_id != 0) {
     /* WARNING: db object never used but necessary to initcrux() */
-    if ((db = initcrux()) == NULL) return EXIT_SUCCESS;
     /* sqlite3_close(db); */
-    if ((key = decryption_helper(db)) != NULL) {
-      if (!delete_password_v2(db, password_id)) {
-        sqlite3_close(db);
-        return EXIT_FAILURE;
-      }
-    }
-
-    sqlite3_close(db);
-  }
-
-  if (list != 0) {
-    if ((db = initcrux()) == NULL) return EXIT_FAILURE;
-    if ((key = decryption_helper(db)) == NULL) {
+    if (!delete_password_v2(db, password_id)) {
       sqlite3_close(db);
       return EXIT_FAILURE;
     }
+  }
 
+  if (list != 0) {
     main_tui(db);
-    sqlite3_close(db);
   }
 
-  if (version != 0) {
-    fprintf(stdout, "cruxpass version: %s\n", VERSION);
-    fprintf(stdout, "Authur: %s\n", AUTHUR);
-  }
-
+  if (db != NULL) sqlite3_close(db);
   if (key != NULL) {
     sodium_memzero(key, KEY_LEN);
     sodium_free(key);
   }
-
+  cleanup_paths();
   return EXIT_SUCCESS;
 }
 

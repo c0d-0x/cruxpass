@@ -29,12 +29,11 @@
 #define CHUNK_SIZE 4096
 #define USERNAMELENGTH 30
 #define DESCLENGTH 100
-#define CRUXPASS_DB "cruxpass.db"
-#define AUTH_DB "auth.db"
-#define PATH "/workspaces/cruxpass/.cruxpass"
+#define CRUXPASS_DB "workspaces/cruxpass/.cruxpass/cruxpass.db"
+#define AUTH_DB "workspaces/cruxpass/.cruxpass/auth.db"
 
 typedef struct {
-  size_t id;
+  int id;
   char username[USERNAMELENGTH + 1];
   char passd[PASSLENGTH + 1];
   char description[DESCLENGTH + 1];
@@ -59,7 +58,7 @@ sqlite3 *initcrux(void);
  * @return a pointer to the generated password, or NULL on failure
  */
 char *random_password(int password_len);
-int setpath(char *);
+char *setpath(char *);
 
 /**
  * Deletes a password from the given file pointer.
@@ -102,7 +101,7 @@ void import_pass(sqlite3 *db, char *import_file);
  * @param master_passd the master password to hash
  * @return 0 on success, 1 on failure
  */
-int create_new_master_passd(char *master_passd);
+int create_new_master_passd(sqlite3 *db, unsigned char *key);
 
 /**
  * Takes in a hashed password and returns a password.

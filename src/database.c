@@ -12,6 +12,13 @@
 #include "../include/enc.h"
 #include "../include/tui.h"
 
+static char *secrets_db_abs_path = NULL;
+static char *pass_db_abs_path = NULL;
+
+void cleanup_paths(void) {
+  free(secrets_db_abs_path);
+  free(pass_db_abs_path);
+}
 static int sql_exec_n_err(sqlite3 *db, char *sql_fmt_str, char *sql_err_msg,
                           int (*callback)(void *, int, char **, char **), void *callback_arg) {
   int rc = sqlite3_exec(db, sql_fmt_str, callback, callback_arg, &sql_err_msg);
@@ -24,7 +31,7 @@ static int sql_exec_n_err(sqlite3 *db, char *sql_fmt_str, char *sql_err_msg,
   return 1;
 }
 
-sqlite3 *open_db(char *db_name, int flags) {
+static sqlite3 *open_db(char *db_name, int flags) {
   sqlite3 *db = NULL;
   int rc = sqlite3_open_v2(db_name, &db, flags, NULL);
   if (rc != SQLITE_OK) {
@@ -34,24 +41,41 @@ sqlite3 *open_db(char *db_name, int flags) {
   return db;
 }
 
-int init_sqlite(char *db_name) {
+sqlite3 *open_db_wrap(int8_t db_name_flag, int flags) {
+  if (db_name_flag == P_DB)
+    return open_db(pass_db_abs_path, flags);
+  else if (db_name_flag == S_DB)
+    return open_db(secrets_db_abs_path, flags);
+
+  return NULL;
+}
+
+int init_sqlite(void) {
   char *sql_err_msg = NULL;
   char *sql_fmt_str = NULL;
   sqlite3 *db = NULL;
   sqlite3 *secrets_db = NULL;
   char *psswd_str = NULL;
   unsigned char *key = NULL;
+
   hashed_pass_t hash_obj;
   hashed_pass_t *tmp_hash_obj = NULL;
-  if (db_name == NULL) {
-    fprintf(stderr, "Error: empty DB name\n");
+
+  pass_db_abs_path = setpath(CRUXPASS_DB);
+  secrets_db_abs_path = setpath(AUTH_DB);
+
+  if (pass_db_abs_path == NULL || secrets_db_abs_path == NULL) {
+    fprintf(stderr, "Error: Failed to setup absolute paths\n");
     return C_ERR;
   }
 
   psswd_str = "cruxpassisgr8!";
   /*NOTE:  a temporary key, hash, and salt are generated for the creation of the new database*/
-  if ((db = open_db(db_name, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE)) == NULL) return C_ERR;
-  if ((secrets_db = open_db(AUTH_DB, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE)) == NULL) {
+  if ((db = open_db(pass_db_abs_path, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE)) == NULL) {
+    return C_ERR;
+  }
+
+  if ((secrets_db = open_db(secrets_db_abs_path, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE)) == NULL) {
     sqlite3_close(db);
     return C_ERR;
   }
@@ -171,77 +195,9 @@ int delete_password_v2(sqlite3 *db, int password_id) {
     return 0;
   }
 
-  fprintf(stderr, "INFO: %s\n", sqlite3_errmsg(db));
+  fprintf(stderr, "Note: password< %02d > is deleted", password_id);
   sqlite3_finalize(sql_stmt);
   return 1;
-}
-
-int lookup_password(char *db_name, char *searchstr) {
-  int id;
-  int found = 0;
-  sqlite3 *db = NULL;
-  char *fmt_searchstr = NULL;
-  sqlite3_stmt *sql_stmt = NULL;
-  const unsigned char *username;
-  const unsigned char *description;
-  const unsigned char *added_date;
-
-  if (db_name == NULL || searchstr == NULL) {
-    fprintf(stderr, "Error: empty DB name or search string\n");
-    return 0;
-  }
-
-  if ((fmt_searchstr = calloc(DESCLENGTH, sizeof(char))) == NULL) {
-    fprintf(stderr, "Error: memory allocation failed\n");
-    return 0;
-  }
-
-  /* NOTE: wrapping search_str in %___% for better searches in sql*/
-  snprintf(fmt_searchstr, DESCLENGTH, "%%%s%%", searchstr);
-  char *sql_fmt_str = "SELECT * FROM passwords WHERE username LIKE ? OR description LIKE ?;";
-
-  if ((db = open_db(db_name, SQLITE_OPEN_READWRITE)) == NULL) {
-    free(fmt_searchstr);
-    return 0;
-  }
-
-  if (sqlite3_prepare_v2(db, sql_fmt_str, -1, &sql_stmt, NULL) != SQLITE_OK) {
-    fprintf(stderr, "Error: failed to prepare statement: %s\n", sqlite3_errmsg(db));
-    sqlite3_close(db);
-    free(fmt_searchstr);
-    return 0;
-  }
-
-  if (sqlite3_bind_text(sql_stmt, 1, fmt_searchstr, -1, SQLITE_TRANSIENT) != SQLITE_OK ||
-      sqlite3_bind_text(sql_stmt, 2, fmt_searchstr, -1, SQLITE_TRANSIENT) != SQLITE_OK) {
-    fprintf(stderr, "Error: failed to bind sql statement: %s\n", sqlite3_errmsg(db));
-    sqlite3_finalize(sql_stmt);
-    sqlite3_close(db);
-    free(fmt_searchstr);
-    return 0;
-  }
-
-  while (sqlite3_step(sql_stmt) == SQLITE_ROW) {
-    found = 1;
-    id = sqlite3_column_int(sql_stmt, 0);
-    username = sqlite3_column_text(sql_stmt, 1);
-    description = sqlite3_column_text(sql_stmt, 3);
-    added_date = sqlite3_column_text(sql_stmt, 4);
-
-    /*TODO: Feed to tui search window*/
-    printf("ID: %d | Username: %s | Description: %s | Date Added: %s\n", id, username, description, added_date);
-  }
-
-  if (!found) {
-    /*TODO: Feed to tui search window*/
-    printf("Info: No matching records found for '%s'\n", searchstr);
-  }
-
-  sqlite3_finalize(sql_stmt);
-  sqlite3_close(db);
-  free(fmt_searchstr);
-
-  return 0;
 }
 
 int sql_prep_n_exec(sqlite3 *db, char *sql_fmt_str, sqlite3_stmt *sql_stmt, const char *field, int password_id) {
@@ -350,7 +306,6 @@ int load_data_from_db(sqlite3 *db, record_array_t *records) {
     return 0;
   }
 
-  sqlite3_close(db);
   return 1;
 }
 
@@ -364,7 +319,7 @@ hashed_pass_t *fetch_hash(void) {
   const unsigned char *salt = NULL;
   char *sql_str = "SELECT hash, salt FROM secrets;";
 
-  if ((db = open_db(AUTH_DB, SQLITE_OPEN_READWRITE)) == NULL) {
+  if ((db = open_db(secrets_db_abs_path, SQLITE_OPEN_READWRITE)) == NULL) {
     return NULL;
   }
 
@@ -411,7 +366,7 @@ int update_secret(hashed_pass_t *hash_obj) {
     return 0;
   }
 
-  if ((db = open_db(AUTH_DB, SQLITE_OPEN_READWRITE)) == NULL) {
+  if ((db = open_db(secrets_db_abs_path, SQLITE_OPEN_READWRITE)) == NULL) {
     return 0;
   }
   sql_fmt_str = "UPDATE secrets SET hash = ? WHERE id_secret = ?;";

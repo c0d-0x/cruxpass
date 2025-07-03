@@ -9,9 +9,10 @@
 #define USERNAME_WIDTH 30
 #define DESC_WIDTH 51
 #define CTRL(x) ((x) & 0x1f)
+#define DELETED -1
 
 typedef struct {
-  int64_t id;
+  int id;
   char username[MAX_FIELD_LEN];
   char description[MAX_FIELD_LEN];
 } record_t;

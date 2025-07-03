@@ -47,7 +47,7 @@ static void set_colors(void) {
   init_pair(1, COLOR_WHITE, COLOR_BLUE);    // Header
   init_pair(2, COLOR_BLACK, COLOR_WHITE);   // Selected row
   init_pair(3, COLOR_BLACK, COLOR_GREEN);   // Pagination info
-  init_pair(4, COLOR_WHITE, COLOR_RED);     // Status message
+  init_pair(4, COLOR_WHITE, COLOR_RED);     // Status message and DELETED
   init_pair(5, COLOR_BLACK, COLOR_YELLOW);  // Search highlight
 }
 
@@ -181,14 +181,14 @@ char *get_password(const char *prompt) {
 }
 
 int main_tui(sqlite3 *db) {
-  init_ncurses();
-  set_colors();
   records.data = NULL;
   records.size = 0;
   records.capacity = 0;
-  int ch = 0;
   char status_msg[100] = {0};
+  int ch = 0;
 
+  init_ncurses();
+  set_colors();
   if (!load_data_from_db(db, &records)) {
     cleanup();
     fprintf(stderr, "Error: Failed to load data from database\n");
@@ -254,7 +254,19 @@ int main_tui(sqlite3 *db) {
       case 'n':
         if (search_active && search_pattern[0] != '\0') search_next();
         break;
+      case 'd':
+        /* TODO: deletes a password and reload the TUI. */
+        if (!delete_password_v2(db, records.data[current_position].id)) {
+          display_status_message("Error: Failed to delete password");
+          getch();
+          cleanup();
+          return 0;
+        }
 
+        /* TODO: make display_status_message variadic to show pswd id */
+        display_status_message("Note: password deleted");
+        records.data[current_position].id = DELETED;
+        break;
       /* Refresh screen */
       case CTRL('r'):
         clear();
@@ -345,8 +357,15 @@ void display_table() {
   for (int64_t i = start_idx; i < end_idx; i++) {
     rec = &records.data[i];
     row = 3 + (i - start_idx);
+    if (rec->id == DELETED) {
+      attron(COLOR_PAIR(4));
+      mvprintw(row, start_x, "%-*d %-*s %-*.*s", ID_WIDTH, rec->id, USERNAME_WIDTH, rec->username, DESC_WIDTH,
+               DESC_WIDTH, rec->description);
+      attroff(COLOR_PAIR(4));
+      continue;
+    }
 
-    if (current_position == i) attron(COLOR_PAIR(2) | A_BOLD);
+    if (i == current_position) attron(COLOR_PAIR(2) | A_BOLD);
 
     /* TODO: Refactor search highlight */
     else if (search_active && search_pattern[0] != '\0' &&
@@ -354,10 +373,10 @@ void display_table() {
       attron(COLOR_PAIR(5));
     }
 
-    mvprintw(row, start_x, "%-*ld %-*s %-*.*s", ID_WIDTH, rec->id, USERNAME_WIDTH, rec->username, DESC_WIDTH,
-             DESC_WIDTH, rec->description);
+    mvprintw(row, start_x, "%-*d %-*s %-*.*s", ID_WIDTH, rec->id, USERNAME_WIDTH, rec->username, DESC_WIDTH, DESC_WIDTH,
+             rec->description);
 
-    if (current_position == i)
+    if (i == current_position)
       attroff(COLOR_PAIR(2) | A_BOLD);
     else if (search_active && search_pattern[0] != '\0' &&
              (strstr(rec->username, search_pattern) || strstr(rec->description, search_pattern))) {
@@ -439,7 +458,7 @@ void yank_current_record() {
   record_t *rec = &records.data[current_position];
 
   // TODO: fetch password and copy to clipboard
-  snprintf(yank_buffer, sizeof(yank_buffer), "ID: %ld, Username: %s, Description: %s", rec->id, rec->username,
+  snprintf(yank_buffer, sizeof(yank_buffer), "ID: %d, Username: %s, Description: %s", rec->id, rec->username,
            rec->description);
 }
 

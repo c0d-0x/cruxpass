@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Wformat-security 
+CFLAGS = -Wall -Wextra -Wformat-security -g
 
 # Libraries and paths
 LIBS = -lsodium -lncurses -lm -Llib -lsqlcipher -largparse -ldl -lpthread -lcrypto
