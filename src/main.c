@@ -1,6 +1,5 @@
+#include <ncurses.h>
 #define SQLITE_HAS_CODEC
-#include "../include/main.h"
-
 #include <sodium/utils.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,31 +9,36 @@
 #include "../include/cruxpass.h"
 #include "../include/database.h"
 #include "../include/enc.h"
+#include "../include/main.h"
 #include "../include/sqlcipher.h"
 #include "../include/tui.h"
+
+#define FILE_PATH_LEN 32
 
 static const char *const usages[] = {
     "cruxpass --options [FILE]",
     NULL,
 };
 
-static int save = 0;
-static int list = 0;
-static int version = 0;
-static int new_password = 0;
-static int password_id = 0;
-static int password_len = 0;
-static char *export_file = NULL;
-static char *import_file = NULL;
-static char *master_passd = NULL;
+static int save;
+static int list;
+static int version;
+static int new_password;
+static int password_id;
+static int password_len;
+static char *export_file;
+static char *import_file;
+static char *master_passd;
 
+sqlite3 *db;
+unsigned char *key;
+
+void cleanup_main(void);
 int parse_options(int argc, const char **argv);
 
 int main(int argc, const char **argv) {
-  sqlite3 *db = NULL;
-  unsigned char *key = NULL;
-
   if (!parse_options(argc, argv)) return EXIT_FAILURE;
+
   if (version != 0) {
     fprintf(stdout, "cruxpass version: %s\n", VERSION);
     fprintf(stdout, "Authur: %s\n", AUTHUR);
@@ -46,7 +50,7 @@ int main(int argc, const char **argv) {
       return EXIT_FAILURE;
     }
 
-    fprintf(stdout, "%s\n", secret);
+    fprintf(stdout, "secret: %s\n", secret);
     free(secret);
     return EXIT_SUCCESS;
   }
@@ -57,56 +61,50 @@ int main(int argc, const char **argv) {
   if (new_password != 0) {
     if (!create_new_master_passd(db, key)) {
       fprintf(stderr, "Error: Failed to Creat a New Password\n");
+      cleanup_main();
       return EXIT_FAILURE;
     }
   }
 
   if (save != 0) {
     password_t password_obj = {0};
+    clear();
     get_input("> username: ", password_obj.username, USERNAMELENGTH, 2, 0);
     get_input("> password: ", password_obj.passd, PASSLENGTH, 3, 0);
     get_input("> description: ", password_obj.description, DESCLENGTH, 4, 0);
-    if (!insert_password(db, &password_obj)) return EXIT_FAILURE;
+
+    if (!insert_password(db, &password_obj)) {
+      cleanup_main();
+      return EXIT_FAILURE;
+    }
   }
 
   if (import_file != NULL) {
-    if (strlen(import_file) > 20) {
-      fprintf(stderr, "Warning: Import file name too long\n");
-      sqlite3_close(db);
+    if (strnlen(import_file, FILE_PATH_LEN) > FILE_PATH_LEN) {
+      fprintf(stderr, "Warning: Import file name too long [MAX: %d character long]\n", FILE_PATH_LEN);
+      cleanup_main();
       return EXIT_FAILURE;
     }
 
-    char *real_path;
-    if ((real_path = realpath(import_file, NULL)) == NULL) {
-      fprintf(stderr, "Error: Failed to get realpath for: %s", import_file);
-      sqlite3_close(db);
+    if (!import_pass(db, import_file)) {
+      fprintf(stderr, "Error: Failed to import: %s", import_file);
+      cleanup_main();
       return EXIT_FAILURE;
     }
-
-    import_pass(db, real_path);
+    fprintf(stderr, "Info: Passwords imported successfully from: %s\n", import_file);
   }
 
   if (export_file != NULL) {
-    if (strlen(export_file) > 15) {
+    if (strnlen(export_file, FILE_PATH_LEN) > FILE_PATH_LEN) {
       fprintf(stderr, "Warning: Export file name too long: MAX_LEN =>15\n");
-      sqlite3_close(db);
+      cleanup_main();
       return EXIT_FAILURE;
     }
 
-    char export_file_path[256];
-    if (getcwd(export_file_path, sizeof(export_file_path)) == NULL) {
-      sqlite3_close(db);
-      perror("Error: Failed to get current path");
-      return EXIT_FAILURE;
-    }
-
-    export_file_path[strlen(export_file_path)] = '/';
-    strncat(export_file_path, export_file, sizeof(char) * 15);
     // TODO: fix set path to set paths to CRUXPASS_DB instead.
-
-    if (!export_pass(db, export_file_path)) {
-      sqlite3_close(db);
+    if (!export_pass(db, export_file)) {
       fprintf(stdout, "Info: Passwords exported to: %s\n", export_file);
+      cleanup_main();
       return EXIT_FAILURE;
     };
   }
@@ -115,7 +113,7 @@ int main(int argc, const char **argv) {
     /* WARNING: db object never used but necessary to initcrux() */
     /* sqlite3_close(db); */
     if (!delete_password_v2(db, password_id)) {
-      sqlite3_close(db);
+      cleanup_main();
       return EXIT_FAILURE;
     }
   }
@@ -124,13 +122,17 @@ int main(int argc, const char **argv) {
     main_tui(db);
   }
 
+  cleanup_main();
+  return EXIT_SUCCESS;
+}
+
+void cleanup_main(void) {
+  cleanup_paths();
   if (db != NULL) sqlite3_close(db);
   if (key != NULL) {
     sodium_memzero(key, KEY_LEN);
     sodium_free(key);
   }
-  cleanup_paths();
-  return EXIT_SUCCESS;
 }
 
 int parse_options(int argc, const char **argv) {

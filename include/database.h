@@ -11,9 +11,9 @@
 #include "sqlcipher.h"
 #include "tui.h"
 
-#define EDIT_DESCRIPTION 0x01
-#define EDIT_PASSWORD 0x02
-#define EDIT_USERNAME 0x04
+#define UPDATE_DESCRIPTION 0x01
+#define UPDATE_PASSWORD 0x02
+#define UPDATE_USERNAME 0x04
 
 #define P_DB 0x01
 #define S_DB 0x02
@@ -42,6 +42,5 @@ int delete_password_v2(sqlite3 *db, int password_id);
 int insert_secret(sqlite3 *db, hashed_pass_t *hash_obj);
 int insert_password(sqlite3 *db, password_t *password_obj);
 int update_password(char *db_name, char *description, char *passwd, char *username, int id, uint8_t flags);
-int sql_prep_n_exec(sqlite3 *db, char *sql_fmt_str, sqlite3_stmt *sql_stmt, const char *field, int password_id);
 
 #endif  // !SQLITE_H

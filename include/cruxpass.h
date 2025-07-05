@@ -65,7 +65,7 @@ char *setpath(char *);
  *
  * @param database_ptr the file pointer to the database
  * @param id the id of the password to delete
- * @return 0 on success, 1 on failure
+ * @return 1 on success, 0 on failure
  */
 int delete_password(FILE *, size_t);
 
@@ -82,7 +82,7 @@ int save_password(password_t *password, FILE *database_ptr);
  * Exports a password from the database to a file.
  * @param database_ptr the file pointer to the database
  * @param export_file the file path to export the password to
- * @return 0 on success, 1 on failure
+ * @return 1 on success, 0 on failure
  */
 int export_pass(sqlite3 *db, const char *export_file);
 
@@ -91,9 +91,9 @@ int export_pass(sqlite3 *db, const char *export_file);
  *
  * @param database_ptr the file pointer to the database
  * @param export_file the file path to export the password to
- * @return 0 on success, 1 on failure
+ * @return 1 on success, 0 on failure
  */
-void import_pass(sqlite3 *db, char *import_file);
+int import_pass(sqlite3 *db, char *import_file);
 
 /**
  * Creates a new master password for the database.
@@ -108,6 +108,5 @@ int create_new_master_passd(sqlite3 *db, unsigned char *key);
  * @param hashed_passd the hashed password
  * @return a password
  */
-// void list_all_passwords(FILE *database_ptr);
 
 #endif  // !CRUXPASS_H

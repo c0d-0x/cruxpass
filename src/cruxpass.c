@@ -36,6 +36,7 @@ char *random_password(int password_len) {
   for (i = 0; i < password_len && i < bank_len; i++) {
     password[i] = pass_bank[(int)randombytes_uniform(bank_len - 1)];
   }
+
   return password;
 }
 
@@ -43,10 +44,12 @@ char *random_password(int password_len) {
 char *setpath(char *relative_path) {
   char *abs_path = NULL;
   char *home = NULL;
+
   if ((abs_path = calloc(PATH_MAX + 1, sizeof(char))) == NULL) {
     fprintf(stderr, "Error: Memory Allocation Failed: calloc\n");
     return NULL;
   }
+
   if ((home = getenv("HOME")) == NULL) {
     perror("Error: Failed to get home path");
     free(abs_path);
@@ -89,7 +92,6 @@ int export_pass(sqlite3 *db, const char *export_file) {
 
   fclose(fp);
   sqlite3_finalize(sql_stmt);
-  sqlite3_close(db);
   return EXIT_SUCCESS;
 }
 
@@ -112,7 +114,7 @@ static int process_field(char *field, const int max_length, char *token, const c
   return 1;
 }
 
-void import_pass(sqlite3 *db, char *import_file) {
+int import_pass(sqlite3 *db, char *import_file) {
   FILE *fp;
   size_t line_number = 1;
   char *saveptr;
@@ -121,13 +123,13 @@ void import_pass(sqlite3 *db, char *import_file) {
 
   if ((fp = fopen(import_file, "r")) == NULL) {
     fprintf(stderr, "Error: Failed to open %s FILE: %s", import_file, strerror(errno));
-    return;
+    return 0;
   }
 
   if ((password_obj = malloc(sizeof(password_t))) == NULL) {
     fprintf(stderr, "Error: Memory Allocation Failed");
     fclose(fp);
-    return;
+    return 0;
   }
 
   while (fgets(buffer, BUFFMAX, fp) != NULL) {
@@ -150,7 +152,7 @@ void import_pass(sqlite3 *db, char *import_file) {
       continue;
     }
 
-    // TODO: proper error handling
+    /* TODO: proper error handling */
     insert_password(db, password_obj);
     line_number++;
     memset(password_obj, '\0', sizeof(password_t));
@@ -158,7 +160,7 @@ void import_pass(sqlite3 *db, char *import_file) {
 
   fclose(fp);
   free(password_obj);
-  return;
+  return 1;
 }
 
 sqlite3 *initcrux() {

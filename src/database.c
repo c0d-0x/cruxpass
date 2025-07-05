@@ -18,7 +18,10 @@ static char *pass_db_abs_path = NULL;
 void cleanup_paths(void) {
   free(secrets_db_abs_path);
   free(pass_db_abs_path);
+  secrets_db_abs_path = NULL;
+  pass_db_abs_path = NULL;
 }
+
 static int sql_exec_n_err(sqlite3 *db, char *sql_fmt_str, char *sql_err_msg,
                           int (*callback)(void *, int, char **, char **), void *callback_arg) {
   int rc = sqlite3_exec(db, sql_fmt_str, callback, callback_arg, &sql_err_msg);
@@ -200,7 +203,7 @@ int delete_password_v2(sqlite3 *db, int password_id) {
   return 1;
 }
 
-int sql_prep_n_exec(sqlite3 *db, char *sql_fmt_str, sqlite3_stmt *sql_stmt, const char *field, int password_id) {
+static int sql_prep_n_exec(sqlite3 *db, char *sql_fmt_str, sqlite3_stmt *sql_stmt, const char *field, int password_id) {
   if (sqlite3_prepare_v2(db, sql_fmt_str, -1, &sql_stmt, NULL) != SQLITE_OK) {
     fprintf(stderr, "Error: failed to prepare statement: %s\n", sqlite3_errmsg(db));
     return 0;
@@ -218,10 +221,11 @@ int sql_prep_n_exec(sqlite3 *db, char *sql_fmt_str, sqlite3_stmt *sql_stmt, cons
     fprintf(stderr, "Error: failed to execute statement: %s\n", sqlite3_errmsg(db));
     sqlite3_reset(sql_stmt);
     sqlite3_finalize(sql_stmt);
-
     return 0;
   }
 
+  sqlite3_reset(sql_stmt);
+  sqlite3_finalize(sql_stmt);
   return 1;
 }
 
@@ -240,7 +244,7 @@ int update_password(char *db_name, char *description, char *passwd_hash, char *u
     return 0;
   }
 
-  if (flags & EDIT_DESCRIPTION) {
+  if (flags & UPDATE_DESCRIPTION) {
     if (description == NULL) {
       fprintf(stderr, "Error: empty description\n");
       sqlite3_close(db);
@@ -257,7 +261,7 @@ int update_password(char *db_name, char *description, char *passwd_hash, char *u
     updated = 1;
   }
 
-  if (flags & EDIT_PASSWORD) {
+  if (flags & UPDATE_PASSWORD) {
     if (passwd_hash == NULL) {
       fprintf(stderr, "Error: empty password_hash\n");
       sqlite3_close(db);
@@ -274,7 +278,7 @@ int update_password(char *db_name, char *description, char *passwd_hash, char *u
     updated = 1;
   }
 
-  if (flags & EDIT_USERNAME) {
+  if (flags & UPDATE_USERNAME) {
     if (username == NULL) {
       fprintf(stderr, "Error: empty username\n");
       sqlite3_close(db);
@@ -290,6 +294,7 @@ int update_password(char *db_name, char *description, char *passwd_hash, char *u
     sqlite3_finalize(sql_stmt);
     updated = 1;
   }
+
   if (updated) printf("Info: password ID: %d updated", password_id);
   sqlite3_close(db);
   return 1;
@@ -299,7 +304,7 @@ int load_data_from_db(sqlite3 *db, record_array_t *records) {
   char *err_msg = 0;
 
   const char *sql = "SELECT id_password, username, description FROM passwords ORDER BY id_password;";
-  if (sqlite3_exec(db, sql, callback, records, &err_msg) != SQLITE_OK) {
+  if (sqlite3_exec(db, sql, callback_feed_tui, records, &err_msg) != SQLITE_OK) {
     fprintf(stderr, "Error: SQL error: %s\n", err_msg);
     sqlite3_free(err_msg);
     sqlite3_close(db);
@@ -346,13 +351,13 @@ hashed_pass_t *fetch_hash(void) {
     }
   }
 
-  sqlite3_finalize(sql_stmt);
   if (hash_obj == NULL) {
     fprintf(stderr, "Warning: empty secrets db\n");
     sqlite3_close(db);
     return NULL;
   }
 
+  sqlite3_finalize(sql_stmt);
   sqlite3_close(db);
   return hash_obj;
 }

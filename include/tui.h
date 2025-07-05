@@ -5,7 +5,7 @@
 #include "../include/sqlcipher.h"
 
 #define MAX_FIELD_LEN 100
-#define ID_WIDTH 6
+#define ID_WIDTH 8
 #define USERNAME_WIDTH 30
 #define DESC_WIDTH 51
 #define CTRL(x) ((x) & 0x1f)
@@ -32,23 +32,21 @@ typedef struct {
  * @param max_len Maximum length of password
  * @return The length of the password entered (0 if canceled with ESC)
  */
-char *get_password(const char *prompt);
-void init_ncurses();
 char *get_input(const char *prompt, char *input, const int text_len, int cod_y, int cod_x);
+char *get_password(const char *prompt);
+void init_ncurses(void);
 int main_tui(sqlite3 *db);
-int callback(void *data, int argc, char **argv, char **column_name);
-void display_table();
-void display_pagination_info();
-void cleanup();
+int callback_feed_tui(void *data, int argc, char **argv, char **column_name);
+void display_table(void);
+void display_pagination_info(void);
+void cleanup(void);
 void add_record(record_array_t *arr, record_t rec);
 void free_records(record_array_t *arr);
-void handle_search();
-void search_next();
-void yank_current_record();
+void handle_search(void);
+void search_next(void);
+void yank_current_record(void);
 void display_status_message(const char *message);
-
 void draw_border(WINDOW *window);
-
 WINDOW *create_main_window(int win_hight, int win_width);
 
 #endif  // !TUI_H

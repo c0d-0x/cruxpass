@@ -245,7 +245,8 @@ int main_tui(sqlite3 *db) {
 
       case 'y':
         yank_current_record();
-        snprintf(status_msg, sizeof(status_msg), "INFO: Record yanked to buffer");
+        snprintf(status_msg, sizeof(status_msg), "Info: Record ID <%d> yanked to buffer",
+                 records.data[current_position].id);
         break;
 
       case '/':
@@ -282,6 +283,7 @@ int main_tui(sqlite3 *db) {
 
     if (status_msg[0] != '\0') {
       display_status_message(status_msg);
+      memset(status_msg, 0, 100);
     }
 
     refresh();
@@ -315,7 +317,7 @@ void free_records(record_array_t *arr) {
   arr->capacity = 0;
 }
 
-int callback(void *data, int argc, char **argv, char **azColName) {
+int callback_feed_tui(void *data, int argc, char **argv, char **azColName) {
   record_array_t *arr = (record_array_t *)data;
   record_t rec;
 
@@ -337,7 +339,7 @@ int callback(void *data, int argc, char **argv, char **azColName) {
   return 0;
 }
 
-void display_table() {
+void display_table(void) {
   int64_t start_idx = current_page * records_per_page;
   int64_t end_idx = start_idx + records_per_page;
   if (end_idx > records.size) end_idx = records.size;
@@ -346,6 +348,7 @@ void display_table() {
   int start_x = (term_width - table_width) / 2;
   if (start_x < 0) start_x = 0;
 
+  clear();
   attron(COLOR_PAIR(1) | A_BOLD);
   mvprintw(1, start_x, "%-*s %-*s %-*s", ID_WIDTH, "ID", USERNAME_WIDTH, "USERNAME", DESC_WIDTH, "DESCRIPTION");
   attroff(COLOR_PAIR(1) | A_BOLD);
@@ -357,9 +360,10 @@ void display_table() {
   for (int64_t i = start_idx; i < end_idx; i++) {
     rec = &records.data[i];
     row = 3 + (i - start_idx);
+
     if (rec->id == DELETED) {
       attron(COLOR_PAIR(4));
-      mvprintw(row, start_x, "%-*d %-*s %-*.*s", ID_WIDTH, rec->id, USERNAME_WIDTH, rec->username, DESC_WIDTH,
+      mvprintw(row, start_x, "%-*s %-*s %-*.*s", ID_WIDTH, "DELETED", USERNAME_WIDTH, rec->username, DESC_WIDTH,
                DESC_WIDTH, rec->description);
       attroff(COLOR_PAIR(4));
       continue;
@@ -390,7 +394,7 @@ void display_table() {
   refresh();
 }
 
-void display_pagination_info() {
+void display_pagination_info(void) {
   int total_pages = (records.size + records_per_page - 1) / records_per_page;
   char pagination_info[100];
   snprintf(pagination_info, sizeof(pagination_info), "Status: Page %d of %d | Record %ld of %d", current_page + 1,
@@ -406,12 +410,12 @@ void display_pagination_info() {
   refresh();
 }
 
-void cleanup() {
+void cleanup(void) {
   free_records(&records);
   reset_term();
 }
 
-void handle_search() {
+void handle_search(void) {
   echo();
   curs_set(1);
   memset(search_pattern, 0, sizeof(search_pattern));
@@ -432,7 +436,7 @@ void handle_search() {
   }
 }
 
-void search_next() {
+void search_next(void) {
   int start_pos = current_position + 1;
   if (start_pos >= records.size) start_pos = 0;
 
@@ -452,7 +456,7 @@ void search_next() {
   }
 }
 
-void yank_current_record() {
+void yank_current_record(void) {
   if (current_position < 0 || current_position >= records.size) return;
 
   record_t *rec = &records.data[current_position];
