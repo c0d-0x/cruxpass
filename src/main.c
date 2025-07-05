@@ -28,7 +28,6 @@ static int password_id;
 static int password_len;
 static char *export_file;
 static char *import_file;
-static char *master_passd;
 
 sqlite3 *db;
 unsigned char *key;
@@ -69,9 +68,9 @@ int main(int argc, const char **argv) {
   if (save != 0) {
     password_t password_obj = {0};
     clear();
-    get_input("> username: ", password_obj.username, USERNAMELENGTH, 2, 0);
-    get_input("> password: ", password_obj.passd, PASSLENGTH, 3, 0);
-    get_input("> description: ", password_obj.description, DESCLENGTH, 4, 0);
+    get_input("> username: ", password_obj.username, USERNAME_LENGTH, 2, 0);
+    get_input("> password: ", password_obj.passd, PASSWORD_LENGTH, 3, 0);
+    get_input("> description: ", password_obj.description, DESC_LENGTH, 4, 0);
 
     if (!insert_password(db, &password_obj)) {
       cleanup_main();

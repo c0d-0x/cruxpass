@@ -18,7 +18,7 @@
 #define KEY_LEN crypto_box_SEEDBYTES
 #define PASS_HASH_LEN crypto_pwhash_STRBYTES
 #define SALT_HASH_LEN crypto_pwhash_SALTBYTES
-#define BUFFMAX PASSLENGTH + USERNAMELENGTH + DESCLENGTH
+#define BUFFMAX PASSWORD_LENGTH + USERNAME_LENGTH + DESC_LENGTH
 
 typedef struct {
   char hash[PASS_HASH_LEN + 1];

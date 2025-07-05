@@ -85,7 +85,7 @@ int create_new_master_passd(sqlite3 *db, unsigned char *key) {
     return ret;
   }
 
-  if (strncmp(new_passd, temp_passd, PASSLENGTH) != 0) {
+  if (strncmp(new_passd, temp_passd, MASTER_LENGTH) != 0) {
     fprintf(stderr, "Error: Passwords do not match\n");
     sodium_free(new_passd);
     sodium_free(temp_passd);

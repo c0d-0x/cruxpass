@@ -126,15 +126,15 @@ char *get_password(const char *prompt) {
     return NULL;
   }
 
-  if ((password = (char *)sodium_malloc(PASSLENGTH + 1)) == NULL) {
+  if ((password = (char *)sodium_malloc(MASTER_LENGTH + 1)) == NULL) {
     fprintf(stderr, "Error: Failed to allocate memory\n");
     reset_term();
     return NULL;
   }
 
-  sodium_memzero((void *const)password, PASSLENGTH + 1);
+  sodium_memzero((void *const)password, MASTER_LENGTH + 1);
   center_y = (term_height / 2) + 4;
-  center_x = (term_width - prompt_len - PASSLENGTH) / 2;
+  center_x = (term_width - prompt_len - MASTER_LENGTH) / 2;
 
   if (center_x < 0) center_x = 0;
   if (center_y >= term_height - 1) center_y = term_height - 2;
@@ -150,7 +150,7 @@ char *get_password(const char *prompt) {
 
     if (ch == ESC_KEY) {
       display_status_message("Password entry canceled\n");
-      sodium_memzero((void *const)password, PASSLENGTH);
+      sodium_memzero((void *const)password, MASTER_LENGTH);
       sodium_free(password);
       reset_term();
       return NULL;
@@ -166,7 +166,7 @@ char *get_password(const char *prompt) {
         move(center_y, center_x + prompt_len + i);
         refresh();
       }
-    } else if (i < PASSLENGTH && ch >= 32 && ch <= 126) {
+    } else if (i < MASTER_LENGTH && ch >= 32 && ch <= 126) {
       password[i] = ch;
       move(center_y, center_x + prompt_len + i);
       addch('*');
@@ -245,7 +245,7 @@ int main_tui(sqlite3 *db) {
 
       case 'y':
         yank_current_record();
-        snprintf(status_msg, sizeof(status_msg), "Info: Record ID <%d> yanked to buffer",
+        snprintf(status_msg, sizeof(status_msg), "Info: Record ID <%ld> yanked to buffer",
                  records.data[current_position].id);
         break;
 
@@ -297,7 +297,7 @@ void add_record(record_array_t *arr, record_t rec) {
   if (arr->size >= arr->capacity) {
     int new_capacity = arr->capacity == 0 ? 8 : arr->capacity * 2;
     record_t *new_data = realloc(arr->data, new_capacity * sizeof(record_t));
-    if (!new_data) {
+    if (new_data == NULL) {
       fprintf(stderr, "Error: Memory allocation failed\n");
       return;
     }
@@ -324,16 +324,16 @@ int callback_feed_tui(void *data, int argc, char **argv, char **azColName) {
   rec.id = argv[0] ? atoi(argv[0]) : 0;
 
   if (argv[1] != NULL)
-    strncpy(rec.username, argv[1], MAX_FIELD_LEN - 1);
+    strncpy(rec.username, argv[1], USERNAME_LENGTH - 1);
   else
     strcpy(rec.username, "");
-  rec.username[MAX_FIELD_LEN - 1] = '\0';
+  rec.username[USERNAME_LENGTH - 1] = '\0';
 
   if (argv[2] != NULL)
-    strncpy(rec.description, argv[2], MAX_FIELD_LEN - 1);
+    strncpy(rec.description, argv[2], DESC_LENGTH - 1);
   else
     strcpy(rec.description, "");
-  rec.description[MAX_FIELD_LEN - 1] = '\0';
+  rec.description[DESC_LENGTH - 1] = '\0';
 
   add_record(arr, rec);
   return 0;
@@ -362,10 +362,10 @@ void display_table(void) {
     row = 3 + (i - start_idx);
 
     if (rec->id == DELETED) {
-      attron(COLOR_PAIR(4));
+      attron(COLOR_PAIR(4) | A_DIM);
       mvprintw(row, start_x, "%-*s %-*s %-*.*s", ID_WIDTH, "DELETED", USERNAME_WIDTH, rec->username, DESC_WIDTH,
                DESC_WIDTH, rec->description);
-      attroff(COLOR_PAIR(4));
+      attroff(COLOR_PAIR(4) | A_DIM);
       continue;
     }
 
@@ -377,8 +377,8 @@ void display_table(void) {
       attron(COLOR_PAIR(5));
     }
 
-    mvprintw(row, start_x, "%-*d %-*s %-*.*s", ID_WIDTH, rec->id, USERNAME_WIDTH, rec->username, DESC_WIDTH, DESC_WIDTH,
-             rec->description);
+    mvprintw(row, start_x, "%-*ld %-*s %-*.*s", ID_WIDTH, rec->id, USERNAME_WIDTH, rec->username, DESC_WIDTH,
+             DESC_WIDTH, rec->description);
 
     if (i == current_position)
       attroff(COLOR_PAIR(2) | A_BOLD);
@@ -462,7 +462,7 @@ void yank_current_record(void) {
   record_t *rec = &records.data[current_position];
 
   // TODO: fetch password and copy to clipboard
-  snprintf(yank_buffer, sizeof(yank_buffer), "ID: %d, Username: %s, Description: %s", rec->id, rec->username,
+  snprintf(yank_buffer, sizeof(yank_buffer), "ID: %ld, Username: %s, Description: %s", rec->id, rec->username,
            rec->description);
 }
 

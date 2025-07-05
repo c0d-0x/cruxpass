@@ -1,19 +1,21 @@
 #ifndef TUI_H
 #define TUI_H
 #include <ncurses.h>
+#include <sys/types.h>
 
 #include "../include/sqlcipher.h"
+#include "cruxpass.h"
 
 #define MAX_FIELD_LEN 100
-#define ID_WIDTH 8
+#define ID_WIDTH 7
 #define USERNAME_WIDTH 30
 #define DESC_WIDTH 51
 #define CTRL(x) ((x) & 0x1f)
 #define DELETED -1
 
 typedef struct {
-  int id;
-  char username[MAX_FIELD_LEN];
+  ssize_t id;
+  char username[USERNAME_LENGTH];
   char description[MAX_FIELD_LEN];
 } record_t;
 

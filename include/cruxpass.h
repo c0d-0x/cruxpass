@@ -25,24 +25,24 @@
 #include "sqlcipher.h"
 
 #define PASS_MIN 8
-#define PASSLENGTH 45
-#define CHUNK_SIZE 4096
-#define USERNAMELENGTH 30
-#define DESCLENGTH 100
+#define MASTER_LENGTH 45
+#define PASSWORD_LENGTH 128
+#define USERNAME_LENGTH 30
+#define DESC_LENGTH 100
 #define CRUXPASS_DB "workspaces/cruxpass/.cruxpass/cruxpass.db"
 #define AUTH_DB "workspaces/cruxpass/.cruxpass/auth.db"
 
 typedef struct {
-  int id;
-  char username[USERNAMELENGTH + 1];
-  char passd[PASSLENGTH + 1];
-  char description[DESCLENGTH + 1];
+  ssize_t id;
+  char username[USERNAME_LENGTH + 1];
+  char passd[PASSWORD_LENGTH + 1];
+  char description[DESC_LENGTH + 1];
 } password_t;
 
 typedef enum {
-  C_ERR,     // C_ERR: Error
-  C_RET_OK,  // C_RET_0K: Custom OK-1
-  C_RET_OKK  // C_RET_OKK: Custom OK-2
+  C_ERR,     // C_ERR:     Error
+  C_RET_OK,  // C_RET_0K:  Custom OK 1
+  C_RET_OKK  // C_RET_OKK: Custom OK 2
 } ERROR_T;
 
 /**

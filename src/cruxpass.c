@@ -12,12 +12,11 @@
 #include "../include/sqlcipher.h"
 
 char *random_password(int password_len) {
-  if (password_len < PASS_MIN || password_len > PASSLENGTH) {
-    printf("Warning: Password must be at least 8 & %d characters long\n", PASSLENGTH);
+  if (password_len < PASS_MIN || password_len > PASSWORD_LENGTH) {
+    printf("Warning: Password must be at least 8 & %d characters long\n", PASSWORD_LENGTH);
     return NULL;
   }
 
-  int i;
   char *password = NULL;
   char pass_bank[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789#%&()_+={}[-]:<@>?";
   const int bank_len = sizeof(pass_bank) / sizeof(char);
@@ -33,7 +32,7 @@ char *random_password(int password_len) {
     return NULL;
   }
 
-  for (i = 0; i < password_len && i < bank_len; i++) {
+  for (int i = 0; i < password_len && i < bank_len; i++) {
     password[i] = pass_bank[(int)randombytes_uniform(bank_len - 1)];
   }
 
@@ -75,7 +74,7 @@ int export_pass(sqlite3 *db, const char *export_file) {
 
   char *sql_str = "SELECT username, password_hash, description FROM passwords;";
   if (sqlite3_prepare_v2(db, sql_str, -1, &sql_stmt, NULL) != SQLITE_OK) {
-    fprintf(stderr, "Error: failed to prepare statement: %s\n", sqlite3_errmsg(db));
+    fprintf(stderr, "Error: Failed to prepare statement: %s\n", sqlite3_errmsg(db));
     sqlite3_close(db);
     fclose(fp);
     return 0;
@@ -135,18 +134,18 @@ int import_pass(sqlite3 *db, char *import_file) {
   while (fgets(buffer, BUFFMAX, fp) != NULL) {
     buffer[strcspn(buffer, "\n")] = '\0';
 
-    if (!process_field(password_obj->username, USERNAMELENGTH, strtok_r(buffer, ",", &saveptr), "Username",
+    if (!process_field(password_obj->username, USERNAME_LENGTH, strtok_r(buffer, ",", &saveptr), "Username",
                        line_number)) {
       line_number++;
       continue;
     }
 
-    if (!process_field(password_obj->passd, PASSLENGTH, strtok_r(NULL, ",", &saveptr), "Password", line_number)) {
+    if (!process_field(password_obj->passd, PASSWORD_LENGTH, strtok_r(NULL, ",", &saveptr), "Password", line_number)) {
       line_number++;
       continue;
     }
 
-    if (!process_field(password_obj->description, DESCLENGTH, strtok_r(NULL, ",", &saveptr), "Description",
+    if (!process_field(password_obj->description, DESC_LENGTH, strtok_r(NULL, ",", &saveptr), "Description",
                        line_number)) {
       line_number++;
       continue;
