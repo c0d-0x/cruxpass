@@ -13,6 +13,7 @@
 #include <sodium/core.h>
 #include <sodium/crypto_pwhash.h>
 #include <sodium/utils.h>
+#include <sqlcipher/sqlite3.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,7 +23,7 @@
 #include <uchar.h>
 #include <unistd.h>
 
-#include "sqlcipher.h"
+/* #include "sqlcipher.h" */
 
 #define PASS_MIN 8
 #define MASTER_LENGTH 45

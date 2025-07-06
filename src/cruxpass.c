@@ -1,6 +1,7 @@
 #include "../include/cruxpass.h"
 
 #include <errno.h>
+#include <sqlcipher/sqlite3.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,7 +10,6 @@
 
 #include "../include/database.h"
 #include "../include/enc.h"
-#include "../include/sqlcipher.h"
 
 char *random_password(int password_len) {
   if (password_len < PASS_MIN || password_len > PASSWORD_LENGTH) {

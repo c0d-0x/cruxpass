@@ -10,7 +10,6 @@
 #include "../include/database.h"
 #include "../include/enc.h"
 #include "../include/main.h"
-#include "../include/sqlcipher.h"
 #include "../include/tui.h"
 
 #define FILE_PATH_LEN 32

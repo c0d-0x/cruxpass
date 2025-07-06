@@ -3,7 +3,6 @@
 #include <ncurses.h>
 #include <sys/types.h>
 
-#include "../include/sqlcipher.h"
 #include "cruxpass.h"
 
 #define MAX_FIELD_LEN 100

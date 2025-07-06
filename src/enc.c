@@ -10,7 +10,6 @@
 
 #include "../include/cruxpass.h"
 #include "../include/database.h"
-#include "../include/sqlcipher.h"
 #include "../include/tui.h"
 
 int generate_key_pass_hash(unsigned char *key, char *hash, const char *const passd_str, unsigned char *salt,

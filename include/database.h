@@ -1,6 +1,7 @@
 #ifndef SQLITE_H
 #define SQLITE_H
 #define SQLITE_HAS_CODEC
+#include <sqlcipher/sqlite3.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,7 +9,7 @@
 
 #include "cruxpass.h"
 #include "enc.h"
-#include "sqlcipher.h"
+/* #include "sqlcipher.h" */
 #include "tui.h"
 
 #define UPDATE_DESCRIPTION 0x01

@@ -12,7 +12,6 @@
 
 #include "../include/cruxpass.h"
 #include "../include/database.h"
-#include "../include/sqlite3.h"
 
 #define ESC_KEY 27
 #define LEN(arr) (sizeof(arr) / sizeof((arr)[0]))
