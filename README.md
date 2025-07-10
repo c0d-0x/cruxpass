@@ -60,7 +60,19 @@ Encrypted Storage: All data is securely stored using an encrypted SQLite databas
 
 Authentication: A master password is required to access or modify any stored data. By default, cruxpass uses: `cruxpassisgr8!` as it's master password.
 
-CLI Best Practices: For maximum security, consider clearing your shell history after using options like -s that include plaintext passwords.
+cruxpass enforces internal limits on the size of various fields to ensure performance and security. Here are the default constraints:
+
+Minimum Password Length: Passwords must be at least 8 characters long to ensure basic security.
+
+Master Password Length: The master password can be up to 44 characters long (excluding the null terminator). This provides enough entropy while remaining user-manageable.
+
+Stored Password Length: Each saved password can be up to 127 characters long. This accommodates strong, randomly generated credentials.
+
+Username Length: Usernames are limited to 29 characters. This is sufficient for most standard account identifiers.
+
+Description Length: Each password entry can include a label or description up to 99 characters, helping users recognize the purpose of stored credentials.
+
+These limits are designed to balance usability with memory safety and can be adjusted in the source code if needed
 
 📈 Roadmap
 Future enhancements may include:

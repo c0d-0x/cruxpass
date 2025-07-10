@@ -1,6 +1,5 @@
 #include "../include/database.h"
 
-#include <ncurses.h>
 #include <sodium/core.h>
 #include <sodium/utils.h>
 #include <sqlcipher/sqlite3.h>

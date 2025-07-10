@@ -1,6 +1,5 @@
 #include "../include/enc.h"
 
-#include <ncurses.h>
 #include <sodium/utils.h>
 #include <stdint.h>
 #include <stdio.h>

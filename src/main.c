@@ -152,8 +152,8 @@ int parse_options(int argc, const char **argv) {
   struct argparse argparse;
   argparse_init(&argparse, options, usages, ARGPARSE_STOP_AT_NON_OPTION);
   argparse_describe(&argparse,
-                    "cruxpass is a lightweight, command-line password manager designed to secure,\n"
-                    "store and retrieve encrypted credentials. It uses an SQLite database to manage\n"
+                    "cruxpass is a lightweight, command-line password manager designed to securely\n"
+                    "store and retrieve encrypted credentials. It uses an SQLCipher database to manage\n"
                     "entries, with authentication separated from password storage. Access is controlled\n"
                     "via a master password.\n",
                     "\ncruxpass emphasizes simplicity, security, and efficiency for developers and power users.\n");

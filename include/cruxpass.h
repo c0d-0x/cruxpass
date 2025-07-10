@@ -8,7 +8,6 @@
 #define CRUXPASS_H
 #define SQLITE_HAS_CODEC
 #include <ctype.h>
-#include <ncurses.h>
 #include <sodium.h>
 #include <sodium/core.h>
 #include <sodium/crypto_pwhash.h>

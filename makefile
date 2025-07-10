@@ -2,29 +2,25 @@ CC = gcc
 CFLAGS = -Wall -Wextra -Wformat-security -g
 
 # Libraries and paths
-LIBS = -lsodium -lncurses -lm -Llib -lsqlcipher -largparse -ldl -lpthread -lcrypto
+LIBS = -lsodium -lncursesw -lm  -lsqlcipher -ldl -lpthread 
 INCLUDES = -Iinclude
+STATIC_LIBS = ./lib/*.a
 
-# Source and object files
 SRC = $(wildcard src/*.c) 
 OBJ = $(SRC:.c=.o)
 
-# Target binary
 BIN = ./bin/cruxpass
 
-# Installation prefix (default /usr/local)
 PREFIX ?= /usr/local
 DESTDIR = $(HOME)/.local/share/cruxpass
 
-# Main target
 all: $(BIN)
 	@rm -f src/*.o 
+	@ echo 'Build complete...'
 
-# Build executable
 $(BIN): $(OBJ)
-	@$(CC) $(CFLAGS) $(OBJ) -o $@ $(LIBS)
+	@$(CC) $(CFLAGS) $(OBJ) -o $@ $(LIBS) $(STATIC_LIBS)
 
-# Compile source files into object files
 %.o: %.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 

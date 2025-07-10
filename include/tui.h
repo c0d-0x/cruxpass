@@ -1,5 +1,6 @@
 #ifndef TUI_H
 #define TUI_H
+#define NCURSES_WIDECHAR 1
 #include <ncurses.h>
 #include <sys/types.h>
 
@@ -11,6 +12,12 @@
 #define DESC_WIDTH 51
 #define CTRL(x) ((x) & 0x1f)
 #define DELETED -1
+
+#define HEADER 1
+#define SELECTED 2
+#define PAGINATION 3
+#define STATUS 4
+#define SEARCH 5
 
 typedef struct {
   ssize_t id;

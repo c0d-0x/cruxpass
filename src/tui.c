@@ -1,4 +1,3 @@
-#define NCURSES_WIDECHAR 1
 #include "../include/tui.h"
 
 #include <locale.h>
@@ -43,11 +42,11 @@ static void reset_term(void) {
 
 static void set_colors(void) {
   start_color();
-  init_pair(1, COLOR_WHITE, COLOR_BLUE);    // Header
-  init_pair(2, COLOR_BLACK, COLOR_WHITE);   // Selected row
-  init_pair(3, COLOR_BLACK, COLOR_GREEN);   // Pagination info
-  init_pair(4, COLOR_WHITE, COLOR_RED);     // Status message and DELETED
-  init_pair(5, COLOR_BLACK, COLOR_YELLOW);  // Search highlight
+  init_pair(HEADER, COLOR_WHITE, COLOR_BLUE);
+  init_pair(SELECTED, COLOR_BLACK, COLOR_WHITE);
+  init_pair(PAGINATION, COLOR_BLACK, COLOR_GREEN);
+  init_pair(STATUS, COLOR_WHITE, COLOR_RED);
+  init_pair(SEARCH, COLOR_BLACK, COLOR_YELLOW);
 }
 
 /**
@@ -139,9 +138,9 @@ char *get_password(const char *prompt) {
   if (center_y >= term_height - 1) center_y = term_height - 2;
 
   move(center_y, center_x);
-  attron(COLOR_PAIR(4) | A_BOLD);
+  attron(COLOR_PAIR(STATUS) | A_BOLD);
   printw("%s", prompt);
-  attroff(COLOR_PAIR(4) | A_BOLD);
+  attroff(COLOR_PAIR(STATUS) | A_BOLD);
   refresh();
 
   while (1) {
@@ -348,9 +347,9 @@ void display_table(void) {
   if (start_x < 0) start_x = 0;
 
   clear();
-  attron(COLOR_PAIR(1) | A_BOLD);
+  attron(COLOR_PAIR(HEADER) | A_BOLD);
   mvprintw(1, start_x, "%-*s %-*s %-*s", ID_WIDTH, "ID", USERNAME_WIDTH, "USERNAME", DESC_WIDTH, "DESCRIPTION");
-  attroff(COLOR_PAIR(1) | A_BOLD);
+  attroff(COLOR_PAIR(HEADER) | A_BOLD);
 
   mvprintw(2, start_x, "%.*s", table_width,
            "-------------------------------------------------------------------------------------------------------");
@@ -361,29 +360,29 @@ void display_table(void) {
     row = 3 + (i - start_idx);
 
     if (rec->id == DELETED) {
-      attron(COLOR_PAIR(4) | A_DIM);
+      attron(COLOR_PAIR(STATUS) | A_DIM);
       mvprintw(row, start_x, "%-*s %-*s %-*.*s", ID_WIDTH, "DELETED", USERNAME_WIDTH, rec->username, DESC_WIDTH,
                DESC_WIDTH, rec->description);
-      attroff(COLOR_PAIR(4) | A_DIM);
+      attroff(COLOR_PAIR(STATUS) | A_DIM);
       continue;
     }
 
-    if (i == current_position) attron(COLOR_PAIR(2) | A_BOLD);
+    if (i == current_position) attron(COLOR_PAIR(SELECTED) | A_BOLD);
 
     /* TODO: Refactor search highlight */
     else if (search_active && search_pattern[0] != '\0' &&
              (strstr(rec->username, search_pattern) || strstr(rec->description, search_pattern))) {
-      attron(COLOR_PAIR(5));
+      attron(COLOR_PAIR(SEARCH));
     }
 
     mvprintw(row, start_x, "%-*ld %-*s %-*.*s", ID_WIDTH, rec->id, USERNAME_WIDTH, rec->username, DESC_WIDTH,
              DESC_WIDTH, rec->description);
 
     if (i == current_position)
-      attroff(COLOR_PAIR(2) | A_BOLD);
+      attroff(COLOR_PAIR(SELECTED) | A_BOLD);
     else if (search_active && search_pattern[0] != '\0' &&
              (strstr(rec->username, search_pattern) || strstr(rec->description, search_pattern))) {
-      attroff(COLOR_PAIR(5));
+      attroff(COLOR_PAIR(SEARCH));
     }
   }
 
@@ -403,9 +402,9 @@ void display_pagination_info(void) {
   int start_x = (term_width - info_len) / 2;
   if (start_x < 0) start_x = 0;
 
-  attron(COLOR_PAIR(3) | A_BOLD);
+  attron(COLOR_PAIR(PAGINATION) | A_BOLD);
   mvprintw(term_height - 2, start_x, "%s", pagination_info);
-  attroff(COLOR_PAIR(3) | A_BOLD);
+  attroff(COLOR_PAIR(PAGINATION) | A_BOLD);
   refresh();
 }
 
@@ -470,8 +469,8 @@ void display_status_message(const char *message) {
   int start_x = (term_width - msg_len) / 2;
   if (start_x < 0) start_x = 0;
 
-  attron(COLOR_PAIR(4) | A_BOLD);
+  attron(COLOR_PAIR(STATUS) | A_BOLD);
   mvprintw(term_height - 3, start_x, "%s", message);
-  attroff(COLOR_PAIR(4) | A_BOLD);
+  attroff(COLOR_PAIR(STATUS) | A_BOLD);
   refresh();
 }
