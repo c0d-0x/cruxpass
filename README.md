@@ -60,7 +60,8 @@ Encrypted Storage: All data is securely stored using an encrypted SQLite databas
 
 Authentication: A master password is required to access or modify any stored data. By default, cruxpass uses: `cruxpassisgr8!` as it's master password.
 
-cruxpass enforces internal limits on the size of various fields to ensure performance and security. Here are the default constraints:
+> [!NOTE]
+> cruxpass enforces internal limits on the size of various fields to ensure performance and security. Here are the default constraints:
 
 Minimum Password Length: Passwords must be at least 8 characters long to ensure basic security.
 
