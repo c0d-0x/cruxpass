@@ -73,16 +73,14 @@ Authentication: A master password is required to access or modify any stored dat
 📈 Roadmap
 Future enhancements may include:
 
-🔐 Additional password management tooling and CLI utilities
+- 📋 Clipboard integration on password generation
 
-📋 Clipboard integration on password generation
+- 🧠 Advanced search and filtering within stored data
 
-🧠 Advanced search and filtering within stored data
-
-🧪 Unit testing for critical functions
+- 🧪 Unit testing for critical functions
 
 🤝 Contributing
 Contributions are welcome! Please open issues or submit pull requests to help improve cruxPass.
 
 📄 License
-cruxPass is licensed under the MIT License. See the LICENSE file for details.
+cruxpass is licensed under the MIT License. See the LICENSE file for details.
