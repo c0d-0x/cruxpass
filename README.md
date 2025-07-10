@@ -80,7 +80,9 @@ Future enhancements may include:
 - 🧪 Unit testing for critical functions
 
 🤝 Contributing
-Contributions are welcome! Please open issues or submit pull requests to help improve cruxPass.
+
+Contributions are welcome! Please open issues or submit pull requests to help improve cruxpass.
 
 📄 License
+
 cruxpass is licensed under the MIT License. See the LICENSE file for details.
