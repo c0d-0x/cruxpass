@@ -11,35 +11,35 @@
 #include "../include/database.h"
 #include "../include/enc.h"
 
-char *random_password(int password_len) {
-  if (password_len < PASS_MIN || password_len > PASSWORD_LENGTH) {
-    printf("Warning: Password must be at least 8 & %d characters long\n", PASSWORD_LENGTH);
+char *random_secret(int secret_len) {
+  if (secret_len < PASS_MIN || secret_len > SECRET_MAX_LEN) {
+    printf("Warning: Password must be at least 8 & %d characters long\n", SECRET_MAX_LEN);
     return NULL;
   }
 
-  char *password = NULL;
-  char pass_bank[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789#%&()_+={}[-]:<@>?";
-  const int bank_len = sizeof(pass_bank) / sizeof(char);
+  char *secret = NULL;
+  char secret_bank[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789#%&()_+={}[-]:<@>?";
+  const int bank_len = sizeof(secret_bank) / sizeof(char);
 
-  if ((password = calloc(sizeof(char) * password_len, sizeof(char))) == NULL) {
+  if ((secret = calloc(sizeof(char) * secret_len, sizeof(char))) == NULL) {
     perror("Error: Fail to creat password");
     return NULL;
   }
 
   if (sodium_init() == -1) {
-    free(password);
+    free(secret);
     fprintf(stderr, "Error: Failed to initialize libsodium");
     return NULL;
   }
 
-  for (int i = 0; i < password_len && i < bank_len; i++) {
-    password[i] = pass_bank[(int)randombytes_uniform(bank_len - 1)];
+  for (int i = 0; i < secret_len && i < bank_len; i++) {
+    secret[i] = secret_bank[(int)randombytes_uniform(bank_len - 1)];
   }
 
-  return password;
+  return secret;
 }
 
-/*TODO: use defined paths instead of changing dir*/
+/*TODO: use defined  abs paths instead of changing dir*/
 char *setpath(char *relative_path) {
   char *abs_path = NULL;
   char *home = NULL;
@@ -60,11 +60,11 @@ char *setpath(char *relative_path) {
   return abs_path;
 }
 
-int export_pass(sqlite3 *db, const char *export_file) {
+int export_secrets(sqlite3 *db, const char *export_file) {
   FILE *fp;
   const unsigned char *username = NULL;
   const unsigned char *description = NULL;
-  const unsigned char *password = NULL;
+  const unsigned char *secret = NULL;
   sqlite3_stmt *sql_stmt = NULL;
 
   if ((fp = fopen(export_file, "wb")) == NULL) {
@@ -72,7 +72,7 @@ int export_pass(sqlite3 *db, const char *export_file) {
     return EXIT_FAILURE;
   }
 
-  char *sql_str = "SELECT username, password_hash, description FROM passwords;";
+  char *sql_str = "SELECT username, secret, description FROM passwords;";
   if (sqlite3_prepare_v2(db, sql_str, -1, &sql_stmt, NULL) != SQLITE_OK) {
     fprintf(stderr, "Error: Failed to prepare statement: %s\n", sqlite3_errmsg(db));
     sqlite3_close(db);
@@ -80,13 +80,13 @@ int export_pass(sqlite3 *db, const char *export_file) {
     return 0;
   }
 
-  fputs("Username,Password,Description\n", fp);
+  fputs("Username,secret,Description\n", fp);
   while (sqlite3_step(sql_stmt) == SQLITE_ROW) {
     username = sqlite3_column_text(sql_stmt, 0);
-    password = sqlite3_column_text(sql_stmt, 1);
+    secret = sqlite3_column_text(sql_stmt, 1);
     description = sqlite3_column_text(sql_stmt, 2);
 
-    fprintf(fp, "%s,%s,%s\n", username, password, description);
+    fprintf(fp, "%s,%s,%s\n", username, secret, description);
   }
 
   fclose(fp);
@@ -113,19 +113,19 @@ static int process_field(char *field, const int max_length, char *token, const c
   return 1;
 }
 
-int import_pass(sqlite3 *db, char *import_file) {
+int import_secrets(sqlite3 *db, char *import_file) {
   FILE *fp;
   size_t line_number = 1;
   char *saveptr;
   char buffer[BUFFMAX + 1];
-  password_t *password_obj = NULL;
+  secret_t *secret_record = NULL;
 
   if ((fp = fopen(import_file, "r")) == NULL) {
     fprintf(stderr, "Error: Failed to open %s FILE: %s", import_file, strerror(errno));
     return 0;
   }
 
-  if ((password_obj = malloc(sizeof(password_t))) == NULL) {
+  if ((secret_record = malloc(sizeof(secret_t))) == NULL) {
     fprintf(stderr, "Error: Memory Allocation Failed");
     fclose(fp);
     return 0;
@@ -134,31 +134,31 @@ int import_pass(sqlite3 *db, char *import_file) {
   while (fgets(buffer, BUFFMAX, fp) != NULL) {
     buffer[strcspn(buffer, "\n")] = '\0';
 
-    if (!process_field(password_obj->username, USERNAME_LENGTH, strtok_r(buffer, ",", &saveptr), "Username",
+    if (!process_field(secret_record->username, USERNAME_MAX_LEN, strtok_r(buffer, ",", &saveptr), "Username",
                        line_number)) {
       line_number++;
       continue;
     }
 
-    if (!process_field(password_obj->passd, PASSWORD_LENGTH, strtok_r(NULL, ",", &saveptr), "Password", line_number)) {
+    if (!process_field(secret_record->secret, SECRET_MAX_LEN, strtok_r(NULL, ",", &saveptr), "Password", line_number)) {
       line_number++;
       continue;
     }
 
-    if (!process_field(password_obj->description, DESC_LENGTH, strtok_r(NULL, ",", &saveptr), "Description",
+    if (!process_field(secret_record->description, DESC_MAX_LEN, strtok_r(NULL, ",", &saveptr), "Description",
                        line_number)) {
       line_number++;
       continue;
     }
 
     /* TODO: proper error handling */
-    insert_password(db, password_obj);
+    insert_record(db, secret_record);
     line_number++;
-    memset(password_obj, '\0', sizeof(password_t));
+    memset(secret_record, '\0', sizeof(secret_t));
   }
 
   fclose(fp);
-  free(password_obj);
+  free(secret_record);
   return 1;
 }
 

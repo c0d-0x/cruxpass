@@ -50,7 +50,7 @@ static void set_colors(void) {
 }
 
 /**
- * Displays centered ASCII art (4 bytes wide char) for "cruxpass"
+ * Displays centered ASCII art (4 bytes wide char)
  */
 static void display_ascii_art(void) {
   const wchar_t *ascii_art[] = {L" ▄████▄   █    ██ ▒██   ██▒ ██▓███   ▄▄▄        ██████   ██████    ",
@@ -101,7 +101,7 @@ char *get_input(const char *prompt, char *input, const int input_len, int cod_y,
   return input;
 }
 
-char *get_password(const char *prompt) {
+char *get_secret(const char *prompt) {
   if (prompt == NULL) {
     fprintf(stderr, "Error: No prompt provided\n");
     return NULL;
@@ -124,15 +124,15 @@ char *get_password(const char *prompt) {
     return NULL;
   }
 
-  if ((password = (char *)sodium_malloc(MASTER_LENGTH + 1)) == NULL) {
+  if ((password = (char *)sodium_malloc(MASTER_MAX_LEN + 1)) == NULL) {
     fprintf(stderr, "Error: Failed to allocate memory\n");
     reset_term();
     return NULL;
   }
 
-  sodium_memzero((void *const)password, MASTER_LENGTH + 1);
+  sodium_memzero((void *const)password, MASTER_MAX_LEN + 1);
   center_y = (term_height / 2) + 4;
-  center_x = (term_width - prompt_len - MASTER_LENGTH) / 2;
+  center_x = (term_width - prompt_len - MASTER_MAX_LEN) / 2;
 
   if (center_x < 0) center_x = 0;
   if (center_y >= term_height - 1) center_y = term_height - 2;
@@ -148,7 +148,7 @@ char *get_password(const char *prompt) {
 
     if (ch == ESC_KEY) {
       display_status_message("Password entry canceled\n");
-      sodium_memzero((void *const)password, MASTER_LENGTH);
+      sodium_memzero((void *const)password, MASTER_MAX_LEN);
       sodium_free(password);
       reset_term();
       return NULL;
@@ -164,7 +164,7 @@ char *get_password(const char *prompt) {
         move(center_y, center_x + prompt_len + i);
         refresh();
       }
-    } else if (i < MASTER_LENGTH && ch >= 32 && ch <= 126) {
+    } else if (i < MASTER_MAX_LEN && ch >= 32 && ch <= 126) {
       password[i] = ch;
       move(center_y, center_x + prompt_len + i);
       addch('*');
@@ -187,7 +187,7 @@ int main_tui(sqlite3 *db) {
 
   init_ncurses();
   set_colors();
-  if (!load_data_from_db(db, &records)) {
+  if (!load_records(db, &records)) {
     cleanup();
     fprintf(stderr, "Error: Failed to load data from database\n");
     return 0;
@@ -255,7 +255,7 @@ int main_tui(sqlite3 *db) {
         break;
       case 'd':
         /* TODO: deletes a password and reload the TUI. */
-        if (!delete_password_v2(db, records.data[current_position].id)) {
+        if (!delete_record(db, records.data[current_position].id)) {
           display_status_message("Error: Failed to delete password");
           getch();
           cleanup();
@@ -322,16 +322,16 @@ int callback_feed_tui(void *data, int argc, char **argv, char **azColName) {
   rec.id = argv[0] ? atoi(argv[0]) : 0;
 
   if (argv[1] != NULL)
-    strncpy(rec.username, argv[1], USERNAME_LENGTH - 1);
+    strncpy(rec.username, argv[1], USERNAME_MAX_LEN - 1);
   else
     strcpy(rec.username, "");
-  rec.username[USERNAME_LENGTH - 1] = '\0';
+  rec.username[USERNAME_MAX_LEN - 1] = '\0';
 
   if (argv[2] != NULL)
-    strncpy(rec.description, argv[2], DESC_LENGTH - 1);
+    strncpy(rec.description, argv[2], DESC_MAX_LEN - 1);
   else
     strcpy(rec.description, "");
-  rec.description[DESC_LENGTH - 1] = '\0';
+  rec.description[DESC_MAX_LEN - 1] = '\0';
 
   add_record(arr, rec);
   return 0;

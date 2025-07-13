@@ -25,19 +25,20 @@
 /* #include "sqlcipher.h" */
 
 #define PASS_MIN 8
-#define MASTER_LENGTH 45
-#define PASSWORD_LENGTH 128
-#define USERNAME_LENGTH 30
-#define DESC_LENGTH 100
+#define PATH_LEN 256
+#define MASTER_MAX_LEN 45
+#define SECRET_MAX_LEN 128
+#define USERNAME_MAX_LEN 30
+#define DESC_MAX_LEN 100
 #define CRUXPASS_DB "workspaces/cruxpass/.cruxpass/cruxpass.db"
 #define AUTH_DB "workspaces/cruxpass/.cruxpass/auth.db"
 
 typedef struct {
   ssize_t id;
-  char username[USERNAME_LENGTH + 1];
-  char passd[PASSWORD_LENGTH + 1];
-  char description[DESC_LENGTH + 1];
-} password_t;
+  char username[USERNAME_MAX_LEN + 1];
+  char secret[SECRET_MAX_LEN + 1];
+  char description[DESC_MAX_LEN + 1];
+} secret_t;
 
 typedef enum {
   C_ERR,     // C_ERR:     Error
@@ -45,10 +46,6 @@ typedef enum {
   C_RET_OKK  // C_RET_OKK: Custom OK 2
 } ERROR_T;
 
-/**
- * Prints the help menu to the terminal.
- */
-void help(void);
 sqlite3 *initcrux(void);
 
 /**
@@ -57,34 +54,16 @@ sqlite3 *initcrux(void);
  * @param password_len the length of the password to generate
  * @return a pointer to the generated password, or NULL on failure
  */
-char *random_password(int password_len);
+char *random_secret(int secret_len);
 char *setpath(char *);
 
 /**
- * Deletes a password from the given file pointer.
- *
- * @param database_ptr the file pointer to the database
- * @param id the id of the password to delete
- * @return 1 on success, 0 on failure
- */
-int delete_password(FILE *, size_t);
-
-/**
- * Saves a password to the given file pointer.
- *
- * @param password the password to save
- * @param database_ptr the file pointer to the database
- * @return 0 on success, 1 on failure
- */
-int save_password(password_t *password, FILE *database_ptr);
-
-/**
  * Exports a password from the database to a file.
  * @param database_ptr the file pointer to the database
  * @param export_file the file path to export the password to
  * @return 1 on success, 0 on failure
  */
-int export_pass(sqlite3 *db, const char *export_file);
+int export_secrets(sqlite3 *db, const char *export_file);
 
 /**
  * Exports a password from the database to a file.
@@ -93,7 +72,7 @@ int export_pass(sqlite3 *db, const char *export_file);
  * @param export_file the file path to export the password to
  * @return 1 on success, 0 on failure
  */
-int import_pass(sqlite3 *db, char *import_file);
+int import_secrets(sqlite3 *db, char *import_file);
 
 /**
  * Creates a new master password for the database.
@@ -101,12 +80,6 @@ int import_pass(sqlite3 *db, char *import_file);
  * @param master_passd the master password to hash
  * @return 0 on success, 1 on failure
  */
-int create_new_master_passd(sqlite3 *db, unsigned char *key);
-
-/**
- * Takes in a hashed password and returns a password.
- * @param hashed_passd the hashed password
- * @return a password
- */
+int create_new_master_secret(sqlite3 *db, unsigned char *key);
 
 #endif  // !CRUXPASS_H

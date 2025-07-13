@@ -44,7 +44,7 @@ int main(int argc, const char **argv) {
 
   if (password_len != 0) {
     char *secret = NULL;
-    if ((secret = random_password(password_len)) == NULL) {
+    if ((secret = random_secret(password_len)) == NULL) {
       return EXIT_FAILURE;
     }
 
@@ -57,7 +57,7 @@ int main(int argc, const char **argv) {
   if ((key = decryption_helper(db)) == NULL) return EXIT_FAILURE;
 
   if (new_password != 0) {
-    if (!create_new_master_passd(db, key)) {
+    if (!create_new_master_secret(db, key)) {
       fprintf(stderr, "Error: Failed to Creat a New Password\n");
       cleanup_main();
       return EXIT_FAILURE;
@@ -65,13 +65,13 @@ int main(int argc, const char **argv) {
   }
 
   if (save != 0) {
-    password_t password_obj = {0};
+    secret_t record = {0};
     clear();
-    get_input("> username: ", password_obj.username, USERNAME_LENGTH, 2, 0);
-    get_input("> password: ", password_obj.passd, PASSWORD_LENGTH, 3, 0);
-    get_input("> description: ", password_obj.description, DESC_LENGTH, 4, 0);
+    get_input("> username: ", record.username, USERNAME_MAX_LEN, 2, 0);
+    get_input("> secret: ", record.secret, SECRET_MAX_LEN, 3, 0);
+    get_input("> description: ", record.description, DESC_MAX_LEN, 4, 0);
 
-    if (!insert_password(db, &password_obj)) {
+    if (!insert_record(db, &record)) {
       cleanup_main();
       return EXIT_FAILURE;
     }
@@ -84,7 +84,7 @@ int main(int argc, const char **argv) {
       return EXIT_FAILURE;
     }
 
-    if (!import_pass(db, import_file)) {
+    if (!import_secrets(db, import_file)) {
       fprintf(stderr, "Error: Failed to import: %s", import_file);
       cleanup_main();
       return EXIT_FAILURE;
@@ -100,7 +100,7 @@ int main(int argc, const char **argv) {
     }
 
     // TODO: fix set path to set paths to CRUXPASS_DB instead.
-    if (!export_pass(db, export_file)) {
+    if (!export_secrets(db, export_file)) {
       fprintf(stdout, "Info: Passwords exported to: %s\n", export_file);
       cleanup_main();
       return EXIT_FAILURE;
@@ -110,7 +110,7 @@ int main(int argc, const char **argv) {
   if (password_id != 0) {
     /* WARNING: db object never used but necessary to initcrux() */
     /* sqlite3_close(db); */
-    if (!delete_password_v2(db, password_id)) {
+    if (!delete_record(db, password_id)) {
       cleanup_main();
       return EXIT_FAILURE;
     }

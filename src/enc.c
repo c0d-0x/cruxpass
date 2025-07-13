@@ -11,9 +11,10 @@
 #include "../include/database.h"
 #include "../include/tui.h"
 
-int generate_key_pass_hash(unsigned char *key, char *hash, const char *const passd_str, unsigned char *salt,
-                           uint8_t flag) {
+int generate_key_or_hash(unsigned char *key, char *hash, const char *const passd_str, unsigned char *salt,
+                         uint8_t flag) {
   if (sodium_init() == -1) {
+    fprintf(stderr, "Error: Failed to initialize libsodium");
     return 0;
   }
 
@@ -39,6 +40,7 @@ int generate_key_pass_hash(unsigned char *key, char *hash, const char *const pas
       return 0;
     }
   }
+
   return 1;
 }
 
@@ -50,12 +52,12 @@ sqlite3 *decrypt(sqlite3 *db, unsigned char *key) {
   return db;
 }
 
-hashed_pass_t *authenticate(char *master_passd) {
+hash_t *authenticate(char *master_passd) {
   if (sodium_init() == -1) {
     return NULL;
   }
 
-  hashed_pass_t *hash_obj = NULL;
+  hash_t *hash_obj = NULL;
   if ((hash_obj = fetch_hash()) == NULL) {
     return NULL;
   }
@@ -70,47 +72,47 @@ hashed_pass_t *authenticate(char *master_passd) {
   return hash_obj;
 }
 
-int create_new_master_passd(sqlite3 *db, unsigned char *key) {
+int create_new_master_secret(sqlite3 *db, unsigned char *key) {
   int ret = 0;
-  char *new_passd = NULL;
-  char *temp_passd = NULL;
+  char *new_secret = NULL;
+  char *temp_secret = NULL;
   unsigned char *new_key = NULL;
-  hashed_pass_t *new_hashed_password = NULL;
+  hash_t *new_hashed_secret = NULL;
 
   // TODO: Refactor _get_new_password
-  if ((new_passd = get_password("New Password: ")) == NULL ||
-      (temp_passd = get_password("Confirm New Password: ")) == NULL) {
+  if ((new_secret = get_secret("New Password: ")) == NULL ||
+      (temp_secret = get_secret("Confirm New Password: ")) == NULL) {
     return ret;
   }
 
-  if (strncmp(new_passd, temp_passd, MASTER_LENGTH) != 0) {
+  if (strncmp(new_secret, temp_secret, MASTER_MAX_LEN) != 0) {
     fprintf(stderr, "Error: Passwords do not match\n");
-    sodium_free(new_passd);
-    sodium_free(temp_passd);
+    sodium_free(new_secret);
+    sodium_free(temp_secret);
     return ret;
   }
 
   if (sodium_init() == -1) {
     fprintf(stderr, "Error: Failed to initialize libsodium");
-    sodium_free(new_passd);
-    sodium_free(temp_passd);
+    sodium_free(new_secret);
+    sodium_free(temp_secret);
     return ret;
   }
 
-  new_hashed_password = calloc(1, sizeof(hashed_pass_t));
+  new_hashed_secret = calloc(1, sizeof(hash_t));
   new_key = (unsigned char *)sodium_malloc(sizeof(unsigned char) * KEY_LEN);
 
-  if (new_hashed_password == NULL || key == NULL || new_key == NULL) {
+  if (new_hashed_secret == NULL || key == NULL || new_key == NULL) {
     fprintf(stderr, "Error: Memory Allocation Fail\n");
-    sodium_free(new_passd);
-    sodium_free(temp_passd);
+    sodium_free(new_secret);
+    sodium_free(temp_secret);
     return ret;
   }
 
-  randombytes_buf(new_hashed_password->salt, sizeof(unsigned char) * SALT_HASH_LEN);
+  randombytes_buf(new_hashed_secret->salt, sizeof(unsigned char) * SALT_HASH_LEN);
 
-  if (!generate_key_pass_hash(new_key, new_hashed_password->hash, (const char *const)new_passd,
-                              new_hashed_password->salt, GEN_KEY | GEN_HASH)) {
+  if (!generate_key_or_hash(new_key, new_hashed_secret->hash, (const char *const)new_secret, new_hashed_secret->salt,
+                            GEN_KEY | GEN_HASH)) {
     fprintf(stderr, "Error: Failed to Create New Password\n");
     goto free_all;
   }
@@ -121,16 +123,16 @@ int create_new_master_passd(sqlite3 *db, unsigned char *key) {
     goto free_all;
   }
 
-  if (!update_secret(new_hashed_password)) {
+  if (!update_hash(new_hashed_secret)) {
     sqlite3_close(db);
     goto free_all;
   }
 
   ret = 1;
 free_all:
-  free(new_hashed_password);
-  sodium_free(new_passd);
-  sodium_free(temp_passd);
+  free(new_hashed_secret);
+  sodium_free(new_secret);
+  sodium_free(temp_secret);
   sodium_free(new_key);
   return ret;
 }
@@ -142,7 +144,7 @@ free_all:
 unsigned char *decryption_helper(sqlite3 *db) {
   char *master_passd = NULL;
   unsigned char *key;
-  hashed_pass_t *hashed_password = NULL;
+  hash_t *hashed_password = NULL;
 
   if (sodium_init() == -1) {
     fprintf(stderr, "Error: Failed to initialize libsodium");
@@ -154,7 +156,7 @@ unsigned char *decryption_helper(sqlite3 *db) {
     return NULL;
   }
 
-  if ((master_passd = get_password("Master Password: ")) == NULL) {
+  if ((master_passd = get_secret("Master Password: ")) == NULL) {
     sodium_free(key);
     return NULL;
   }
@@ -166,7 +168,7 @@ unsigned char *decryption_helper(sqlite3 *db) {
     return NULL;
   }
 
-  if (!generate_key_pass_hash(key, NULL, master_passd, hashed_password->salt, GEN_KEY)) {
+  if (!generate_key_or_hash(key, NULL, master_passd, hashed_password->salt, GEN_KEY)) {
     fprintf(stderr, "Error: Failed to generate description key\n");
     free(hashed_password);
     sodium_free(master_passd);

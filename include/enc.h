@@ -17,12 +17,12 @@
 #define KEY_LEN crypto_box_SEEDBYTES
 #define PASS_HASH_LEN crypto_pwhash_STRBYTES
 #define SALT_HASH_LEN crypto_pwhash_SALTBYTES
-#define BUFFMAX PASSWORD_LENGTH + USERNAME_LENGTH + DESC_LENGTH
+#define BUFFMAX SECRET_MAX_LEN + USERNAME_MAX_LEN + DESC_MAX_LEN
 
 typedef struct {
   char hash[PASS_HASH_LEN + 1];
   unsigned char salt[SALT_HASH_LEN];
-} hashed_pass_t;
+} hash_t;
 
 unsigned char *decryption_helper(sqlite3 *db);
 
@@ -31,7 +31,7 @@ unsigned char *decryption_helper(sqlite3 *db);
  * @param master_passd the master password to hash
  * @return a hashed password
  */
-hashed_pass_t *authenticate(char *master_passdm);
+hash_t *authenticate(char *master_passdm);
 
 /**
  * Generates a key or  password hash for encryption and decryption.
@@ -43,7 +43,7 @@ hashed_pass_t *authenticate(char *master_passdm);
  * @param tag a flag indicating whether to generate a decryption key or not
  * @return 0 on success, 1 on failure
  */
-int generate_key_pass_hash(u_char *key, char *hash, const char *const passwd_str, u_char *salt, uint8_t flag);
+int generate_key_or_hash(u_char *key, char *hash, const char *const passwd_str, u_char *salt, uint8_t flag);
 
 /**
  * Decrypts a sqlite3 db using the given key.

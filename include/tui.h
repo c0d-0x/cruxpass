@@ -21,7 +21,7 @@
 
 typedef struct {
   ssize_t id;
-  char username[USERNAME_LENGTH];
+  char username[USERNAME_MAX_LEN];
   char description[MAX_FIELD_LEN];
 } record_t;
 
@@ -41,7 +41,7 @@ typedef struct {
  * @return The length of the password entered (0 if canceled with ESC)
  */
 char *get_input(const char *prompt, char *input, const int text_len, int cod_y, int cod_x);
-char *get_password(const char *prompt);
+char *get_secret(const char *prompt);
 void init_ncurses(void);
 int main_tui(sqlite3 *db);
 int callback_feed_tui(void *data, int argc, char **argv, char **column_name);
