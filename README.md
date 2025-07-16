@@ -74,10 +74,11 @@ This project is currently under development.
 
 > [!WARNING]
 > DO NOT USE THIS BRANCH
+> 
 > This branch is left here for only refrence purposes.
 > Future plans include:
 
 - Better encryption implementation
 - Integration with other password management tools
-- Integration with sql-light for password storage
+- Integration with sqlite for password storage
 - Copy password to clipboard on generation
