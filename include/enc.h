@@ -24,34 +24,9 @@ typedef struct {
   unsigned char salt[SALT_HASH_LEN];
 } hash_t;
 
-unsigned char *decryption_helper(sqlite3 *db);
-
-/**
- * Takes in a master password and returns a hashed password.
- * @param master_passd the master password to hash
- * @return a hashed password
- */
 hash_t *authenticate(char *master_passdm);
-
-/**
- * Generates a key or  password hash for encryption and decryption.
- *
- * @param key a pointer to a buffer to store the encryption key
- * @param hashed_password a pointer to a buffer to store the hashed password
- * @param new_passd the plaintext password to hash
- * @param salt a pointer to the salt for key generation
- * @param tag a flag indicating whether to generate a decryption key or not
- * @return 0 on success, 1 on failure
- */
 int generate_key_or_hash(u_char *key, char *hash, const char *const passwd_str, u_char *salt, uint8_t flag);
-
-/**
- * Decrypts a sqlite3 db using the given key.
- *
- * @param db a sqlite3 db handler, already opened
- * @param key the encryption key
- * @return 0 on success, 1 on failure
- */
 sqlite3 *decrypt(sqlite3 *db, unsigned char *key);
+unsigned char *decryption_helper(sqlite3 *db);
 
 #endif  // !ENC_H

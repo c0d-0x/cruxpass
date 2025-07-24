@@ -9,6 +9,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <cstdint>
+
 #include "../include/cruxpass.h"
 #include "../include/database.h"
 
@@ -85,7 +87,7 @@ static void display_ascii_art(void) {
   refresh();
 }
 
-char *get_input(const char *prompt, char *input, const int input_len, int cod_y, int cod_x) {
+char *get_input(const char *prompt, char *input, const int input_len, int cood_y, int cood_x) {
   if (prompt == NULL) {
     fprintf(stderr, "Error: No prompt provided\n");
     return NULL;
@@ -95,7 +97,7 @@ char *get_input(const char *prompt, char *input, const int input_len, int cod_y,
   curs_set(1);
   echo();
 
-  mvprintw(cod_y, cod_x, prompt, NULL);
+  mvprintw(cood_y, cood_x, prompt, NULL);
   getnstr(input, input_len);
   reset_term();
   return input;
@@ -178,6 +180,68 @@ char *get_secret(const char *prompt) {
   return password;
 }
 
+static bool _choice(const char *prompt, int cood_y, int cood_x) {
+  mvprintw(1, 1, "%s [y/n]: ", prompt);
+
+  int cc = getch();
+  if (cc == 'y' || cc == 'Y' || cc == KEY_ENTER || cc == '\n') {
+    return true;
+  }
+
+  return false;
+}
+
+static void do_updates(sqlite3 *db, ssize_t secret_id) {
+  init_ncurses();
+  curs_set(1);
+  echo();
+  int start_x = (term_width - TABLE_WIDTH) / 2 + 18;
+  int start_y = (term_height / 2);
+  if (start_x < 0) start_x = 0;
+  if (start_x < 0) start_x = 0;
+
+  mvprintw(start_y++, start_x, "1: update username");
+  mvprintw(start_y++, start_x, "2: update description");
+  mvprintw(start_y++, start_x, "3: update secrets");
+  mvprintw(start_y++, start_x, "4: update all three");
+
+  mvprintw(start_y++, start_x + 4, "> option: ");
+  int cc = getch();
+
+  int8_t flags = 0;
+  secret_t secret_rec = {0};
+  mvprintw(start_y++, start_x, "Enter fields: ");
+  if (cc == '1') {
+    get_input("> username: ", secret_rec.username, USERNAME_MAX_LEN, start_y, start_x + 4);
+    update_record(db, &secret_rec, secret_id, UPDATE_USERNAME);
+
+    memset((void *)records.data[current_position].username, 0, USERNAME_MAX_LEN);
+    memcpy(records.data[current_position].username, secret_rec.username, USERNAME_MAX_LEN);
+  } else if (cc == '2') {
+    get_input("> description: ", secret_rec.description, DESC_MAX_LEN, start_y, start_x + 4);
+    update_record(db, &secret_rec, secret_id, UPDATE_DESCRIPTION);
+
+    memset((void *)records.data[current_position].description, 0, DESC_MAX_LEN);
+    memcpy(records.data[current_position].description, secret_rec.description, DESC_MAX_LEN);
+  } else if (cc == '3') {
+    get_input("> secret: ", secret_rec.secret, SECRET_MAX_LEN, start_y, start_x + 4);
+    update_record(db, &secret_rec, secret_id, UPDATE_SECRET);
+  } else if (cc == '4') {
+    get_input("> username: ", secret_rec.username, USERNAME_MAX_LEN, start_y++, start_x + 4);
+    get_input("> secret: ", secret_rec.secret, SECRET_MAX_LEN, start_y++, start_x + 4);
+    get_input("> description: ", secret_rec.description, DESC_MAX_LEN, start_y, start_x + 4);
+
+    update_record(db, &secret_rec, secret_id, UPDATE_USERNAME | UPDATE_DESCRIPTION | UPDATE_SECRET);
+
+    memset((void *)records.data[current_position].username, 0, USERNAME_MAX_LEN + DESC_MAX_LEN);
+    memcpy(records.data[current_position].username, secret_rec.username, USERNAME_MAX_LEN);
+    memcpy(records.data[current_position].description, secret_rec.description, DESC_MAX_LEN);
+  }
+
+  curs_set(0);
+  noecho();
+}
+
 int main_tui(sqlite3 *db) {
   records.data = NULL;
   records.size = 0;
@@ -204,7 +268,7 @@ int main_tui(sqlite3 *db) {
 
     current_page = current_position / records_per_page;
 
-    /* Handles input (limited to vim keys j, k, l, h, y, /, page navigation: Ctrl+b, Ctrl+f and refresh TUI Ctrl +r) */
+    /* Handles input (limited to vim keys j, k, l, h, y, /, page navigation: Ctrl+b, Ctrl+f and update Record: u) */
     switch (ch) {
       case 'k':
         if (current_position > 0) current_position--;
@@ -266,9 +330,12 @@ int main_tui(sqlite3 *db) {
         display_status_message("Note: password deleted");
         records.data[current_position].id = DELETED;
         break;
-      /* Refresh screen */
-      case CTRL('r'):
-        clear();
+
+        /* update/modify records */
+      case 'u':
+        /* TODO: options for updating either a username, secret or description */
+        do_updates(db, records.data[current_position].id);
+        display_status_message("Note: record updated");
         break;
       default:
         refresh();
@@ -342,8 +409,7 @@ void display_table(void) {
   int64_t end_idx = start_idx + records_per_page;
   if (end_idx > records.size) end_idx = records.size;
 
-  int table_width = ID_WIDTH + USERNAME_WIDTH + DESC_WIDTH + 2;
-  int start_x = (term_width - table_width) / 2;
+  int start_x = (term_width - TABLE_WIDTH) / 2;
   if (start_x < 0) start_x = 0;
 
   clear();
@@ -351,7 +417,7 @@ void display_table(void) {
   mvprintw(1, start_x, "%-*s %-*s %-*s", ID_WIDTH, "ID", USERNAME_WIDTH, "USERNAME", DESC_WIDTH, "DESCRIPTION");
   attroff(COLOR_PAIR(HEADER) | A_BOLD);
 
-  mvprintw(2, start_x, "%.*s", table_width,
+  mvprintw(2, start_x, "%.*s", TABLE_WIDTH,
            "-------------------------------------------------------------------------------------------------------");
   record_t *rec = NULL;
   int64_t row;

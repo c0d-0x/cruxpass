@@ -1,5 +1,6 @@
+#include "../include/main.h"
+
 #include <ncurses.h>
-#define SQLITE_HAS_CODEC
 #include <sodium/utils.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,7 +10,6 @@
 #include "../include/cruxpass.h"
 #include "../include/database.h"
 #include "../include/enc.h"
-#include "../include/main.h"
 #include "../include/tui.h"
 
 #define FILE_PATH_LEN 32

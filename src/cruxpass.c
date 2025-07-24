@@ -44,7 +44,7 @@ char *setpath(char *relative_path) {
   char *abs_path = NULL;
   char *home = NULL;
 
-  if ((abs_path = calloc(PATH_MAX + 1, sizeof(char))) == NULL) {
+  if ((abs_path = calloc(MAX_PATH_LEN + 1, sizeof(char))) == NULL) {
     fprintf(stderr, "Error: Memory Allocation Failed: calloc\n");
     return NULL;
   }
@@ -55,8 +55,8 @@ char *setpath(char *relative_path) {
     return NULL;
   }
 
-  snprintf(abs_path, PATH_MAX, "%s/", home);
-  strncat(abs_path, relative_path, (PATH_MAX - strlen(home)));
+  snprintf(abs_path, MAX_PATH_LEN, "%s/", home);
+  strncat(abs_path, relative_path, (MAX_PATH_LEN - strlen(home)));
   return abs_path;
 }
 

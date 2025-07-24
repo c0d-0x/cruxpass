@@ -231,19 +231,10 @@ static int sql_prep_n_exec(sqlite3 *db, char *sql_fmt_str, sqlite3_stmt *sql_stm
   return 1;
 }
 
-int update_record(char *db_name, secret_t *secret_record, int record_id, uint8_t flags) {
-  sqlite3 *db;
+int update_record(sqlite3 *db, secret_t *secret_record, int record_id, uint8_t flags) {
   bool updated = false;
   char *sql_fmt_str = NULL;
   sqlite3_stmt *sql_stmt = NULL;
-  if (db_name == NULL) {
-    fprintf(stderr, "Error: empty DB name\n");
-    return 0;
-  }
-
-  if ((db = _open_db(db_name, SQLITE_OPEN_READWRITE)) == NULL) {
-    return 0;
-  }
 
   if (flags & UPDATE_DESCRIPTION) {
     if (secret_record->description[0] == '\0') {

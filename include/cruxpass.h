@@ -22,10 +22,8 @@
 #include <uchar.h>
 #include <unistd.h>
 
-/* #include "sqlcipher.h" */
-
 #define PASS_MIN 8
-#define PATH_LEN 256
+#define MAX_PATH_LEN 256
 #define MASTER_MAX_LEN 45
 #define SECRET_MAX_LEN 128
 #define USERNAME_MAX_LEN 30
@@ -46,40 +44,11 @@ typedef enum {
   C_RET_OKK  // C_RET_OKK: Custom OK 2
 } ERROR_T;
 
-sqlite3 *initcrux(void);
-
-/**
- * Generates a random password of the specified length.
- *
- * @param password_len the length of the password to generate
- * @return a pointer to the generated password, or NULL on failure
- */
 char *random_secret(int secret_len);
 char *setpath(char *);
-
-/**
- * Exports a password from the database to a file.
- * @param database_ptr the file pointer to the database
- * @param export_file the file path to export the password to
- * @return 1 on success, 0 on failure
- */
-int export_secrets(sqlite3 *db, const char *export_file);
-
-/**
- * Exports a password from the database to a file.
- *
- * @param database_ptr the file pointer to the database
- * @param export_file the file path to export the password to
- * @return 1 on success, 0 on failure
- */
-int import_secrets(sqlite3 *db, char *import_file);
-
-/**
- * Creates a new master password for the database.
- *
- * @param master_passd the master password to hash
- * @return 0 on success, 1 on failure
- */
 int create_new_master_secret(sqlite3 *db, unsigned char *key);
+int export_secrets(sqlite3 *db, const char *export_file);
+int import_secrets(sqlite3 *db, char *import_file);
+sqlite3 *initcrux(void);
 
 #endif  // !CRUXPASS_H
