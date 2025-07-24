@@ -1,0 +1,12 @@
+test.c
+test
+*.out
+*.o
+*.txt
+*.bin
+.idea
+.vscode
+main
+*cruxpass
+*.db
+*.csv
