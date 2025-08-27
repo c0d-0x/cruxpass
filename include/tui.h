@@ -20,6 +20,12 @@
 #define STATUS 4
 #define SEARCH 5
 
+#define NUM_PANELS 2
+#define SECRETE_WIN 0
+#define HELP_WIN 1
+
+#define HELP_WIN_WIDTH (TABLE_WIDTH / 2)
+
 typedef struct {
   ssize_t id;
   char username[USERNAME_MAX_LEN];
@@ -48,7 +54,7 @@ void free_records(record_array_t *arr);
 void handle_search(void);
 void init_ncurses(void);
 void search_next(void);
-void yank_current_record(void);
 
 WINDOW *create_main_window(int win_hight, int win_width);
+void yank_current_record(void);
 #endif  // !TUI_H

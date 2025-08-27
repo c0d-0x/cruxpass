@@ -76,7 +76,8 @@ int init_sqlite(void) {
 
   char *psswd_str = "cruxpassisgr8!";
   /*NOTE:  a temporary key, hash, and salt are generated for the creation of the new database*/
-  if ((db = _open_db(cruxpass_db_abs_path, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE)) == NULL) {
+  if ((db = _open_db(cruxpass_db_abs_path, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX)) ==
+      NULL) {
     return C_ERR;
   }
 
@@ -288,7 +289,7 @@ int update_record(sqlite3 *db, secret_t *secret_record, int record_id, uint8_t f
     updated = true;
   }
 
-  if (updated) printf("Info: password ID: %d updated", record_id);
+  if (updated) printf("Info: password ID: %d updated\n", record_id);
   sqlite3_close(db);
   return 1;
 }
@@ -307,8 +308,35 @@ int load_records(sqlite3 *db, record_array_t *records) {
   return 1;
 }
 
-// TODO: use callbacks to feed records dynamic array instead.
+const unsigned char *fetch_secret(sqlite3 *db, const int64_t id) {
+  if (db == NULL) return NULL;
+  sqlite3_stmt *sql_stmt = NULL;
+  const unsigned char *secret = NULL;
+  char *sql_str = "SELECT secret FROM passwords WHERE secret_id = ?;";
+  if (sqlite3_prepare_v2(db, sql_str, -1, &sql_stmt, NULL) != SQLITE_OK) {
+    fprintf(stderr, "Error: failed to prepare statement: %s\n", sqlite3_errmsg(db));
+    return NULL;
+  }
 
+  if (sqlite3_bind_int64(sql_stmt, 1, id) != SQLITE_OK) {
+    fprintf(stderr, "Error: failed to bind sql statement: %s", sqlite3_errmsg(db));
+    sqlite3_reset(sql_stmt);
+    sqlite3_finalize(sql_stmt);
+    return NULL;
+  }
+
+  if (sqlite3_step(sql_stmt) != SQLITE_ROW) {
+    fprintf(stderr, "Error: failed to execute statement: %s\n", sqlite3_errmsg(db));
+    sqlite3_reset(sql_stmt);
+    sqlite3_finalize(sql_stmt);
+    return NULL;
+  }
+
+  secret = sqlite3_column_text(sql_stmt, 0);
+  return secret;
+}
+
+// TODO: use callbacks to feed records dynamic array instead.
 hash_t *fetch_hash(void) {
   sqlite3 *db = NULL;
   sqlite3_stmt *sql_stmt = NULL;

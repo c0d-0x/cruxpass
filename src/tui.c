@@ -2,14 +2,14 @@
 
 #include <locale.h>
 #include <ncurses.h>
+#include <panel.h>
 #include <sodium/utils.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
-#include <cstdint>
+#include <wchar.h>
 
 #include "../include/cruxpass.h"
 #include "../include/database.h"
@@ -24,7 +24,10 @@ static int records_per_page = 10;
 static int term_height, term_width;
 static char search_pattern[MAX_FIELD_LEN] = {0};
 static int search_active = 0;
-static char yank_buffer[MAX_FIELD_LEN * 3] = {0};
+
+static WINDOW *secrets_win;
+static WINDOW *help_win;
+static PANEL *panels[NUM_PANELS];
 
 void init_ncurses(void) {
   initscr();
@@ -72,22 +75,22 @@ static void display_ascii_art(void) {
   int art_lines = LEN(ascii_art);
   int art_width = wcslen(ascii_art[0]);
 
-  int start_y = (term_height / 2) - (art_lines / 2) - 3;
-  int start_x = (term_width - art_width) / 2;
+  int coord_y = (term_height / 2) - (art_lines / 2) - 3;
+  int coord_x = (term_width - art_width) / 2;
 
-  if (start_y < 0) start_y = 0;
-  if (start_x < 0) start_x = 0;
+  if (coord_y < 0) coord_y = 0;
+  if (coord_x < 0) coord_x = 0;
 
   clear();
   for (int i = 0; i < art_lines; i++) {
-    if (start_y + i < term_height - 1) {
-      mvaddwstr(start_y + i, start_x, ascii_art[i]);
+    if (coord_y + i < term_height - 1) {
+      mvaddwstr(coord_y + i, coord_x, ascii_art[i]);
     }
   }
   refresh();
 }
 
-char *get_input(const char *prompt, char *input, const int input_len, int cood_y, int cood_x) {
+char *get_input(const char *prompt, char *input, const int input_len, int coord_y, int coord_x) {
   if (prompt == NULL) {
     fprintf(stderr, "Error: No prompt provided\n");
     return NULL;
@@ -97,7 +100,9 @@ char *get_input(const char *prompt, char *input, const int input_len, int cood_y
   curs_set(1);
   echo();
 
-  mvprintw(cood_y, cood_x, prompt, NULL);
+  attron(A_BOLD);
+  mvprintw(coord_y, coord_x, prompt, NULL);
+  attroff(A_BOLD);
   getnstr(input, input_len);
   reset_term();
   return input;
@@ -180,76 +185,252 @@ char *get_secret(const char *prompt) {
   return password;
 }
 
-static bool _choice(const char *prompt, int cood_y, int cood_x) {
-  mvprintw(1, 1, "%s [y/n]: ", prompt);
-
-  int cc = getch();
-  if (cc == 'y' || cc == 'Y' || cc == KEY_ENTER || cc == '\n') {
-    return true;
-  }
-
-  return false;
-}
-
-static void do_updates(sqlite3 *db, ssize_t secret_id) {
+static int do_updates(sqlite3 *db, ssize_t rec_id) {
   init_ncurses();
   curs_set(1);
   echo();
-  int start_x = (term_width - TABLE_WIDTH) / 2 + 18;
-  int start_y = (term_height / 2);
-  if (start_x < 0) start_x = 0;
-  if (start_x < 0) start_x = 0;
+  int term_w = 0, term_h = 0;
 
-  mvprintw(start_y++, start_x, "1: update username");
-  mvprintw(start_y++, start_x, "2: update description");
-  mvprintw(start_y++, start_x, "3: update secrets");
-  mvprintw(start_y++, start_x, "4: update all three");
+  getmaxyx(stdscr, term_h, term_w);
+  int coord_x = (term_w - TABLE_WIDTH) / 2 + 18;
+  int coord_y = (term_h / 2 - 5);
+  if (coord_x < 0) coord_x = 0;
+  if (coord_x < 0) coord_x = 0;
+  attron(A_BOLD);
+  mvprintw(coord_y++, coord_x, "1: update username");
+  mvprintw(coord_y++, coord_x, "2: update description");
+  mvprintw(coord_y++, coord_x, "3: update secrets");
+  mvprintw(coord_y++, coord_x, "4: update all three");
 
-  mvprintw(start_y++, start_x + 4, "> option: ");
+  mvprintw(coord_y++, coord_x + 4, "> option: ");
   int cc = getch();
 
   int8_t flags = 0;
   secret_t secret_rec = {0};
-  mvprintw(start_y++, start_x, "Enter fields: ");
+  mvprintw(coord_y++, coord_x, "Enter fields: ");
+  attroff(A_BOLD);
+
   if (cc == '1') {
-    get_input("> username: ", secret_rec.username, USERNAME_MAX_LEN, start_y, start_x + 4);
-    update_record(db, &secret_rec, secret_id, UPDATE_USERNAME);
-
-    memset((void *)records.data[current_position].username, 0, USERNAME_MAX_LEN);
+    get_input("> username: ", secret_rec.username, USERNAME_MAX_LEN, coord_y, coord_x + 4);
+    flags = UPDATE_USERNAME;
+    update_record(db, &secret_rec, rec_id, UPDATE_USERNAME);
     memcpy(records.data[current_position].username, secret_rec.username, USERNAME_MAX_LEN);
+
   } else if (cc == '2') {
-    get_input("> description: ", secret_rec.description, DESC_MAX_LEN, start_y, start_x + 4);
-    update_record(db, &secret_rec, secret_id, UPDATE_DESCRIPTION);
-
-    memset((void *)records.data[current_position].description, 0, DESC_MAX_LEN);
+    get_input("> description: ", secret_rec.description, DESC_MAX_LEN, coord_y, coord_x + 4);
+    flags = UPDATE_DESCRIPTION;
     memcpy(records.data[current_position].description, secret_rec.description, DESC_MAX_LEN);
+
   } else if (cc == '3') {
-    get_input("> secret: ", secret_rec.secret, SECRET_MAX_LEN, start_y, start_x + 4);
-    update_record(db, &secret_rec, secret_id, UPDATE_SECRET);
+    get_input("> secret: ", secret_rec.secret, SECRET_MAX_LEN, coord_y, coord_x + 4);
+    flags = UPDATE_SECRET;
+
   } else if (cc == '4') {
-    get_input("> username: ", secret_rec.username, USERNAME_MAX_LEN, start_y++, start_x + 4);
-    get_input("> secret: ", secret_rec.secret, SECRET_MAX_LEN, start_y++, start_x + 4);
-    get_input("> description: ", secret_rec.description, DESC_MAX_LEN, start_y, start_x + 4);
+    /* TODO: Handle fetching secrets properly */
+    get_input("> username: ", secret_rec.username, USERNAME_MAX_LEN, coord_y++, coord_x + 4);
+    get_input("> secret: ", secret_rec.secret, SECRET_MAX_LEN, coord_y++, coord_x + 4);
+    get_input("> description: ", secret_rec.description, DESC_MAX_LEN, coord_y, coord_x + 4);
 
-    update_record(db, &secret_rec, secret_id, UPDATE_USERNAME | UPDATE_DESCRIPTION | UPDATE_SECRET);
+    flags = UPDATE_USERNAME | UPDATE_DESCRIPTION | UPDATE_SECRET;
 
-    memset((void *)records.data[current_position].username, 0, USERNAME_MAX_LEN + DESC_MAX_LEN);
     memcpy(records.data[current_position].username, secret_rec.username, USERNAME_MAX_LEN);
     memcpy(records.data[current_position].description, secret_rec.description, DESC_MAX_LEN);
+  } else {
+    curs_set(0);
+    noecho();
+    return 0;
+  }
+
+  if (!update_record(db, &secret_rec, rec_id, flags)) {
+    display_status_message("Error: Failed to update record");
+    curs_set(0);
+    noecho();
+    return 0;
   }
 
   curs_set(0);
   noecho();
+  return 1;
+}
+
+static WINDOW *create_newwin(int height, int width, int coord_y, int coord_x) {
+  WINDOW *_win;
+  _win = newwin(height, width, coord_y, coord_x);
+  box(_win, 0, 0);
+  wrefresh(_win);
+  return _win;
+}
+
+static void set_win_title(WINDOW *win, const char *title) {
+  if (win != NULL && title != NULL) {
+    mvwprintw(win, 0, 2, " %s ", title);
+    wrefresh(win);
+  }
+}
+
+static int setup_panels(void) {
+  int help_content_lines = 14;
+  int help_win_height = help_content_lines + 4;
+  int help_win_width = 60;
+  int help_win_coord_y = (term_height - help_win_height) / 2;
+  int help_win_coord_x = (term_width - help_win_width) / 2;
+
+  /* bound correction */
+  if (help_win_coord_x < 0) help_win_coord_x = 0;
+  if (help_win_coord_y < 0) help_win_coord_y = 0;
+
+  if (help_win_coord_x + help_win_width >= term_width) help_win_coord_x = term_width - help_win_width - 1;
+  if (help_win_coord_y + help_win_height >= term_height) help_win_coord_y = term_height - help_win_height - 1;
+
+  secrets_win = create_newwin(0, 0, 0, 0);
+  help_win = create_newwin(help_win_height, help_win_width, help_win_coord_y, help_win_coord_x);
+
+  if (secrets_win == NULL || help_win == NULL) {
+    fprintf(stderr, "Error: Failed to create windows\n");
+    return 0;
+  }
+
+  panels[SECRETE_WIN] = new_panel(secrets_win);
+  panels[HELP_WIN] = new_panel(help_win);
+
+  if (panels[SECRETE_WIN] == NULL || panels[HELP_WIN] == NULL) {
+    fprintf(stderr, "Error: Failed to create panels\n");
+    return 0;
+  }
+
+  hide_panel(panels[SECRETE_WIN]);
+  hide_panel(panels[HELP_WIN]);
+
+  set_win_title(secrets_win, "Secret");
+  set_win_title(help_win, "Help");
+
+  update_panels();
+  doupdate();
+  return 1;
+}
+
+static void show_secrets_window(sqlite3 *db, int64_t record_id) {
+  const unsigned char *secret_text = fetch_secret(db, record_id);
+  if (secret_text == NULL) {
+    display_status_message("Error: no secret found");
+    return;
+  }
+
+  int secret_len = (int)strnlen((char *)secret_text, SECRET_MAX_LEN);
+  int term_h, term_w;
+  getmaxyx(stdscr, term_h, term_w);
+
+  if (term_w / 2 < secret_len + 2) {
+    display_status_message("Error: cannot fetch secret, term width too small");
+    return;
+  }
+
+  int coord_x = (term_w - secret_len + 2) / 2;
+  int coord_y = term_h / 2 - 3;
+
+  if (coord_x < 0) coord_x = 0;
+  if (coord_y < 0) coord_y = 0;
+
+  wclear(secrets_win);
+  mvwin(secrets_win, coord_y, coord_x);
+  wresize(secrets_win, 3, secret_len + 4);
+  box(secrets_win, 0, 0);
+  set_win_title(secrets_win, "Secret");
+
+  /* TODO: Fetch the actual secret from database using record_id */
+  mvwprintw(secrets_win, 1, 2, "%s", secret_text);
+
+  show_panel(panels[SECRETE_WIN]);
+  top_panel(panels[SECRETE_WIN]);
+  update_panels();
+  doupdate();
+
+  wgetch(secrets_win);
+
+  hide_panel(panels[SECRETE_WIN]);
+  update_panels();
+  doupdate();
+
+  clear();
+  display_table();
+  display_pagination_info();
+  refresh();
+}
+
+static void show_help_window(void) {
+  int win_width = getmaxx(stdscr);
+
+  wclear(help_win);
+  box(help_win, 0, 0);
+  set_win_title(help_win, "Help");
+
+  int line = 2;
+
+  mvwprintw(help_win, line++, 2, "Actions:");
+  if (win_width >= 70) {
+    mvwprintw(help_win, line++, 2, " Enter - View secret      u - Update record");
+    mvwprintw(help_win, line++, 2, " d - Delete record        y - Yank record");
+    mvwprintw(help_win, line++, 2, " / - Search               n - Next search result");
+    mvwprintw(help_win, line++, 2, " ? - Show this help       q/Q - Quit");
+  } else {
+    mvwprintw(help_win, line++, 2, " Enter - View secret  u - Update");
+    mvwprintw(help_win, line++, 2, " d - Delete record    y - Yank");
+    mvwprintw(help_win, line++, 2, " / - Search           n - Next");
+    mvwprintw(help_win, line++, 2, " ? - Help             q - Quit");
+  }
+
+  line++;
+  mvwprintw(help_win, line++, 2, "Press any key to close...");
+
+  show_panel(panels[HELP_WIN]);
+  top_panel(panels[HELP_WIN]);
+  update_panels();
+  doupdate();
+
+  wgetch(help_win);
+
+  hide_panel(panels[HELP_WIN]);
+  update_panels();
+  doupdate();
+
+  clear();
+  display_table();
+  display_pagination_info();
+  refresh();
+}
+
+static void cleanup_panels(void) {
+  if (panels[SECRETE_WIN] != NULL) {
+    del_panel(panels[SECRETE_WIN]);
+    panels[SECRETE_WIN] = NULL;
+  }
+  if (panels[HELP_WIN] != NULL) {
+    del_panel(panels[HELP_WIN]);
+    panels[HELP_WIN] = NULL;
+  }
+  if (secrets_win != NULL) {
+    delwin(secrets_win);
+    secrets_win = NULL;
+  }
+  if (help_win != NULL) {
+    delwin(help_win);
+    help_win = NULL;
+  }
 }
 
 int main_tui(sqlite3 *db) {
   records.data = NULL;
   records.size = 0;
   records.capacity = 0;
-  char status_msg[100] = {0};
   int ch = 0;
 
   init_ncurses();
+  if (!setup_panels()) {
+    cleanup();
+    fprintf(stderr, "Error: Failed to setup panels\n");
+    return 0;
+  }
+
   set_colors();
   if (!load_records(db, &records)) {
     cleanup();
@@ -305,51 +486,48 @@ int main_tui(sqlite3 *db) {
         if (current_position >= records.size) current_position = records.size - 1;
         break;
 
-      case 'y':
-        yank_current_record();
-        snprintf(status_msg, sizeof(status_msg), "Info: Record ID <%ld> yanked to buffer",
-                 records.data[current_position].id);
-        break;
-
       case '/':
         handle_search();
         break;
       case 'n':
         if (search_active && search_pattern[0] != '\0') search_next();
         break;
+
+      case '?':
+        show_help_window();
+        break;
+
       case 'd':
-        /* TODO: deletes a password and reload the TUI. */
         if (!delete_record(db, records.data[current_position].id)) {
+          printf("\nid: %ld\n", records.data[current_position].id);
           display_status_message("Error: Failed to delete password");
           getch();
           cleanup();
           return 0;
         }
 
-        /* TODO: make display_status_message variadic to show pswd id */
         display_status_message("Note: password deleted");
         records.data[current_position].id = DELETED;
         break;
 
-        /* update/modify records */
       case 'u':
-        /* TODO: options for updating either a username, secret or description */
-        do_updates(db, records.data[current_position].id);
-        display_status_message("Note: record updated");
+        if (do_updates(db, records.data[current_position].id)) display_status_message("Note: record updated");
         break;
+
+      case KEY_ENTER:
+      case '\n':
+        if (records.size > 0 && current_position >= 0 && current_position < records.size) {
+          show_secrets_window(db, records.data[current_position].id);
+        }
+        break;
+
       default:
-        refresh();
+        break;
     }
 
     /* Display data */
     display_table();
     display_pagination_info();
-    refresh();
-
-    if (status_msg[0] != '\0') {
-      display_status_message(status_msg);
-      memset(status_msg, 0, 100);
-    }
 
     refresh();
   } while ((ch = getch()) != 'q' && ch != 'Q');
@@ -409,15 +587,15 @@ void display_table(void) {
   int64_t end_idx = start_idx + records_per_page;
   if (end_idx > records.size) end_idx = records.size;
 
-  int start_x = (term_width - TABLE_WIDTH) / 2;
-  if (start_x < 0) start_x = 0;
+  int coord_x = (term_width - TABLE_WIDTH) / 2;
+  if (coord_x < 0) coord_x = 0;
 
   clear();
   attron(COLOR_PAIR(HEADER) | A_BOLD);
-  mvprintw(1, start_x, "%-*s %-*s %-*s", ID_WIDTH, "ID", USERNAME_WIDTH, "USERNAME", DESC_WIDTH, "DESCRIPTION");
+  mvprintw(1, coord_x, "%-*s %-*s %-*s", ID_WIDTH, "ID", USERNAME_WIDTH, "USERNAME", DESC_WIDTH, "DESCRIPTION");
   attroff(COLOR_PAIR(HEADER) | A_BOLD);
 
-  mvprintw(2, start_x, "%.*s", TABLE_WIDTH,
+  mvprintw(2, coord_x, "%.*s", TABLE_WIDTH,
            "-------------------------------------------------------------------------------------------------------");
   record_t *rec = NULL;
   int64_t row;
@@ -427,21 +605,21 @@ void display_table(void) {
 
     if (rec->id == DELETED) {
       attron(COLOR_PAIR(STATUS) | A_DIM);
-      mvprintw(row, start_x, "%-*s %-*s %-*.*s", ID_WIDTH, "DELETED", USERNAME_WIDTH, rec->username, DESC_WIDTH,
+      mvprintw(row, coord_x, "%-*s %-*s %-*.*s", ID_WIDTH, "DELETED", USERNAME_WIDTH, rec->username, DESC_WIDTH,
                DESC_WIDTH, rec->description);
       attroff(COLOR_PAIR(STATUS) | A_DIM);
       continue;
     }
 
-    if (i == current_position) attron(COLOR_PAIR(SELECTED) | A_BOLD);
+    if (i == current_position)
+      attron(COLOR_PAIR(SELECTED) | A_BOLD);
 
-    /* TODO: Refactor search highlight */
     else if (search_active && search_pattern[0] != '\0' &&
              (strstr(rec->username, search_pattern) || strstr(rec->description, search_pattern))) {
       attron(COLOR_PAIR(SEARCH));
     }
 
-    mvprintw(row, start_x, "%-*ld %-*s %-*.*s", ID_WIDTH, rec->id, USERNAME_WIDTH, rec->username, DESC_WIDTH,
+    mvprintw(row, coord_x, "%-*ld %-*s %-*.*s", ID_WIDTH, rec->id, USERNAME_WIDTH, rec->username, DESC_WIDTH,
              DESC_WIDTH, rec->description);
 
     if (i == current_position)
@@ -452,9 +630,6 @@ void display_table(void) {
     }
   }
 
-  /* TODO: printed only with '?' in tui mode. centered and in a new window (by line)  */
-  mvprintw(term_height - 1, 2,
-           "j/k: Up/Down | h/l: Page | g/G: Top/Bottom | Ctrl+f/b: Page | y: Yank | /: Search | n: Next | q: Quit");
   refresh();
 }
 
@@ -465,16 +640,17 @@ void display_pagination_info(void) {
            total_pages, current_position + 1, records.size);
 
   int info_len = strnlen(pagination_info, 100);
-  int start_x = (term_width - info_len) / 2;
-  if (start_x < 0) start_x = 0;
+  int coord_x = (term_width - info_len) / 2;
+  if (coord_x < 0) coord_x = 0;
 
   attron(COLOR_PAIR(PAGINATION) | A_BOLD);
-  mvprintw(term_height - 2, start_x, "%s", pagination_info);
+  mvprintw(term_height - 2, coord_x, "%s", pagination_info);
   attroff(COLOR_PAIR(PAGINATION) | A_BOLD);
   refresh();
 }
 
 void cleanup(void) {
+  cleanup_panels();
   free_records(&records);
   reset_term();
 }
@@ -501,6 +677,7 @@ void handle_search(void) {
 }
 
 void search_next(void) {
+  /* TODO: use a custom queue to handle searches */
   int start_pos = current_position + 1;
   if (start_pos >= records.size) start_pos = 0;
 
@@ -520,23 +697,15 @@ void search_next(void) {
   }
 }
 
-void yank_current_record(void) {
-  if (current_position < 0 || current_position >= records.size) return;
-
-  record_t *rec = &records.data[current_position];
-
-  // TODO: fetch password and copy to clipboard
-  snprintf(yank_buffer, sizeof(yank_buffer), "ID: %ld, Username: %s, Description: %s", rec->id, rec->username,
-           rec->description);
-}
-
 void display_status_message(const char *message) {
+  /* TODO: make it variadic */
   int msg_len = strlen(message);
-  int start_x = (term_width - msg_len) / 2;
-  if (start_x < 0) start_x = 0;
+  int coord_x = (term_width - msg_len) / 2;
+  if (coord_x < 0) coord_x = 0;
 
   attron(COLOR_PAIR(STATUS) | A_BOLD);
-  mvprintw(term_height - 3, start_x, "%s", message);
+  mvprintw(term_height - 3, coord_x, "%s", message);
   attroff(COLOR_PAIR(STATUS) | A_BOLD);
   refresh();
+  getch();
 }

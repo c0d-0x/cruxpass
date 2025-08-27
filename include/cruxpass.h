@@ -28,8 +28,14 @@
 #define SECRET_MAX_LEN 128
 #define USERNAME_MAX_LEN 30
 #define DESC_MAX_LEN 100
+
+#ifndef CRUXPASS_DB
 #define CRUXPASS_DB "workspaces/cruxpass/.cruxpass/cruxpass.db"
+#endif
+
+#ifndef AUTH_DB
 #define AUTH_DB "workspaces/cruxpass/.cruxpass/auth.db"
+#endif
 
 typedef struct {
   ssize_t id;
