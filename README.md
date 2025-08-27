@@ -36,7 +36,14 @@
 | `-s`  | `--save`                   | Save a password with its metadata (prompts interactively) |
 | `-v`  | `--version`                | Show cruxPass version                                     |
 
-⚙️ Installation
+## ⚙️ Installation
+
+> [!IMPORTANT]
+>
+> ### This project requires:
+>
+> - libsqlchipher
+> - ncurses
 
 ```bash
 # Clone the repository
@@ -55,13 +62,15 @@ cruxpass <option> <argument>
 make uninstall
 ```
 
-🛡️ Security
+## 🛡️ Security
+
 Encrypted Storage: All data is securely stored using an encrypted SQLite database (SQLCipher) at ~/.local/share/cruxpass/.
 
 Authentication: A master password is required to access or modify any stored data. By default, cruxpass uses: `cruxpassisgr8!` as it's master password.
 
 > [!NOTE]
 > cruxpass enforces internal limits on the size of various fields to ensure performance and security. Here are the default constraints:
+>
 > - Minimum Password Length: Passwords must be at least 8 characters long to ensure basic security.
 > - Master Password Length: The master password can be up to 45 characters long (excluding the null terminator). This provides enough entropy while remaining user-manageable.
 > - Stored Password Length: Each saved password can be up to 128 characters long. This accommodates strong, randomly generated credentials.
@@ -70,7 +79,8 @@ Authentication: A master password is required to access or modify any stored dat
 
 > These limits are designed to balance usability with memory safety and can be adjusted in the source code if needed
 
-📈 Roadmap
+## 📈 Roadmap
+
 Future enhancements may include:
 
 - 📋 Clipboard integration on password generation
@@ -79,10 +89,10 @@ Future enhancements may include:
 
 - 🧪 Unit testing for critical functions
 
-🤝 Contributing
+## 🤝 Contributing
 
 Contributions are welcome! Please open issues or submit pull requests to help improve cruxpass.
 
-📄 License
+## 📄 License
 
 cruxpass is licensed under the MIT License. See the LICENSE file for details.
