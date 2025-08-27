@@ -1,11 +1,8 @@
 CC = gcc
 
-# Warnings/opts
 CFLAGS   ?= -Wall -Wextra -Wformat-security -g
-# Preprocessor flags (includes + optional -D)
 CPPFLAGS ?= -Iinclude
 
-# Linker
 LDFLAGS  ?=
 LDLIBS    = -lsodium -lncursesw -lpanel -lm -lsqlcipher -ldl -lpthread
 STATIC_LIBS = ./lib/*.a
@@ -15,7 +12,6 @@ OBJ := $(SRC:.c=.o)
 BIN := ./bin/cruxpass
 
 PREFIX ?= /usr/local
-# App data dir (runtime). (Note: not the packaging DESTDIR meaning.)
 RUNDIR ?= $(HOME)/.local/share/cruxpass
 
 # Production paths (expanded by make at build time)
