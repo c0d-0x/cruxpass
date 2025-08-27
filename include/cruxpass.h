@@ -30,11 +30,11 @@
 #define DESC_MAX_LEN 100
 
 #ifndef CRUXPASS_DB
-#define CRUXPASS_DB "workspaces/cruxpass/.cruxpass/cruxpass.db"
+#define CRUXPASS_DB ".cruxpass/cruxpass.db"
 #endif
 
 #ifndef AUTH_DB
-#define AUTH_DB "workspaces/cruxpass/.cruxpass/auth.db"
+#define AUTH_DB ".cruxpass/auth.db"
 #endif
 
 typedef struct {

@@ -39,27 +39,6 @@ char *random_secret(int secret_len) {
   return secret;
 }
 
-/*TODO: use defined  abs paths instead of changing dir*/
-char *setpath(char *relative_path) {
-  char *abs_path = NULL;
-  char *home = NULL;
-
-  if ((abs_path = calloc(MAX_PATH_LEN + 1, sizeof(char))) == NULL) {
-    fprintf(stderr, "Error: Memory Allocation Failed: calloc\n");
-    return NULL;
-  }
-
-  if ((home = getenv("HOME")) == NULL) {
-    perror("Error: Failed to get home path");
-    free(abs_path);
-    return NULL;
-  }
-
-  snprintf(abs_path, MAX_PATH_LEN, "%s/", home);
-  strncat(abs_path, relative_path, (MAX_PATH_LEN - strlen(home)));
-  return abs_path;
-}
-
 int export_secrets(sqlite3 *db, const char *export_file) {
   FILE *fp;
   const unsigned char *username = NULL;
@@ -167,7 +146,7 @@ sqlite3 *initcrux() {
   int inited = init_sqlite();
   if (inited == C_RET_OKK)
     printf("Warning: Default password is: 'cruxpassisgr8!'. \nWarning: Change it with<< cruxpass -n >>\n");
-  if (inited != C_ERR) db = open_db_wrap(P_DB, SQLITE_OPEN_READWRITE);
+  if (inited != C_ERR) db = open_db(CRUXPASS_DB, SQLITE_OPEN_READWRITE);
 
   return db;
 }

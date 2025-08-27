@@ -14,9 +14,8 @@ BIN := ./bin/cruxpass
 PREFIX ?= /usr/local
 RUNDIR ?= $(HOME)/.local/share/cruxpass
 
-# Production paths (expanded by make at build time)
-INSTALL_CRUXPASS_DB := /.local/share/cruxpass/cruxpass.db
-INSTALL_AUTH_DB    := /.local/share/cruxpass/auth.db
+INSTALL_CRUXPASS_DB := $(HOME)/.local/share/cruxpass/cruxpass.db
+INSTALL_AUTH_DB    := $(HOME)/.local/share/cruxpass/auth.db
 
 all: $(BIN)
 	@rm -f src/*.o
@@ -29,7 +28,7 @@ src/%.o: src/%.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
 install: clean
-	# Rebuild with production DB paths
+	# cleanup and rebuild with production DB paths
 	$(MAKE) CPPFLAGS='$(CPPFLAGS) -DCRUXPASS_DB=\"$(INSTALL_CRUXPASS_DB)\" -DAUTH_DB=\"$(INSTALL_AUTH_DB)\"' $(BIN)
 	install -d $(RUNDIR)
 	sudo install -d $(PREFIX)/bin

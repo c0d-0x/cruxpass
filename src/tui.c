@@ -677,7 +677,7 @@ void handle_search(void) {
 }
 
 void search_next(void) {
-  /* TODO: use a custom queue to handle searches */
+  /* TODO: a custom queue to handle searches */
   int start_pos = current_position + 1;
   if (start_pos >= records.size) start_pos = 0;
 
@@ -707,5 +707,4 @@ void display_status_message(const char *message) {
   mvprintw(term_height - 3, coord_x, "%s", message);
   attroff(COLOR_PAIR(STATUS) | A_BOLD);
   refresh();
-  getch();
 }

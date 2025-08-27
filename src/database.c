@@ -14,16 +14,6 @@
 #include "../include/enc.h"
 #include "../include/tui.h"
 
-static char *auth_db_abs_path = NULL;
-static char *cruxpass_db_abs_path = NULL;
-
-void cleanup_paths(void) {
-  free(auth_db_abs_path);
-  free(cruxpass_db_abs_path);
-  auth_db_abs_path = NULL;
-  cruxpass_db_abs_path = NULL;
-}
-
 static int sql_exec_n_err(sqlite3 *db, char *sql_fmt_str, char *sql_err_msg,
                           int (*callback)(void *, int, char **, char **), void *callback_arg) {
   int rc = sqlite3_exec(db, sql_fmt_str, callback, callback_arg, &sql_err_msg);
@@ -36,7 +26,7 @@ static int sql_exec_n_err(sqlite3 *db, char *sql_fmt_str, char *sql_err_msg,
   return 1;
 }
 
-static sqlite3 *_open_db(char *db_name, int flags) {
+sqlite3 *open_db(char *db_name, int flags) {
   sqlite3 *db = NULL;
   int rc = sqlite3_open_v2(db_name, &db, flags, NULL);
   if (rc != SQLITE_OK) {
@@ -45,15 +35,6 @@ static sqlite3 *_open_db(char *db_name, int flags) {
   }
 
   return db;
-}
-
-sqlite3 *open_db_wrap(int8_t db_name_flag, int8_t flags) {
-  if (db_name_flag == P_DB)
-    return _open_db(cruxpass_db_abs_path, flags);
-  else if (db_name_flag == S_DB)
-    return _open_db(auth_db_abs_path, flags);
-
-  return NULL;
 }
 
 int init_sqlite(void) {
@@ -66,22 +47,13 @@ int init_sqlite(void) {
   hash_t hash_rec;
   hash_t *tmp_hash_rec = NULL;
 
-  cruxpass_db_abs_path = setpath(CRUXPASS_DB);
-  auth_db_abs_path = setpath(AUTH_DB);
-
-  if (cruxpass_db_abs_path == NULL || auth_db_abs_path == NULL) {
-    fprintf(stderr, "Error: Failed to setup absolute paths\n");
-    return C_ERR;
-  }
-
   char *psswd_str = "cruxpassisgr8!";
   /*NOTE:  a temporary key, hash, and salt are generated for the creation of the new database*/
-  if ((db = _open_db(cruxpass_db_abs_path, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX)) ==
-      NULL) {
+  if ((db = open_db(CRUXPASS_DB, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX)) == NULL) {
     return C_ERR;
   }
 
-  if ((secrets_db = _open_db(auth_db_abs_path, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE)) == NULL) {
+  if ((secrets_db = open_db(AUTH_DB, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE)) == NULL) {
     sqlite3_close(db);
     return C_ERR;
   }
@@ -345,7 +317,7 @@ hash_t *fetch_hash(void) {
   const unsigned char *salt = NULL;
   char *sql_str = "SELECT hash, salt FROM secrets;";
 
-  if ((db = _open_db(auth_db_abs_path, SQLITE_OPEN_READWRITE)) == NULL) {
+  if ((db = open_db(AUTH_DB, SQLITE_OPEN_READWRITE)) == NULL) {
     return NULL;
   }
 
@@ -392,7 +364,7 @@ int update_hash(hash_t *hash_rec) {
     return 0;
   }
 
-  if ((db = _open_db(auth_db_abs_path, SQLITE_OPEN_READWRITE)) == NULL) {
+  if ((db = open_db(AUTH_DB, SQLITE_OPEN_READWRITE)) == NULL) {
     return 0;
   }
 

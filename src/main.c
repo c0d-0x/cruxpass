@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "../include/argparse.h"
 #include "../include/cruxpass.h"
@@ -125,7 +126,6 @@ int main(int argc, const char **argv) {
 }
 
 void cleanup_main(void) {
-  cleanup_paths();
   if (db != NULL) sqlite3_close(db);
   if (key != NULL) {
     sodium_memzero(key, KEY_LEN);
