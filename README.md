@@ -58,6 +58,7 @@ git clone https://github.com/c0d-0x/cruxpass
 
 cd cruxpass
 mkdir bin # cruxpass binary is built here
+mkdir .cruxpass # only if you're testing: you can import moc.csv for testing 
 
 # Install the program
 make install
