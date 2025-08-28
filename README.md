@@ -36,6 +36,11 @@
 | `-s`  | `--save`                   | Save a password with its metadata (prompts interactively) |
 | `-v`  | `--version`                | Show cruxPass version                                     |
 
+### CSV file format for imports
+| username | secret                       | Description                                          |
+| ----- | -------------------------- | --------------------------------------------------------- |
+|test@test.com| rdj(:p6Y{p           | This is a secret
+
 ## ⚙️ Installation
 
 > [!IMPORTANT]
@@ -44,6 +49,8 @@
 >
 > - libsqlchipher
 > - ncurses
+> 
+>This Project is buit in a linux envronment and haven't been tested on Windows or Mac. 
 
 ```bash
 # Clone the repository
