@@ -29,7 +29,7 @@ BraceWrapping:
   AfterCaseLabel: false
   AfterClass: false
   AfterControlStatement: Never
-  AfterEnum: false
+  AfterEnum: true
   AfterExternBlock: false
   AfterFunction: false
   AfterNamespace: false
@@ -119,3 +119,4 @@ TabWidth: 4
 UseTab: Never
 VerilogBreakBetweenInstancePorts: true
 ---
+

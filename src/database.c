@@ -15,7 +15,6 @@
 #include "../include/tui.h"
 
 #define NUM_STMTS 4
-typedef enum { INSERT_REC_STMT, DELETE_REC_STMT, UPDATE_REC_STMT, FETCH_SEC_STMT } SQL_STMT;
 
 char *sql_str[] = {"INSERT INTO secrets (username, secret,description )  VALUES (?, ?, ?);",
                    "DELETE FROM secrets WHERE secret_id = ?;",
@@ -379,7 +378,7 @@ int update_hash(hash_t *hash_rec) {
     return 0;
   }
 
-  sql_fmt_str = "UPDATE hashes SET hash = ? WHERE secret_id = ?;";
+  sql_fmt_str = "UPDATE hashes SET hash = ? WHERE hash_id = ?;";
   if (!sql_prep_n_exec(db, sql_fmt_str, sql_stmt, hash_rec->hash, 1)) {
     sqlite3_close(db);
     return 0;
@@ -388,7 +387,7 @@ int update_hash(hash_t *hash_rec) {
   sqlite3_reset(sql_stmt);
   sqlite3_finalize(sql_stmt);
 
-  sql_fmt_str = "UPDATE hashes SET salt= ? WHERE secret_id = ?;";
+  sql_fmt_str = "UPDATE hashes SET salt= ? WHERE hash_id = ?;";
   if (!sql_prep_n_exec(db, sql_fmt_str, sql_stmt, (char *)hash_rec->salt, 1)) {
     sqlite3_close(db);
     return 0;
