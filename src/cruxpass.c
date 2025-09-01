@@ -11,31 +11,38 @@
 #include "../include/database.h"
 #include "../include/enc.h"
 
-char *random_secret(int secret_len) {
+char *random_secret(int secret_len, secret_bank_options_t *bank_options) {
   if (secret_len < PASS_MIN || secret_len > SECRET_MAX_LEN) {
     printf("Warning: Password must be at least 8 & %d characters long\n", SECRET_MAX_LEN);
     return NULL;
   }
 
   char *secret = NULL;
-  char secret_bank[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789#%&()_+={}[-]:<@>?";
-  const int bank_len = sizeof(secret_bank) / sizeof(char);
+  char *secret_bank = NULL;
+  if ((secret_bank = init_secret_bank(bank_options)) == NULL) {
+    perror("Error: Fail to init password");
+    return NULL;
+  }
+  const int bank_len = strlen(secret_bank);
 
   if ((secret = calloc(1, secret_len)) == NULL) {
     perror("Error: Fail to creat password");
+    free(secret_bank);
     return NULL;
   }
 
   if (sodium_init() == -1) {
+    free(secret_bank);
     free(secret);
     fprintf(stderr, "Error: Failed to initialize libsodium");
     return NULL;
   }
 
   for (int i = 0; i < secret_len; i++) {
-    secret[i] = secret_bank[(int)randombytes_uniform(bank_len - 1)];
+    secret[i] = secret_bank[(int)randombytes_uniform(bank_len)];
   }
 
+  free(secret_bank);
   return secret;
 }
 
@@ -149,4 +156,50 @@ sqlite3 *initcrux() {
   if (inited != C_ERR) db = open_db(CRUXPASS_DB, SQLITE_OPEN_READWRITE);
 
   return db;
+}
+
+char *init_secret_bank(const secret_bank_options_t *options) {
+  char all_upper[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  char all_lower[] = "abcdefghijklmnopqrstuvwxyz";
+  char all_numbers[] = "0123456789";
+  char all_symbols[] = "#%&()_+={}[-]:<@>?";
+
+  char unambiguous_upper[] = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+  char unambiguous_lower[] = "abcdefghijkmnopqrstuvwxyz";
+  char unambiguous_numbers[] = "123456789";
+  char unambiguous_symbols[] = "#%&()_+={}[-]:<@>?";
+
+  if (options == NULL) return NULL;
+  size_t bank_len = 0;
+
+  if (options->exclude_ambiguous) {
+    if (options->uppercase) bank_len += strlen(unambiguous_upper);
+    if (options->lowercase) bank_len += strlen(unambiguous_lower);
+    if (options->numbers) bank_len += strlen(unambiguous_numbers);
+    if (options->symbols) bank_len += strlen(unambiguous_symbols);
+  } else {
+    if (options->uppercase) bank_len += strlen(all_upper);
+    if (options->lowercase) bank_len += strlen(all_lower);
+    if (options->numbers) bank_len += strlen(all_numbers);
+    if (options->symbols) bank_len += strlen(all_symbols);
+  }
+
+  if (bank_len == 0) return NULL;     // User didn't use any of the available banks.
+  bank_len += 1;                      // Add 1 for NULL termination character.
+  char *bank = NULL;
+  if ((bank = calloc(bank_len, sizeof(char))) == NULL) return NULL;
+
+  if (options->exclude_ambiguous) {
+    if (options->uppercase) strncat(bank, unambiguous_upper, strlen(unambiguous_upper));
+    if (options->lowercase) strncat(bank, unambiguous_lower, strlen(unambiguous_lower));
+    if (options->numbers) strncat(bank, unambiguous_numbers, strlen(unambiguous_numbers));
+    if (options->symbols) strncat(bank, unambiguous_symbols, strlen(unambiguous_symbols));
+  } else {
+    if (options->uppercase) strncat(bank, all_upper, strlen(all_upper));
+    if (options->lowercase) strncat(bank, all_lower, strlen(all_lower));
+    if (options->numbers) strncat(bank, all_numbers, strlen(all_numbers));
+    if (options->symbols) strncat(bank, all_symbols, strlen(all_symbols));
+  }
+
+  return bank;
 }

@@ -44,8 +44,15 @@ int main(int argc, const char **argv) {
   }
 
   if (password_len != 0) {
+    secret_bank_options_t bank_options;
+    memset(&bank_options, 0, sizeof(secret_bank_options_t));
+    bank_options.uppercase = true;
+    bank_options.lowercase = true;
+    bank_options.numbers = true;
+    bank_options.symbols = true;
+    bank_options.exclude_ambiguous = true;
     char *secret = NULL;
-    if ((secret = random_secret(password_len)) == NULL) {
+    if ((secret = random_secret(password_len, &bank_options)) == NULL) {
       return EXIT_FAILURE;
     }
 
