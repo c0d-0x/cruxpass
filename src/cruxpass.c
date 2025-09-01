@@ -59,7 +59,7 @@ int export_secrets(sqlite3 *db, const char *export_file) {
     return 0;
   }
 
-  fputs("Username,secret,Description\n", fp);
+  fputs("Username,Secret,Description\n", fp);
   while (sqlite3_step(sql_stmt) == SQLITE_ROW) {
     username = sqlite3_column_text(sql_stmt, 0);
     secret = sqlite3_column_text(sql_stmt, 1);

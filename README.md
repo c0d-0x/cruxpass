@@ -1,6 +1,6 @@
 # cruxpass — Password Management CLI Tool
 
-![cruxpass Screenshot](https://raw.githubusercontent.com/c0d-0x/cruxpass/dev/resouces/cruxpass.png)
+![cruxpass Screenshot](https://raw.githubusercontent.com/c0d-0x/cruxpass/dev/resources/cruxpass.png)
 
 [![Version](https://img.shields.io/badge/version-v1.2.1-blue.svg)](https://github.com/c0d-0x/cruxpass/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -37,9 +37,10 @@
 | `-v`  | `--version`                | Show cruxPass version                                     |
 
 ### CSV file format for imports
-| username | secret                       | Description                                          |
-| ----- | -------------------------- | --------------------------------------------------------- |
-|test@test.com| rdj(:p6Y{p           | This is a secret
+
+| username      | secret     | Description      |
+| ------------- | ---------- | ---------------- |
+| test@test.com | rdj(:p6Y{p | This is a secret |
 
 ## ⚙️ Installation
 
@@ -49,8 +50,8 @@
 >
 > - libsqlchipher
 > - ncurses
-> 
->This Project is buit in a linux envronment and haven't been tested on Windows or Mac. 
+>
+> This Project is built in a linux envronment and haven't been tested on Windows or Mac.
 
 ```bash
 # Clone the repository
@@ -58,7 +59,7 @@ git clone https://github.com/c0d-0x/cruxpass
 
 cd cruxpass
 mkdir bin # cruxpass binary is built here
-mkdir .cruxpass # only if you're testing: you can import moc.csv for testing 
+mkdir .cruxpass # only if you're testing: you can import moc.csv for testing
 
 # Install the program
 make install
