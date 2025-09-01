@@ -359,7 +359,22 @@ static void show_secrets_window(sqlite3 *db, int64_t record_id) {
 }
 
 static void show_help_window(void) {
-  int win_width = getmaxx(stdscr);
+  int term_h, term_w;
+  getmaxyx(stdscr, term_h, term_w);
+
+  if (term_w < 70) {
+    display_status_message("Error: term width too small");
+    return;
+  }
+
+  int coord_x = (term_w - 60) / 2;
+  int coord_y = term_h / 2 - 9;
+
+  if (coord_x < 0) coord_x = 0;
+  if (coord_y < 0) coord_y = 0;
+
+  wclear(secrets_win);
+  mvwin(help_win, coord_y, coord_x);
 
   wclear(help_win);
   box(help_win, 0, 0);
@@ -368,16 +383,12 @@ static void show_help_window(void) {
   int line = 2;
 
   mvwprintw(help_win, line++, 2, "Actions:");
-  if (win_width >= 70) {
+  if (term_w >= 70) {
     mvwprintw(help_win, line++, 2, " Enter - View secret      u - Update record");
     mvwprintw(help_win, line++, 2, " d - Delete record        y - Yank record");
     mvwprintw(help_win, line++, 2, " / - Search               n - Next search result");
     mvwprintw(help_win, line++, 2, " ? - Show this help       q/Q - Quit");
-  } else {
-    mvwprintw(help_win, line++, 2, " Enter - View secret  u - Update");
-    mvwprintw(help_win, line++, 2, " d - Delete record    y - Yank");
-    mvwprintw(help_win, line++, 2, " / - Search           n - Next");
-    mvwprintw(help_win, line++, 2, " ? - Help             q - Quit");
+    mvwprintw(help_win, line++, 2, " %d", getmaxy(help_win));
   }
 
   line++;

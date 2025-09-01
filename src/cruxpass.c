@@ -184,8 +184,8 @@ char *init_secret_bank(const secret_bank_options_t *options) {
     if (options->symbols) bank_len += strlen(all_symbols);
   }
 
-  if (bank_len == 0) return NULL;     // User didn't use any of the available banks.
-  bank_len += 1;                      // Add 1 for NULL termination character.
+  if (bank_len == 0) return NULL;  // User didn't use any of the available banks.
+  bank_len += 1;                   // Add 1 for NULL termination character.
   char *bank = NULL;
   if ((bank = calloc(bank_len, sizeof(char))) == NULL) return NULL;
 
