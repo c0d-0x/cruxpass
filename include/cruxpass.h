@@ -50,11 +50,20 @@ typedef enum {
   C_RET_OKK  // C_RET_OKK: Custom OK 2
 } ERROR_T;
 
-char *random_secret(int secret_len);
+typedef struct {
+  bool uppercase;     // Uppercase alphabets
+  bool lowercase;     // Lowercase alphabets
+  bool numbers;
+  bool symbols;
+  bool exclude_ambiguous;
+} secret_bank_options_t;
+
+char *random_secret(int secret_len, secret_bank_options_t *bank_options);
 char *setpath(char *);
 int create_new_master_secret(sqlite3 *db, unsigned char *key);
 int export_secrets(sqlite3 *db, const char *export_file);
 int import_secrets(sqlite3 *db, char *import_file);
 sqlite3 *initcrux(void);
+char *init_secret_bank(const secret_bank_options_t *options);
 
 #endif  // !CRUXPASS_H
