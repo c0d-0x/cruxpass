@@ -56,6 +56,7 @@ int main(int argc, const char **argv) {
 
   if ((db = initcrux()) == NULL) return EXIT_FAILURE;
   if ((key = decryption_helper(db)) == NULL) return EXIT_FAILURE;
+  if (!prepare_stmt(db)) return EXIT_FAILURE;
 
   if (new_password != 0) {
     if (!create_new_master_secret(db, key)) {
@@ -126,7 +127,8 @@ int main(int argc, const char **argv) {
 }
 
 void cleanup_main(void) {
-  if (db != NULL) sqlite3_close(db);
+  sqlite3_close(db);
+  cleanup_stmts();
   if (key != NULL) {
     sodium_memzero(key, KEY_LEN);
     sodium_free(key);

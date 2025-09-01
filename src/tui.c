@@ -351,6 +351,7 @@ static void show_secrets_window(sqlite3 *db, int64_t record_id) {
   update_panels();
   doupdate();
 
+  free((void *)secret_text);
   clear();
   display_table();
   display_pagination_info();
@@ -707,4 +708,5 @@ void display_status_message(const char *message) {
   mvprintw(term_height - 3, coord_x, "%s", message);
   attroff(COLOR_PAIR(STATUS) | A_BOLD);
   refresh();
+  getch();
 }

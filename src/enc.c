@@ -46,6 +46,7 @@ int generate_key_or_hash(unsigned char *key, char *hash, const char *const passd
 
 sqlite3 *decrypt(sqlite3 *db, unsigned char *key) {
   if (sqlite3_key(db, key, KEY_LEN) != SQLITE_OK) {
+    fprintf(stderr, "Error: %s\n", sqlite3_errmsg(db));
     sqlite3_close(db);
     return NULL;
   }

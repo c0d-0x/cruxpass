@@ -19,6 +19,8 @@
 #define S_DB 0x02
 
 hash_t *fetch_hash(void);
+bool prepare_stmt(sqlite3 *db);
+void cleanup_stmts(void);
 int delete_record(sqlite3 *db, int password_id);
 int init_sqlite(void);
 int insert_hash(sqlite3 *db, hash_t *hash_obj);

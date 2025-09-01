@@ -21,7 +21,7 @@ char *random_secret(int secret_len) {
   char secret_bank[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789#%&()_+={}[-]:<@>?";
   const int bank_len = sizeof(secret_bank) / sizeof(char);
 
-  if ((secret = calloc(sizeof(char) * secret_len, sizeof(char))) == NULL) {
+  if ((secret = calloc(1, secret_len)) == NULL) {
     perror("Error: Fail to creat password");
     return NULL;
   }
@@ -32,7 +32,7 @@ char *random_secret(int secret_len) {
     return NULL;
   }
 
-  for (int i = 0; i < secret_len && i < bank_len; i++) {
+  for (int i = 0; i < secret_len; i++) {
     secret[i] = secret_bank[(int)randombytes_uniform(bank_len - 1)];
   }
 
