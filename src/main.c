@@ -26,6 +26,7 @@ static int version;
 static int new_password;
 static int password_id;
 static int password_len;
+static int unambiguous_password;
 static char *export_file;
 static char *import_file;
 
@@ -51,7 +52,7 @@ int main(int argc, const char **argv) {
     bank_options.lowercase = true;
     bank_options.numbers = true;
     bank_options.symbols = true;
-    bank_options.exclude_ambiguous = true;
+    bank_options.exclude_ambiguous = (unambiguous_password != 0) ? true : false;
     char *secret = NULL;
     if ((secret = random_secret(password_len, &bank_options)) == NULL) {
       return EXIT_FAILURE;
@@ -152,6 +153,7 @@ int parse_options(int argc, const char **argv) {
       OPT_STRING('e', "export", &export_file, "Export all saved passwords to a csv format\n", NULL, 0, 0),
       OPT_STRING('i', "import", &import_file, "Import passwords from a csv file\n", NULL, 0, 0),
       OPT_INTEGER('g', "generate-rand", &password_len, "Generates a random password of a given length\n", NULL, 0, 0),
+      OPT_BOOLEAN('x', "exclude-ambiguous", &unambiguous_password, "Exclude ambiguous characters when generating a random password (combine with -g)\n", NULL, 0, 0),
       OPT_BOOLEAN('l', "list", &list, "list all passwords\n", NULL, 0, 0),
       OPT_BOOLEAN('n', "new-password", &new_password, "creates a new master password for cruxpass\n", NULL, 0, 0),
       OPT_BOOLEAN('s', "save", &save, "save a given password\n", NULL, 0, 0),
