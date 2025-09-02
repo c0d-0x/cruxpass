@@ -41,6 +41,7 @@ int main(int argc, const char **argv) {
   if (version != 0) {
     fprintf(stdout, "cruxpass version: %s\n", VERSION);
     fprintf(stdout, "Authur: %s\n", AUTHUR);
+    return EXIT_SUCCESS;
   }
 
   if (password_len != 0) {
