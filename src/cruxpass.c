@@ -138,9 +138,9 @@ int import_secrets(sqlite3 *db, char *import_file) {
     }
 
     /* TODO: proper error handling */
-    insert_record(db, secret_record);
+    if (!insert_record(db, secret_record)) fprintf(stderr, "Error: Failed to insert record at line: %ld", line_number);
     line_number++;
-    memset(secret_record, '\0', sizeof(secret_t));
+    memset(secret_record, 0, sizeof(secret_t));
   }
 
   fclose(fp);

@@ -25,7 +25,7 @@ static int list;
 static int version;
 static int new_password;
 static int password_id;
-static int password_len;
+static int gen_secret_len;
 static int unambiguous_password;
 static char *export_file;
 static char *import_file;
@@ -33,6 +33,7 @@ static char *import_file;
 sqlite3 *db;
 unsigned char *key;
 
+struct argparse argparse;
 void cleanup_main(void);
 int parse_options(int argc, const char **argv);
 
@@ -45,7 +46,7 @@ int main(int argc, const char **argv) {
     return EXIT_SUCCESS;
   }
 
-  if (password_len != 0) {
+  if (gen_secret_len != 0) {
     secret_bank_options_t bank_options;
     memset(&bank_options, 0, sizeof(secret_bank_options_t));
     bank_options.uppercase = true;
@@ -54,7 +55,7 @@ int main(int argc, const char **argv) {
     bank_options.symbols = true;
     bank_options.exclude_ambiguous = (unambiguous_password != 0) ? true : false;
     char *secret = NULL;
-    if ((secret = random_secret(password_len, &bank_options)) == NULL) {
+    if ((secret = random_secret(gen_secret_len, &bank_options)) == NULL) {
       return EXIT_FAILURE;
     }
 
@@ -89,7 +90,7 @@ int main(int argc, const char **argv) {
   }
 
   if (import_file != NULL) {
-    if (strnlen(import_file, FILE_PATH_LEN) > FILE_PATH_LEN) {
+    if (strlen(import_file) > FILE_PATH_LEN) {
       fprintf(stderr, "Warning: Import file name too long [MAX: %d character long]\n", FILE_PATH_LEN);
       cleanup_main();
       return EXIT_FAILURE;
@@ -104,7 +105,7 @@ int main(int argc, const char **argv) {
   }
 
   if (export_file != NULL) {
-    if (strnlen(export_file, FILE_PATH_LEN) > FILE_PATH_LEN) {
+    if (strlen(export_file) > FILE_PATH_LEN) {
       fprintf(stderr, "Warning: Export file name too long: MAX_LEN =>15\n");
       cleanup_main();
       return EXIT_FAILURE;
@@ -152,16 +153,16 @@ int parse_options(int argc, const char **argv) {
       OPT_INTEGER('d', "delete", &password_id, "Deletes a password by id\n", NULL, 0, 0),
       OPT_STRING('e', "export", &export_file, "Export all saved passwords to a csv format\n", NULL, 0, 0),
       OPT_STRING('i', "import", &import_file, "Import passwords from a csv file\n", NULL, 0, 0),
-      OPT_INTEGER('g', "generate-rand", &password_len, "Generates a random password of a given length\n", NULL, 0, 0),
-      OPT_BOOLEAN('x', "exclude-ambiguous", &unambiguous_password, "Exclude ambiguous characters when generating a random password (combine with -g)\n", NULL, 0, 0),
-      OPT_BOOLEAN('l', "list", &list, "list all passwords\n", NULL, 0, 0),
-      OPT_BOOLEAN('n', "new-password", &new_password, "creates a new master password for cruxpass\n", NULL, 0, 0),
-      OPT_BOOLEAN('s', "save", &save, "save a given password\n", NULL, 0, 0),
-      OPT_BOOLEAN('v', "version", &version, "cruxpass version\n", NULL, 0, 0),
+      OPT_INTEGER('g', "generate-rand", &gen_secret_len, "Generates a random password of a given length\n", NULL, 0, 0),
+      OPT_BOOLEAN('x', "exclude-ambiguous", &unambiguous_password,
+                  "Exclude ambiguous characters when generating a random password (combine with -g)\n", NULL, 0, 0),
+      OPT_BOOLEAN('l', "list", &list, "List all passwords\n", NULL, 0, 0),
+      OPT_BOOLEAN('n', "new-password", &new_password, "Creates a new master password for cruxpass\n", NULL, 0, 0),
+      OPT_BOOLEAN('s', "save", &save, "Save a given password\n", NULL, 0, 0),
+      OPT_BOOLEAN('v', "version", &version, "Cruxpass version\n", NULL, 0, 0),
       OPT_END(),
   };
 
-  struct argparse argparse;
   argparse_init(&argparse, options, usages, ARGPARSE_STOP_AT_NON_OPTION);
   argparse_describe(&argparse,
                     "cruxpass is a lightweight, command-line password manager designed to securely\n"
@@ -171,7 +172,8 @@ int parse_options(int argc, const char **argv) {
                     "\ncruxpass emphasizes simplicity, security, and efficiency for developers and power users.\n");
   argc = argparse_parse(&argparse, argc, argv);
 
-  if (argc_cp <= 1) {
+  /* prevents exclude-ambiguous from being an independent option  */
+  if (argc_cp <= 1 || (!gen_secret_len && unambiguous_password)) {
     argparse_usage(&argparse);
     return 0;
   }

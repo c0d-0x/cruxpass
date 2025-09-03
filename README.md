@@ -24,17 +24,18 @@
 
 ## 🚀 Available Options
 
-| Short | Long                       | Description                                               |
-| ----- | -------------------------- | --------------------------------------------------------- |
-| `-h`  | `--help`                   | Show help message                                         |
-| `-d`  | `--delete <id>`            | Delete a password by its ID                               |
-| `-e`  | `--export <file>`          | Export all saved passwords to a CSV file                  |
-| `-i`  | `--import <file>`          | Import passwords from a CSV file                          |
-| `-g`  | `--generate-rand <length>` | Generate a random password of given length                |
-| `-l`  | `--list`                   | List all stored passwords                                 |
-| `-n`  | `--new-password`           | Create a new master password                              |
-| `-s`  | `--save`                   | Save a password with its metadata (prompts interactively) |
-| `-v`  | `--version`                | Show cruxPass version                                     |
+| Short | Long                       | Description                                                                      |
+| ----- | -------------------------- | -------------------------------------------------------------------------------- |
+| `-h`  | `--help`                   | Show help message                                                                |
+| `-d`  | `--delete <id>`            | Delete a password by its ID                                                      |
+| `-e`  | `--export <file>`          | Export all saved passwords to a CSV file                                         |
+| `-i`  | `--import <file>`          | Import passwords from a CSV file                                                 |
+| `-g`  | `--generate-rand <length>` | Generate a random password of given length                                       |
+| `-x`  | `--exclude-ambiguous`      | Exclude ambiguous characters when generating a random password (combine with -g) |
+| `-l`  | `--list`                   | List all stored passwords                                                        |
+| `-n`  | `--new-password`           | Create a new master password                                                     |
+| `-s`  | `--save`                   | Save a password with its metadata (prompts interactively)                        |
+| `-v`  | `--version`                | Show cruxPass version                                                            |
 
 ### CSV file format for imports
 
