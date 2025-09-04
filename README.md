@@ -76,7 +76,7 @@ make uninstall
 
 Encrypted Storage: All data is securely stored using an encrypted SQLite database (SQLCipher) at ~/.local/share/cruxpass/.
 
-Authentication: A master password is required to access or modify any stored data. By default, cruxpass uses: `cruxpassisgr8!` as it's master password.
+Authentication: A master password is required to access or modify any stored data.
 
 > [!NOTE]
 > cruxpass enforces internal limits on the size of various fields to ensure performance and security. Here are the default constraints:
