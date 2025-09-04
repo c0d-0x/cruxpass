@@ -23,7 +23,6 @@ char *sql_str[] = {"INSERT INTO secrets (username, secret,description )  VALUES 
 
 sqlite3_stmt *sql_stmts[NUM_STMTS] = {NULL};
 
-/* NOTE: int sqlite3_clear_bindings(sqlite3_stmt*); */
 bool prepare_stmt(sqlite3 *db) {
   for (int i = 0; i < NUM_STMTS; i++) {
     if (sqlite3_prepare_v2(db, sql_str[i], -1, &sql_stmts[i], NULL) != SQLITE_OK) {
@@ -75,8 +74,6 @@ int init_sqlite(void) {
   hash_t hash_rec;
   hash_t *stored_hash_rec = NULL;
 
-  char *psswd_str = "cruxpassisgr8!";
-  /*NOTE:  a temporary key, hash, and salt are generated for the creation of the new database*/
   if ((db = open_db(CRUXPASS_DB, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX)) == NULL) {
     return C_ERR;
   }
@@ -94,22 +91,33 @@ int init_sqlite(void) {
   }
 
   if (sodium_init() == -1) return C_ERR;
+
+  char *master_psswd =
+      get_input("Create a new master password for cruxpass.\n> Enter password: ", NULL, MASTER_MAX_LEN, 2, 0);
+
+  if (master_psswd == NULL || strlen(master_psswd) < SECRET_MIN_LEN) {
+    fprintf(stderr, "Error: password invalid\n");
+    return C_ERR;
+  }
+
   if ((key = (unsigned char *)sodium_malloc(KEY_LEN)) == NULL) {
     fprintf(stderr, "Error: Memory allocation failed.\n");
     sqlite3_close(db);
     sqlite3_close(hashes_db);
+    free(master_psswd);
     return C_ERR;
   }
 
-  /* TODO: Ask user for a password instead*/
   randombytes_buf(hash_rec.salt, crypto_pwhash_SALTBYTES);
-  if (!generate_key_or_hash(key, hash_rec.hash, psswd_str, hash_rec.salt, GEN_HASH | GEN_KEY)) {
+  if (!generate_key_or_hash(key, hash_rec.hash, master_psswd, hash_rec.salt, GEN_HASH | GEN_KEY)) {
     sodium_free(key);
     sqlite3_close(db);
     sqlite3_close(hashes_db);
+    free(master_psswd);
     return C_ERR;
   }
 
+  free(master_psswd);
   if ((db = decrypt(db, key)) == NULL) {
     sodium_free(key);
     sqlite3_close(hashes_db);

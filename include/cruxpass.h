@@ -1,6 +1,6 @@
 /**
  * PROJECT: cruxpass - A simple password manager
- * AUTHOR: c0d_0x
+ * AUTHOR: c0d_0x @ 2025
  * MIT LICENSE
  */
 
@@ -19,12 +19,11 @@
 #include <string.h>
 #include <sys/types.h>
 #include <time.h>
-#include <uchar.h>
 #include <unistd.h>
 
-#define PASS_MIN 8
-#define MAX_PATH_LEN 256
+#define MAX_PATH_LEN 255
 #define MASTER_MAX_LEN 45
+#define SECRET_MIN_LEN 8
 #define SECRET_MAX_LEN 128
 #define USERNAME_MAX_LEN 30
 #define DESC_MAX_LEN 100
@@ -51,8 +50,8 @@ typedef enum {
 } ERROR_T;
 
 typedef struct {
-  bool uppercase;     // Uppercase alphabets
-  bool lowercase;     // Lowercase alphabets
+  bool uppercase;  // Uppercase alphabets
+  bool lowercase;  // Lowercase alphabets
   bool numbers;
   bool symbols;
   bool exclude_ambiguous;

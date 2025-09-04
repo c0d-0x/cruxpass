@@ -39,6 +39,7 @@ void init_ncurses(void) {
 }
 
 static void reset_term(void) {
+  clear();
   echo();
   curs_set(0);
   resetterm();
@@ -90,10 +91,13 @@ static void display_ascii_art(void) {
   refresh();
 }
 
+/* if the input parameter is NULL, the caller is responsible for freeing the returned ptr */
 char *get_input(const char *prompt, char *input, const int input_len, int coord_y, int coord_x) {
-  if (prompt == NULL) {
-    fprintf(stderr, "Error: No prompt provided\n");
-    return NULL;
+  if (input == NULL) {
+    if ((input = calloc(1, input_len)) == NULL) {
+      fprintf(stderr, "Error: Failed to allocate memory");
+      return NULL;
+    }
   }
 
   init_ncurses();
@@ -103,7 +107,7 @@ char *get_input(const char *prompt, char *input, const int input_len, int coord_
   attron(A_BOLD);
   mvprintw(coord_y, coord_x, prompt, NULL);
   attroff(A_BOLD);
-  getnstr(input, input_len);
+  if (getnstr(input, input_len) != OK) return NULL;
   reset_term();
   return input;
 }
@@ -339,6 +343,7 @@ static void show_secrets_window(sqlite3 *db, int64_t record_id) {
 
   /* TODO: Fetch the actual secret from database using record_id */
   mvwprintw(secrets_win, 1, 2, "%s", secret_text);
+  wrefresh(secrets_win);
 
   show_panel(panels[SECRETE_WIN]);
   top_panel(panels[SECRETE_WIN]);
@@ -394,6 +399,7 @@ static void show_help_window(void) {
   line++;
   mvwprintw(help_win, line++, 2, "Press any key to close...");
 
+  wrefresh(help_win);
   show_panel(panels[HELP_WIN]);
   top_panel(panels[HELP_WIN]);
   update_panels();

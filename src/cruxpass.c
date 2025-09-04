@@ -12,8 +12,8 @@
 #include "../include/enc.h"
 
 char *random_secret(int secret_len, secret_bank_options_t *bank_options) {
-  if (secret_len < PASS_MIN || secret_len > SECRET_MAX_LEN) {
-    printf("Warning: Password must be at least 8 & %d characters long\n", SECRET_MAX_LEN);
+  if (secret_len < SECRET_MIN_LEN || secret_len > SECRET_MAX_LEN) {
+    printf("Warning: Password must be at least 8 or %d characters long\n", SECRET_MAX_LEN);
     return NULL;
   }
 
@@ -149,10 +149,13 @@ int import_secrets(sqlite3 *db, char *import_file) {
 }
 
 sqlite3 *initcrux() {
-  sqlite3 *db = NULL;
   int inited = init_sqlite();
-  if (inited == C_RET_OKK)
-    printf("Warning: Default password is: 'cruxpassisgr8!'. \nWarning: Change it with<< cruxpass -n >>\n");
+  if (inited == C_RET_OKK) {
+    printf("Note: New password created\nWarning: Retry your opetation\n");
+    return NULL;
+  }
+
+  sqlite3 *db = NULL;
   if (inited != C_ERR) db = open_db(CRUXPASS_DB, SQLITE_OPEN_READWRITE);
 
   return db;
