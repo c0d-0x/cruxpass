@@ -1,8 +1,6 @@
 #ifndef TUI_H
 #define TUI_H
 #define NCURSES_WIDECHAR 1
-#include <ncurses.h>
-#include <sys/types.h>
 
 #include "cruxpass.h"
 
@@ -49,12 +47,11 @@ void cleanup(void);
 void display_pagination_info(void);
 void display_status_message(const char *message);
 void display_table(void);
-void draw_border(WINDOW *window);
+/* void draw_border(WINDOW *window); */
 void free_records(record_array_t *arr);
 void handle_search(void);
 void init_ncurses(void);
 void search_next(void);
 
-WINDOW *create_main_window(int win_hight, int win_width);
-void yank_current_record(void);
+/* WINDOW *create_main_window(int win_hight, int win_width); */
 #endif  // !TUI_H
