@@ -7,24 +7,28 @@ LDFLAGS  ?=
 LDLIBS    = -lsodium -lncursesw -lpanel -lm -lsqlcipher -ldl -lpthread
 STATIC_LIBS = ./lib/*.a
 
-SRC := $(wildcard src/*.c)
-OBJ := $(SRC:.c=.o)
-BIN := ./bin/cruxpass
+SRC      := $(wildcard src/*.c)
+TUI_SRC  := $(wildcard src/tui/*.c)
+ALL_SRC  := $(SRC) $(TUI_SRC)
+
+OBJ      := $(ALL_SRC:src/%.c=build/%.o)
+
+BIN := bin/cruxpass
 
 PREFIX ?= /usr/local
 RUNDIR ?= $(HOME)/.local/share/cruxpass
-
-INSTALL_CRUXPASS_DB := $(HOME)/.local/share/cruxpass/cruxpass.db
-INSTALL_AUTH_DB    := $(HOME)/.local/share/cruxpass/auth.db
+INSTALL_CRUXPASS_DB := $(RUNDIR)/cruxpass.db
+INSTALL_AUTH_DB    := $(RUNDIR)/auth.db
 
 all: $(BIN)
-	@rm -f src/*.o
 	@echo 'Build complete (dev).'
 
 $(BIN): $(OBJ)
-	@$(CC) $(CFLAGS) $(OBJ) -o $@ $(LDFLAGS) $(STATIC_LIBS) $(LDLIBS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(OBJ) -o $@ $(LDFLAGS) $(STATIC_LIBS) $(LDLIBS)
 
-src/%.o: src/%.c
+build/%.o: src/%.c
+	@mkdir -p $(dir $@)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
 install: clean
@@ -40,7 +44,7 @@ install: clean
 .PHONY: all clean install uninstall
 
 clean:
-	@rm -f $(OBJ) $(BIN)
+	@rm -rf build $(BIN)
 	@echo "Clean up complete..."
 
 uninstall:

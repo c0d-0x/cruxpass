@@ -1,6 +1,12 @@
 #ifndef TUI_H
 #define TUI_H
 #define NCURSES_WIDECHAR 1
+#include <sodium/utils.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <wchar.h>
 
 #include "cruxpass.h"
 
@@ -9,7 +15,6 @@
 #define USERNAME_WIDTH 30
 #define DESC_WIDTH 51
 #define TABLE_WIDTH (ID_WIDTH + USERNAME_WIDTH + DESC_WIDTH + 2)
-#define CTRL(x) ((x) & 0x1f)
 #define DELETED (-1)
 
 #define COLOR_HEADER (TB_BLUE | TB_BOLD)
@@ -19,6 +24,7 @@
 #define COLOR_SEARCH (TB_YELLOW | TB_BOLD)
 
 #define HELP_WIN_WIDTH (TABLE_WIDTH / 2)
+#define LEN(arr) (sizeof(arr) / sizeof((arr)[0]))
 
 typedef struct {
   ssize_t id;
@@ -38,7 +44,6 @@ char *get_secret(const char *prompt);
 int callback_feed_tui(void *data, int argc, char **argv, char **column_name);
 int main_tui(sqlite3 *db);
 
-void draw_art(void);
 void add_record(record_array_t *arr, record_t rec);
 void cleanup(void);
 void display_pagination_info(void);
