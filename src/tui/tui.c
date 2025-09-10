@@ -1,15 +1,16 @@
 #include "../../include/tui.h"
 
+#include <locale.h>
+
 #include "../../include/database.h"
-#include "../../include/termbox.h"
 
 static record_array_t records = {0, 0, NULL};
-static volatile int64_t current_position = 1;
-static volatile int current_page = 0;
-static int records_per_page = 10;
 static int term_height, term_width;
 static char search_pattern[MAX_FIELD_LEN] = {0};
 static int search_active = 0;
+static int64_t current_position = 1;
+static int current_page = 0;
+static int records_per_page = 10;
 
 /**
  * Displays centered ASCII art (4 bytes wide char)
@@ -26,41 +27,37 @@ bool init_tui(void) {
   term_height = tb_height();
   term_width = tb_width();
   tb_set_input_mode(TB_INPUT_ESC | TB_INPUT_MOUSE);
+  setlocale(LC_ALL, "");
   return true;
 }
 
-void cleanup_tui(void) {
-  tb_shutdown();
-  free_records(&records);
-}
+void cleanup_tui(void) { tb_shutdown(); }
 
-static void draw_box(int coord_x, int coord_y, int width, int height, uintattr_t fg, uintattr_t bg) {
-  /* top and bottom borders */
-  for (int i = 1; i < width - 1; i++) {
-    tb_set_cell(coord_x + i, coord_y, 0x2500, fg, bg);               // ─
-    tb_set_cell(coord_x + i, coord_y + height - 1, 0x2500, fg, bg);  // ─
+static void show_notifctn(char *message) {
+  int term_h = tb_height();
+  int term_w = tb_width();
+  int message_len = strlen(message) + 4;
+  if (term_w <= message_len) {
+    tb_print(term_w / 2, term_h / 2, COLOR_STATUS, TB_DEFAULT, "Terminal width too small");
+    tb_present();
+    return;
   }
 
-  /* left and right borders */
-  for (int i = 1; i < height - 1; i++) {
-    tb_set_cell(coord_x, coord_y + i, 0x2502, fg, bg);              // │
-    tb_set_cell(coord_x + width - 1, coord_y + i, 0x2502, fg, bg);  // │
-  }
+  int start_x = term_w - (message_len + 4);
+  int start_y = 2;
 
-  /* Rounded corners */
-  tb_set_cell(coord_x, coord_y, 0x256D, fg, bg);                           // ╭
-  tb_set_cell(coord_x + width - 1, coord_y, 0x256E, fg, bg);               // ╮
-  tb_set_cell(coord_x, coord_y + height - 1, 0x2570, fg, bg);              // ╰
-  tb_set_cell(coord_x + width - 1, coord_y + height - 1, 0x256F, fg, bg);  // ╯
+  tb_print(start_x + 2, start_y + 2, COLOR_STATUS, TB_DEFAULT, message);
+  draw_border(start_x, start_y, message_len + 2, 5, COLOR_STATUS, TB_DEFAULT);
+  struct tb_event ev;
+  tb_peek_event(&ev, 3000);
 }
-
-void show_notifctn(const char *fmt, ...) {}
 
 int main_tui(sqlite3 *db) {
   records.data = NULL;
   records.size = 0;
   records.capacity = 0;
-  int ch = 0;
+  current_page = 0;
+  records_per_page = 30;
 
   if (!load_records(db, &records)) {
     cleanup_tui();
@@ -68,6 +65,20 @@ int main_tui(sqlite3 *db) {
     return 0;
   }
 
-  cleanup_tui();
+  int start_y = 2;
+  int start_x = (term_width - TABLE_WIDTH) / 2;
+  if (start_x < 0) start_x = 0;
+
+  tb_clear();
+  term_height = tb_height();
+  term_width = tb_width();
+  show_notifctn("Hello, c0d_0x");
+  table_t table = {
+      .start_x = start_x, .start_y = start_y, .width = TABLE_WIDTH, .height = term_height - 4, .cursor = 2};
+  draw_table(&table, current_page, records_per_page, &records);
+  tb_present();
+  struct tb_event ev;
+  tb_poll_event(&ev);
+  free_records(&records);
   return 1;
 }

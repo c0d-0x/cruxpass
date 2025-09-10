@@ -9,6 +9,7 @@
 #include <wchar.h>
 
 #include "cruxpass.h"
+#include "termbox2.h"
 
 #define MAX_FIELD_LEN 100
 #define ID_WIDTH 7
@@ -38,12 +39,25 @@ typedef struct {
   record_t *data;
 } record_array_t;
 
+typedef struct {
+  int start_x;
+  int start_y;
+  int width;
+  int height;
+  int64_t cursor;
+} table_t;
+
 char *get_input(const char *prompt, char *input, const int text_len, int cod_y, int cod_x);
 char *get_secret(const char *prompt);
 
-int callback_feed_tui(void *data, int argc, char **argv, char **column_name);
+int pipeline(void *data, int argc, char **argv, char **column_name);
 int main_tui(sqlite3 *db);
 
+void draw_art(void);
+void draw_border(int start_x, int start_y, int width, int height, uintattr_t fg, uintattr_t bg);
+void draw_table(table_t *table, int current_page, int rec_per_page, record_array_t *records);
+
+void cleanup_tui(void);
 void add_record(record_array_t *arr, record_t rec);
 void cleanup(void);
 void display_pagination_info(void);

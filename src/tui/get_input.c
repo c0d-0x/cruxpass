@@ -7,13 +7,12 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "../../include/termbox.h"
 #include "../../include/tui.h"
 
 /* special characters */
 #define is_special(ch) ((ch >= 0x21 && ch <= 0x2F) || (ch == 0x40 || ch >= 0x7B && ch <= 0x7D))
 
-char *get_input(const char *prompt, char *input, const int input_len, int coord_y, int coord_x) {
+char *get_input(const char *prompt, char *input, const int input_len, int start_y, int start_x) {
   bool input_is_dynamic = false;
   if (input == NULL) {
     if ((input = calloc(1, input_len)) == NULL) {
@@ -24,7 +23,7 @@ char *get_input(const char *prompt, char *input, const int input_len, int coord_
   }
 
   tb_clear();
-  tb_print(coord_x, coord_y, TB_WHITE | TB_BOLD, TB_DEFAULT, prompt);
+  tb_print(start_x, start_y, TB_WHITE | TB_BOLD, TB_DEFAULT, prompt);
   tb_present();
 
   int position = 0;
@@ -44,56 +43,18 @@ char *get_input(const char *prompt, char *input, const int input_len, int coord_
         if (position > 0) {
           position--;
           input[position] = '\0';
-          tb_set_cell(coord_x + prompt_len + position, coord_y, ' ', TB_DEFAULT, TB_DEFAULT);
+          tb_set_cell(start_x + prompt_len + position, start_y, ' ', TB_DEFAULT, TB_DEFAULT);
           tb_present();
         }
       } else if (isalnum(ev.ch) != 0 || is_special(ev.ch)) {
         input[position] = (char)ev.ch;
-        tb_set_cell(coord_x + prompt_len + position, coord_y, ev.ch, TB_DEFAULT, TB_DEFAULT);
+        tb_set_cell(start_x + prompt_len + position, start_y, ev.ch, TB_DEFAULT, TB_DEFAULT);
         position++;
         tb_present();
       }
     }
   }
   return input;
-}
-
-static void draw_art(void) {
-  const wchar_t *ascii_art[] = {L" ▄████▄   █    ██ ▒██   ██▒ ██▓███   ▄▄▄        ██████   ██████    ",
-                                L"▒██▀ ▀█   ██  ▓██▒▒▒ █ █ ▒░▓██░  ██▒▒████▄    ▒██    ▒ ▒██    ▒    ",
-                                L"▒▓█    ▄ ▓██  ▒██░░░  █   ░▓██░ ██▓▒▒██  ▀█▄  ░ ▓██▄   ░ ▓██▄      ",
-                                L"▒▓▓▄ ▄██▒▓▓█  ░██░ ░ █ █ ▒ ▒██▄█▓▒ ▒░██▄▄▄▄██   ▒   ██▒  ▒   ██▒   ",
-                                L"▒ ▓███▀ ░▒▒█████▓ ▒██▒ ▒██▒▒██▒ ░  ░ ▓█   ▓██▒▒██████▒▒▒██████▒▒   ",
-                                L"░ ░▒ ▒  ░░▒▓▒ ▒ ▒ ▒▒ ░ ░▓ ░▒▓▒░ ░  ░ ▒▒   ▓▒█░▒ ▒▓▒ ▒ ░▒ ▒▓▒ ▒ ░   ",
-                                L"  ░  ▒   ░░▒░ ░ ░ ░░   ░▒ ░░▒ ░       ▒   ▒▒ ░░ ░▒  ░ ░░ ░▒  ░ ░   ",
-                                L"░         ░░░ ░ ░  ░    ░  ░░         ░   ▒   ░  ░  ░  ░  ░  ░     ",
-                                L"░ ░         ░      ░    ░                 ░  ░      ░        ░     ",
-                                L"░                                                                  "};
-  tb_clear();
-  int term_w = tb_width();
-  int term_h = tb_height();
-  setlocale(LC_ALL, "");
-
-  int art_lines = LEN(ascii_art);
-  int art_width = wcslen(ascii_art[0]);
-
-  int coord_y = (term_h / 2) - (art_lines / 2) - 3;
-  int coord_x = (term_w - art_width) / 2;
-
-  if (coord_y < 0) coord_y = 0;
-  if (coord_x < 0) coord_x = 0;
-
-  for (int i = 0; i < art_lines; i++) {
-    const wchar_t *w_str = ascii_art[i];
-    art_width = wcslen(ascii_art[i]);
-    for (int j = 0; j < art_width; j++) {
-      tb_set_cell(coord_x++, coord_y, ascii_art[i][j], TB_WHITE, TB_DEFAULT);
-    }
-    coord_x -= art_width;
-    coord_y++;
-  }
-
-  tb_present();
 }
 
 char *get_secret(const char *prompt) {

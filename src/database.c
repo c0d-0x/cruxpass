@@ -291,7 +291,7 @@ int load_records(sqlite3 *db, record_array_t *records) {
   char *err_msg = 0;
 
   const char *sql = "SELECT secret_id, username, description FROM secrets ORDER BY secret_id;";
-  if (sqlite3_exec(db, sql, callback_feed_tui, records, &err_msg) != SQLITE_OK) {
+  if (sqlite3_exec(db, sql, pipeline, records, &err_msg) != SQLITE_OK) {
     fprintf(stderr, "Error: SQL error: %s\n", err_msg);
     sqlite3_free(err_msg);
     sqlite3_close(db);

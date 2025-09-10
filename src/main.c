@@ -139,6 +139,7 @@ int main(int argc, const char **argv) {
 void cleanup_main(void) {
   sqlite3_close(db);
   cleanup_stmts();
+  cleanup_tui();
   if (key != NULL) {
     sodium_memzero(key, KEY_LEN);
     sodium_free(key);

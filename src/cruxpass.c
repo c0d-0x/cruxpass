@@ -36,7 +36,7 @@ char *random_secret(int secret_len, secret_bank_options_t *bank_options) {
   if (sodium_init() == -1) {
     free(secret_bank);
     free(secret);
-    fprintf(stderr, "Error: Failed to initialize libsodium");
+    fprintf(stderr, "Error: Failed to initialize libsodium\n");
     return NULL;
   }
 
