@@ -9,3 +9,4 @@ test
 main
 *cruxpass
 *.db
+.gdb_history
