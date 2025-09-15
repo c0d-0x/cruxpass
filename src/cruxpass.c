@@ -57,7 +57,7 @@ int export_secrets(sqlite3 *db, const char *export_file) {
 
   if ((fp = fopen(export_file, "wb")) == NULL) {
     fprintf(stderr, "Error: Failed to open %s: %s", export_file, strerror(errno));
-    return EXIT_FAILURE;
+    return 0;
   }
 
   char *sql_str = "SELECT username, secret, description FROM passwords;";
@@ -79,7 +79,7 @@ int export_secrets(sqlite3 *db, const char *export_file) {
 
   fclose(fp);
   sqlite3_finalize(sql_stmt);
-  return EXIT_SUCCESS;
+  return 1;
 }
 
 /**

@@ -1,6 +1,5 @@
 #ifndef TUI_H
 #define TUI_H
-#define NCURSES_WIDECHAR 1
 #include <sodium/utils.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -26,6 +25,8 @@
 
 #define HELP_WIN_WIDTH (TABLE_WIDTH / 2)
 #define LEN(arr) (sizeof(arr) / sizeof((arr)[0]))
+#define draw_table(current_page, rec_per_page, records, ...) \
+  _draw_table((current_page), (rec_per_page), (records), (table_t){.width = TABLE_WIDTH, .start_y = 1, __VA_ARGS__})
 
 typedef struct {
   ssize_t id;
@@ -55,20 +56,13 @@ int main_tui(sqlite3 *db);
 
 void draw_art(void);
 void draw_border(int start_x, int start_y, int width, int height, uintattr_t fg, uintattr_t bg);
-void draw_table(table_t *table, int current_page, int rec_per_page, record_array_t *records);
+void _draw_table(int current_page, int rec_per_page, record_array_t *records, table_t table);
 
 void cleanup_tui(void);
 void add_record(record_array_t *arr, record_t rec);
-void cleanup(void);
 void display_pagination_info(void);
 void display_status_message(const char *message);
-void display_table(void);
-/* void draw_border(WINDOW *window); */
 void free_records(record_array_t *arr);
-void handle_search(void);
 bool init_tui(void);
-void init_ncurses(void);
-void search_next(void);
 
-/* WINDOW *create_main_window(int win_hight, int win_width); */
 #endif  // !TUI_H

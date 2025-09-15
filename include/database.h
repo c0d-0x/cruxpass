@@ -15,10 +15,9 @@
 #define UPDATE_SECRET 0x02
 #define UPDATE_USERNAME 0x04
 
-#define P_DB 0x01
-#define S_DB 0x02
+#define NUM_STMTS 3
 
-typedef enum { INSERT_REC_STMT, DELETE_REC_STMT, UPDATE_REC_STMT, FETCH_SEC_STMT } SQL_STMT;
+typedef enum { INSERT_REC_STMT, DELETE_REC_STMT, FETCH_SEC_STMT } SQL_STMT;
 
 hash_t *fetch_hash(void);
 bool prepare_stmt(sqlite3 *db);

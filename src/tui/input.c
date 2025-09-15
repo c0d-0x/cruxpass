@@ -1,4 +1,3 @@
-#include <locale.h>
 #include <sodium/utils.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -22,7 +21,6 @@ char *get_input(const char *prompt, char *input, const int input_len, int start_
     input_is_dynamic = true;
   }
 
-  tb_clear();
   tb_print(start_x, start_y, TB_WHITE | TB_BOLD, TB_DEFAULT, prompt);
   tb_present();
 
@@ -52,6 +50,8 @@ char *get_input(const char *prompt, char *input, const int input_len, int start_
         position++;
         tb_present();
       }
+    } else if (ev.type == TB_EVENT_RESIZE) {
+      continue;
     }
   }
   return input;
@@ -86,8 +86,14 @@ char *get_secret(const char *prompt) {
   while (1) {
     tb_poll_event(&ev);
     if (ev.type == TB_EVENT_KEY) {
-      if (ev.key == TB_KEY_ENTER || ev.key == TB_KEY_ESC) {
+      if (ev.key == TB_KEY_ENTER) {
         break;
+      }
+
+      if (ev.key == TB_KEY_ESC) {
+        sodium_memzero((void *const)secret, MASTER_MAX_LEN);
+        sodium_free(secret);
+        return NULL;
       }
 
       if (ev.key == TB_KEY_BACKSPACE2 || ev.key == TB_KEY_BACKSPACE) {
@@ -105,6 +111,21 @@ char *get_secret(const char *prompt) {
       tb_set_cell(center_x + prompt_len + i, center_y, '*', TB_WHITE, TB_DEFAULT);
       tb_present();
       i++;
+    } else if (ev.type == TB_EVENT_RESIZE) {
+      tb_clear();
+      draw_art();
+      term_w = ev.w;
+      term_h = ev.h;
+      center_y = (term_h / 2) + 4;
+      center_x = (term_w - prompt_len - MASTER_MAX_LEN) / 2;
+
+      if (center_x < 0) center_x = 0;
+      if (center_y >= term_h - 1) center_y = term_h - 2;
+
+      tb_print(center_x, center_y, TB_BOLD | TB_WHITE, TB_DEFAULT, prompt);
+      tb_present();
+
+      continue;
     }
   }
 

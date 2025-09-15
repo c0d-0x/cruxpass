@@ -65,8 +65,14 @@ int main(int argc, const char **argv) {
   }
 
   if ((db = initcrux()) == NULL) return EXIT_FAILURE;
-  if ((key = decryption_helper(db)) == NULL) return EXIT_FAILURE;
-  if (!prepare_stmt(db)) return EXIT_FAILURE;
+  if ((key = decryption_helper(db)) == NULL) {
+    cleanup_tui();
+    return EXIT_FAILURE;
+  }
+  if (!prepare_stmt(db)) {
+    cleanup_tui();
+    return EXIT_FAILURE;
+  }
 
   if (new_password != 0) {
     if (!create_new_master_secret(db, key)) {
@@ -97,11 +103,11 @@ int main(int argc, const char **argv) {
     }
 
     if (!import_secrets(db, import_file)) {
-      fprintf(stderr, "Error: Failed to import: %s", import_file);
+      fprintf(stderr, "Error: Failed to import secrets from: %s", import_file);
       cleanup_main();
       return EXIT_FAILURE;
     }
-    fprintf(stderr, "Info: Passwords imported successfully from: %s\n", import_file);
+    fprintf(stderr, "Info: secrets imported successfully from: %s\n", import_file);
   }
 
   if (export_file != NULL) {
@@ -113,10 +119,12 @@ int main(int argc, const char **argv) {
 
     // TODO: fix set path to set paths to CRUXPASS_DB instead.
     if (!export_secrets(db, export_file)) {
-      fprintf(stdout, "Info: Passwords exported to: %s\n", export_file);
+      fprintf(stdout, "Error: Failed to export secrets to: %s\n", export_file);
       cleanup_main();
       return EXIT_FAILURE;
     };
+
+    fprintf(stderr, "Info: secrets exported successfully to: %s\n", export_file);
   }
 
   if (password_id != 0) {

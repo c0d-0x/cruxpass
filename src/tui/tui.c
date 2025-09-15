@@ -7,7 +7,6 @@
 static record_array_t records = {0, 0, NULL};
 static int term_height, term_width;
 static char search_pattern[MAX_FIELD_LEN] = {0};
-static int search_active = 0;
 static int64_t current_position = 1;
 static int current_page = 0;
 static int records_per_page = 10;
@@ -58,6 +57,7 @@ int main_tui(sqlite3 *db) {
   records.capacity = 0;
   current_page = 0;
   records_per_page = 30;
+  struct tb_event ev = {0};
 
   if (!load_records(db, &records)) {
     cleanup_tui();
@@ -65,20 +65,66 @@ int main_tui(sqlite3 *db) {
     return 0;
   }
 
-  int start_y = 2;
-  int start_x = (term_width - TABLE_WIDTH) / 2;
-  if (start_x < 0) start_x = 0;
+  while (1) {
+    term_width = tb_width();
+    term_height = tb_height();
+    records_per_page = term_height - 6;
+    if (records_per_page < 1) records_per_page = 1;
 
-  tb_clear();
-  term_height = tb_height();
-  term_width = tb_width();
-  show_notifctn("Hello, c0d_0x");
-  table_t table = {
-      .start_x = start_x, .start_y = start_y, .width = TABLE_WIDTH, .height = term_height - 4, .cursor = 2};
-  draw_table(&table, current_page, records_per_page, &records);
-  tb_present();
-  struct tb_event ev;
-  tb_poll_event(&ev);
-  free_records(&records);
+    current_page = current_position / records_per_page;
+
+    draw_table(current_page, records_per_page, &records, .start_x = (term_width - TABLE_WIDTH) / 2,
+               .height = term_height - 4, .cursor = current_position);
+
+    int ret = tb_poll_event(&ev);
+    if (ret != TB_OK) continue;
+
+    if (ev.type == TB_EVENT_KEY) {
+      if (ev.key == TB_KEY_ESC || ev.ch == 'q' || ev.ch == 'Q') {
+        break;
+      } else if (ev.ch == 'k' || ev.key == TB_KEY_ARROW_UP) {
+        if (current_position > 0) current_position--;
+      } else if (ev.ch == 'j' || ev.key == TB_KEY_ARROW_DOWN) {
+        if (current_position < records.size - 1) current_position++;
+      } else if (ev.ch == 'h' || ev.key == TB_KEY_ARROW_LEFT) {
+        current_position = (current_page - 1) * records_per_page;
+        if (current_position < 0) current_position = 0;
+      } else if (ev.ch == 'l' || ev.key == TB_KEY_ARROW_RIGHT) {
+        current_position = (current_page + 1) * records_per_page;
+        if (current_position >= records.size) current_position = records.size - 1;
+      } else if (ev.ch == 'g' || ev.key == TB_KEY_HOME) {
+        current_position = 0;
+      } else if (ev.ch == 'G' || ev.key == TB_KEY_END) {
+        current_position = records.size - 1;
+      } else if (ev.ch == '/') {
+        /* TODO: handle search*/
+        continue;
+      } else if (ev.ch == 'n') {
+        continue;
+      } else if (ev.ch == '?') {
+        /* TODO: show help  */
+        continue;
+      } else if (ev.ch == 'd') {
+        if (!delete_record(db, records.data[current_position].id)) {
+          show_notifctn("Error: Failed to delete password");
+          return 0;
+        }
+        show_notifctn("Note: password deleted");
+        records.data[current_position].id = DELETED;
+      } else if (ev.ch == 'u') {
+        /* TODO: handle updates */
+        show_notifctn("Note: record updated");
+      } else if (ev.key == TB_KEY_ENTER) {
+        /* TODO:show secrets */
+        continue;
+      }
+    } else if (ev.type == TB_EVENT_RESIZE) {
+      term_width = ev.w;
+      term_height = ev.h;
+      records_per_page = term_height - 6;
+      if (records_per_page < 1) records_per_page = 1;
+    }
+  }
+
   return 1;
 }

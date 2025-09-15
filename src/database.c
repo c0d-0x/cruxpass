@@ -14,12 +14,8 @@
 #include "../include/enc.h"
 #include "../include/tui.h"
 
-#define NUM_STMTS 4
-
 char *sql_str[] = {"INSERT INTO secrets (username, secret,description )  VALUES (?, ?, ?);",
-                   "DELETE FROM secrets WHERE secret_id = ?;",
-                   "UPDATE secrets SET description = ? WHERE secret_id = ?;",
-                   "SELECT secret FROM secrets WHERE secret_id = ?;"};
+                   "DELETE FROM secrets WHERE secret_id = ?;", "SELECT secret FROM secrets WHERE secret_id = ?;"};
 
 sqlite3_stmt *sql_stmts[NUM_STMTS] = {NULL};
 
@@ -92,9 +88,11 @@ int init_sqlite(void) {
 
   if (sodium_init() == -1) return C_ERR;
 
-  char *master_psswd =
-      get_input("Create a new master password for cruxpass.\n> Enter password: ", NULL, MASTER_MAX_LEN, 2, 0);
-
+  tb_clear();
+  tb_print(0, 2, TB_DEFAULT, TB_DEFAULT, "Create a new master password for cruxpass.");
+  tb_present();
+  char *master_psswd = get_input("> Enter password: ", NULL, MASTER_MAX_LEN, 3, 0);
+  cleanup_tui();
   if (master_psswd == NULL || strlen(master_psswd) < SECRET_MIN_LEN) {
     fprintf(stderr, "Error: password invalid\n");
     return C_ERR;
@@ -195,7 +193,6 @@ int delete_record(sqlite3 *db, int record_id) {
     return 0;
   }
 
-  fprintf(stderr, "Note: password< %02d > is deleted\n", record_id);
   sqlite3_reset(sql_stmts[DELETE_REC_STMT]);
   sqlite3_clear_bindings(sql_stmts[DELETE_REC_STMT]);
   return 1;
