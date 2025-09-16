@@ -10,3 +10,4 @@ main
 build
 *cruxpass
 *.db
+.gdb_history
