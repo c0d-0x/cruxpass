@@ -1,4 +1,7 @@
 
+#include <stdint.h>
+#include <wchar.h>
+
 #include "../../include/tui.h"
 
 void draw_art(void) {
@@ -12,7 +15,6 @@ void draw_art(void) {
                                 L"░         ░░░ ░ ░  ░    ░  ░░         ░   ▒   ░  ░  ░  ░  ░  ░     ",
                                 L"░ ░         ░      ░    ░                 ░  ░      ░        ░     ",
                                 L"░                                                                  "};
-  tb_clear();
   int term_w = tb_width();
   int term_h = tb_height();
 
@@ -25,6 +27,7 @@ void draw_art(void) {
   if (coord_y < 0) coord_y = 0;
   if (coord_x < 0) coord_x = 0;
 
+  tb_clear();
   for (int i = 0; i < art_lines; i++) {
     art_width = wcslen(ascii_art[i]);
     for (int j = 0; j < art_width; j++) {

@@ -7,5 +7,6 @@ test
 .idea
 .vscode
 main
+build
 *cruxpass
 *.db

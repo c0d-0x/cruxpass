@@ -11,7 +11,6 @@
 
 #include "../include/database.h"
 #include "../include/enc.h"
-#include "../include/tui.h"
 
 char *random_secret(int secret_len, secret_bank_options_t *bank_options) {
   if (secret_len < SECRET_MIN_LEN || secret_len > SECRET_MAX_LEN) {
@@ -151,7 +150,6 @@ int import_secrets(sqlite3 *db, char *import_file) {
 }
 
 sqlite3 *initcrux() {
-  if (!init_tui()) return NULL;
   int inited = init_sqlite();
   if (inited == C_RET_OKK) {
     printf("Note: New password created\nWarning: Retry your opetation\n");

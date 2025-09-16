@@ -47,8 +47,7 @@ int main(int argc, const char **argv) {
   }
 
   if (gen_secret_len != 0) {
-    secret_bank_options_t bank_options;
-    memset(&bank_options, 0, sizeof(secret_bank_options_t));
+    secret_bank_options_t bank_options = {0};
     bank_options.uppercase = true;
     bank_options.lowercase = true;
     bank_options.numbers = true;
@@ -64,9 +63,11 @@ int main(int argc, const char **argv) {
     return EXIT_SUCCESS;
   }
 
-  if ((db = initcrux()) == NULL) return EXIT_FAILURE;
+  if ((db = initcrux()) == NULL) {
+    return EXIT_FAILURE;
+  }
+
   if ((key = decryption_helper(db)) == NULL) {
-    cleanup_tui();
     return EXIT_FAILURE;
   }
   if (!prepare_stmt(db)) {
@@ -83,12 +84,14 @@ int main(int argc, const char **argv) {
   }
 
   if (save != 0) {
+    init_tui();
+    tb_clear();
     secret_t record = {0};
-    clear();
     get_input("> username: ", record.username, USERNAME_MAX_LEN, 2, 0);
     get_input("> secret: ", record.secret, SECRET_MAX_LEN, 3, 0);
     get_input("> description: ", record.description, DESC_MAX_LEN, 4, 0);
 
+    cleanup_tui();
     if (!insert_record(db, &record)) {
       cleanup_main();
       return EXIT_FAILURE;
@@ -129,7 +132,6 @@ int main(int argc, const char **argv) {
 
   if (password_id != 0) {
     /* WARNING: db object never used but necessary to initcrux() */
-    /* sqlite3_close(db); */
     if (!delete_record(db, password_id)) {
       cleanup_main();
       return EXIT_FAILURE;
@@ -147,7 +149,6 @@ int main(int argc, const char **argv) {
 void cleanup_main(void) {
   sqlite3_close(db);
   cleanup_stmts();
-  cleanup_tui();
   if (key != NULL) {
     sodium_memzero(key, KEY_LEN);
     sodium_free(key);

@@ -9,7 +9,7 @@
 #include "../../include/tui.h"
 
 /* special characters */
-#define is_special(ch) ((ch >= 0x21 && ch <= 0x2F) || (ch == 0x40 || ch >= 0x7B && ch <= 0x7D))
+#define is_special(ch) ((ch >= 0x21 && ch <= 0x2F) || (ch == 0x40 || (ch >= 0x7B && ch <= 0x7D)))
 
 char *get_input(const char *prompt, char *input, const int input_len, int start_y, int start_x) {
   bool input_is_dynamic = false;
@@ -60,8 +60,6 @@ char *get_input(const char *prompt, char *input, const int input_len, int start_
 char *get_secret(const char *prompt) {
   char *secret = NULL;
   int prompt_len = strlen(prompt);
-  ssize_t center_y;
-  ssize_t center_x;
 
   draw_art();
   int term_w = tb_width();
@@ -72,13 +70,13 @@ char *get_secret(const char *prompt) {
   }
 
   sodium_memzero((void *const)secret, MASTER_MAX_LEN + 1);
-  center_y = (term_h / 2) + 4;
-  center_x = (term_w - prompt_len - MASTER_MAX_LEN) / 2;
+  int start_y = (term_h / 2) + 4;
+  int start_x = (term_w - prompt_len - MASTER_MAX_LEN) / 2;
 
-  if (center_x < 0) center_x = 0;
-  if (center_y >= term_h - 1) center_y = term_h - 2;
+  if (start_x < 0) start_x = 0;
+  if (start_y >= term_h - 1) start_y = term_h - 2;
 
-  tb_print(center_x, center_y, TB_BOLD | TB_WHITE, TB_DEFAULT, prompt);
+  tb_print(start_x, start_y, TB_BOLD | TB_WHITE, TB_DEFAULT, prompt);
   tb_present();
 
   int i = 0;
@@ -99,7 +97,7 @@ char *get_secret(const char *prompt) {
       if (ev.key == TB_KEY_BACKSPACE2 || ev.key == TB_KEY_BACKSPACE) {
         if (i > 0) {
           secret[--i] = '\0';
-          tb_set_cell(center_x + prompt_len + i, center_y, ' ', TB_WHITE, TB_DEFAULT);
+          tb_set_cell(start_x + prompt_len + i, start_y, ' ', TB_WHITE, TB_DEFAULT);
           tb_present();
           continue;
         }
@@ -108,7 +106,7 @@ char *get_secret(const char *prompt) {
       if (isalnum(ev.ch) == 0 && !is_special(ev.ch)) continue;
 
       secret[i] = (char)ev.ch;
-      tb_set_cell(center_x + prompt_len + i, center_y, '*', TB_WHITE, TB_DEFAULT);
+      tb_set_cell(start_x + prompt_len + i, start_y, '*', TB_WHITE, TB_DEFAULT);
       tb_present();
       i++;
     } else if (ev.type == TB_EVENT_RESIZE) {
@@ -116,13 +114,13 @@ char *get_secret(const char *prompt) {
       draw_art();
       term_w = ev.w;
       term_h = ev.h;
-      center_y = (term_h / 2) + 4;
-      center_x = (term_w - prompt_len - MASTER_MAX_LEN) / 2;
+      start_y = (term_h / 2) + 4;
+      start_x = (term_w - prompt_len - MASTER_MAX_LEN) / 2;
 
-      if (center_x < 0) center_x = 0;
-      if (center_y >= term_h - 1) center_y = term_h - 2;
+      if (start_x < 0) start_x = 0;
+      if (start_y >= term_h - 1) start_y = term_h - 2;
 
-      tb_print(center_x, center_y, TB_BOLD | TB_WHITE, TB_DEFAULT, prompt);
+      tb_print(start_x, start_y, TB_BOLD | TB_WHITE, TB_DEFAULT, prompt);
       tb_present();
 
       continue;

@@ -86,12 +86,20 @@ int init_sqlite(void) {
     return C_RET_OK;
   }
 
-  if (sodium_init() == -1) return C_ERR;
+  if (sodium_init() == -1) {
+    sqlite3_close(db);
+    sqlite3_close(hashes_db);
+    return C_ERR;
+  }
 
+  if (!init_tui()) {
+    sqlite3_close(db);
+    sqlite3_close(hashes_db);
+    return C_ERR;
+  }
   tb_print(0, 2, TB_DEFAULT, TB_DEFAULT, "Create a new master password for cruxpass.");
   tb_present();
   char *master_psswd = get_input("> Enter password: ", NULL, MASTER_MAX_LEN, 3, 0);
-  cleanup_tui();
   if (master_psswd == NULL || strlen(master_psswd) < SECRET_MIN_LEN) {
     fprintf(stderr, "Error: password invalid\n");
     return C_ERR;
@@ -221,7 +229,6 @@ static int sql_prep_n_exec(sqlite3 *db, char *sql_fmt_str, sqlite3_stmt *sql_stm
 }
 
 int update_record(sqlite3 *db, secret_t *secret_record, int record_id, uint8_t flags) {
-  bool updated = false;
   char *sql_fmt_str = NULL;
   sqlite3_stmt *sql_stmt = NULL;
 
@@ -240,7 +247,6 @@ int update_record(sqlite3 *db, secret_t *secret_record, int record_id, uint8_t f
 
     sqlite3_reset(sql_stmt);
     sqlite3_finalize(sql_stmt);
-    updated = true;
   }
 
   if (flags & UPDATE_SECRET) {
@@ -257,7 +263,6 @@ int update_record(sqlite3 *db, secret_t *secret_record, int record_id, uint8_t f
 
     sqlite3_reset(sql_stmt);
     sqlite3_finalize(sql_stmt);
-    updated = true;
   }
 
   if (flags & UPDATE_USERNAME) {
@@ -274,10 +279,8 @@ int update_record(sqlite3 *db, secret_t *secret_record, int record_id, uint8_t f
 
     sqlite3_reset(sql_stmt);
     sqlite3_finalize(sql_stmt);
-    updated = true;
   }
 
-  if (updated) printf("Info: password ID: %d updated\n", record_id);
   sqlite3_close(db);
   return 1;
 }

@@ -29,7 +29,7 @@
   _draw_table((current_page), (rec_per_page), (records), (table_t){.width = TABLE_WIDTH, .start_y = 1, __VA_ARGS__})
 
 typedef struct {
-  ssize_t id;
+  int64_t id;
   char username[USERNAME_MAX_LEN];
   char description[MAX_FIELD_LEN];
 } record_t;
@@ -58,10 +58,14 @@ void draw_art(void);
 void draw_border(int start_x, int start_y, int width, int height, uintattr_t fg, uintattr_t bg);
 void _draw_table(int current_page, int rec_per_page, record_array_t *records, table_t table);
 
+void display_help(void);
+void display_notifctn(char *message);
+void display_secret(sqlite3 *db, uint16_t id);
+
+bool do_updates(sqlite3 *db, record_array_t *records, int64_t current_position);
+
 void cleanup_tui(void);
 void add_record(record_array_t *arr, record_t rec);
-void display_pagination_info(void);
-void display_status_message(const char *message);
 void free_records(record_array_t *arr);
 bool init_tui(void);
 

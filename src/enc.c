@@ -157,11 +157,14 @@ unsigned char *decryption_helper(sqlite3 *db) {
     return NULL;
   }
 
+  init_tui();
   if ((master_passd = get_secret("Master Password: ")) == NULL) {
     sodium_free(key);
+    cleanup_tui();
     return NULL;
   }
 
+  cleanup_tui();
   if ((hashed_password = authenticate(master_passd)) == NULL) {
     sodium_free(key);
     sodium_free(master_passd);

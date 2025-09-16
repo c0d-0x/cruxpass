@@ -1,11 +1,11 @@
 #include "../../include/tui.h"
 
 #include <locale.h>
+#include <stdint.h>
 
 #include "../../include/database.h"
 
 static record_array_t records = {0, 0, NULL};
-static int term_height, term_width;
 static char search_pattern[MAX_FIELD_LEN] = {0};
 static int64_t current_position = 1;
 static int current_page = 0;
@@ -23,32 +23,19 @@ bool init_tui(void) {
     return false;
   }
 
-  term_height = tb_height();
-  term_width = tb_width();
-  tb_set_input_mode(TB_INPUT_ESC | TB_INPUT_MOUSE);
+  tb_set_input_mode(TB_INPUT_ESC);
   setlocale(LC_ALL, "");
   return true;
 }
 
 void cleanup_tui(void) { tb_shutdown(); }
 
-static void show_notifctn(char *message) {
-  int term_h = tb_height();
-  int term_w = tb_width();
-  int message_len = strlen(message) + 4;
-  if (term_w <= message_len) {
-    tb_print(term_w / 2, term_h / 2, COLOR_STATUS, TB_DEFAULT, "Terminal width too small");
-    tb_present();
-    return;
+static bool notify_deleted(int64_t id) {
+  if (id == DELETED) {
+    display_notifctn("Note: this secret has been deleted");
+    return true;
   }
-
-  int start_x = term_w - (message_len + 4);
-  int start_y = 2;
-
-  tb_print(start_x + 2, start_y + 2, COLOR_STATUS, TB_DEFAULT, message);
-  draw_border(start_x, start_y, message_len + 2, 5, COLOR_STATUS, TB_DEFAULT);
-  struct tb_event ev;
-  tb_peek_event(&ev, 3000);
+  return false;
 }
 
 int main_tui(sqlite3 *db) {
@@ -59,6 +46,9 @@ int main_tui(sqlite3 *db) {
   records_per_page = 30;
   struct tb_event ev = {0};
 
+  int term_width;
+  int term_height;
+  init_tui();
   if (!load_records(db, &records)) {
     cleanup_tui();
     fprintf(stderr, "Error: Failed to load data from database\n");
@@ -103,20 +93,27 @@ int main_tui(sqlite3 *db) {
         continue;
       } else if (ev.ch == '?') {
         /* TODO: show help  */
+        display_help();
         continue;
+
       } else if (ev.ch == 'd') {
+        if (notify_deleted(records.data[current_position].id)) continue;
         if (!delete_record(db, records.data[current_position].id)) {
-          show_notifctn("Error: Failed to delete password");
-          return 0;
+          display_notifctn("Error: Failed to delete secret");
+          continue;
         }
-        show_notifctn("Note: password deleted");
+
+        display_notifctn("Note: secret deleted");
         records.data[current_position].id = DELETED;
+
       } else if (ev.ch == 'u') {
-        /* TODO: handle updates */
-        show_notifctn("Note: record updated");
+        if (notify_deleted(records.data[current_position].id)) continue;
+        if (!do_updates(db, &records, current_position)) continue;
+        display_notifctn("Note: record updated");
+
       } else if (ev.key == TB_KEY_ENTER) {
-        /* TODO:show secrets */
-        continue;
+        if (notify_deleted(records.data[current_position].id)) continue;
+        display_secret(db, records.data[current_position].id);
       }
     } else if (ev.type == TB_EVENT_RESIZE) {
       term_width = ev.w;
@@ -126,5 +123,7 @@ int main_tui(sqlite3 *db) {
     }
   }
 
+  cleanup_tui();
+  free_records(&records);
   return 1;
 }
