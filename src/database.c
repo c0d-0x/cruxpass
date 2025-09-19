@@ -97,9 +97,12 @@ int init_sqlite(void) {
     sqlite3_close(hashes_db);
     return C_ERR;
   }
+
   tb_print(0, 2, TB_DEFAULT, TB_DEFAULT, "Create a new master password for cruxpass.");
   tb_present();
   char *master_psswd = get_input("> Enter password: ", NULL, MASTER_MAX_LEN, 3, 0);
+  cleanup_tui();
+
   if (master_psswd == NULL || strlen(master_psswd) < SECRET_MIN_LEN) {
     fprintf(stderr, "Error: password invalid\n");
     return C_ERR;

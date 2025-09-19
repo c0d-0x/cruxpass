@@ -1,3 +1,4 @@
+#define TB_IMPL
 #include "../../include/tui.h"
 
 #include <locale.h>
@@ -6,9 +7,9 @@
 
 #include "../../include/database.h"
 
-int current_page = 0;
 int records_per_page = 30;
-char *search_pattern = NULL;
+int current_page;
+int total_pages;
 
 bool init_tui(void) {
   if (tb_init() != TB_OK) {
@@ -43,9 +44,10 @@ static void draw_table_border(int start_x, int start_y, int table_h) {
 int main_tui(sqlite3 *db) {
   queue_t search_queue = {0};
   record_array_t records = {0, 0, NULL};
+  char *search_pattern = NULL;
   struct tb_event ev = {0};
 
-  int64_t current_position = 1;
+  int64_t current_position = 0;
 
   int term_width;
   int term_height;
@@ -59,10 +61,6 @@ int main_tui(sqlite3 *db) {
 
   term_width = tb_width();
   term_height = tb_height();
-  if (term_width < TABLE_WIDTH + 2) {
-    display_notifctn("Warning: Term too small");
-    return 0;
-  }
 
   int start_x = (term_width - TABLE_WIDTH) / 2;
   int start_y = 1;
@@ -71,7 +69,7 @@ int main_tui(sqlite3 *db) {
   draw_table_border(start_x, start_y, table_h);
 
   while (1) {
-    records_per_page = term_height - 6;
+    records_per_page = term_height - 8;
     if (records_per_page < 1) records_per_page = 1;
 
     current_page = current_position / records_per_page;
@@ -154,10 +152,6 @@ int main_tui(sqlite3 *db) {
     } else if (ev.type == TB_EVENT_RESIZE) {
       term_width = ev.w;
       term_height = ev.h;
-      if (term_width < TABLE_WIDTH + 2) {
-        display_notifctn("Warning: Term too small");
-        break;
-      }
 
       records_per_page = term_height - 6;
       if (records_per_page < 1) records_per_page = 1;

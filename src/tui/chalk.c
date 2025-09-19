@@ -1,12 +1,12 @@
 
 #include <stdint.h>
-#include <stdlib.h>
 #include <wchar.h>
 
 #include "../../include/tui.h"
 
 extern int current_page;
 extern int records_per_page;
+extern int total_pages;
 
 /**
  * Displays centered ASCII art (4 bytes wide char)
@@ -68,6 +68,23 @@ void draw_border(int start_x, int start_y, int width, int height, uintattr_t fg,
   tb_present();
 }
 
+static void draw_status(int start_y, int cursor) {
+  int width = 40;
+  int start_x = (tb_width() - width) / 2;
+
+  for (int i = 1; i < width - 1; i++) {
+    tb_set_cell(start_x + i, start_y, 0x2500, COLOR_PAGINATION, TB_DEFAULT);
+  }
+
+  tb_set_cell(start_x, start_y + 1, 0x2502, COLOR_PAGINATION, TB_DEFAULT);
+  tb_set_cell(start_x + width - 1, start_y + 1, 0x2502, COLOR_PAGINATION, TB_DEFAULT);
+
+  tb_set_cell(start_x, start_y, 0x256D, COLOR_PAGINATION, TB_DEFAULT);
+  tb_set_cell(start_x + width - 1, start_y, 0x256E, COLOR_PAGINATION, TB_DEFAULT);
+  tb_printf(start_x + 3, start_y + 1, COLOR_HEADER, TB_DEFAULT, "Page %d of %02d │ Record %d of %d", current_page + 1,
+            total_pages + 1, cursor + 1, (records_per_page * total_pages) + 1);
+}
+
 void _draw_table(record_array_t *records, queue_t *search_queue, char *search_parttern, table_t table) {
   /* TODO: redraw the table border and headings once term term resizes */
 
@@ -80,6 +97,8 @@ void _draw_table(record_array_t *records, queue_t *search_queue, char *search_pa
   /* for (int i = 0; i < TABLE_WIDTH; i++) { */
   /*   tb_set_cell(table.start_x + i + 1, table.start_y + 2, 0x2500, COLOR_PAGINATION, TB_DEFAULT);  // ─ */
   /* } */
+
+  total_pages = records->size / records_per_page;
 
   int64_t start_index = current_page * records_per_page;
   int64_t end_index = start_index + records_per_page;
@@ -136,5 +155,6 @@ void _draw_table(record_array_t *records, queue_t *search_queue, char *search_pa
               DESC_WIDTH, rec->description);
   }
 
+  draw_status(table.height, table.cursor);
   tb_present();
 }
