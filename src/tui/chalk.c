@@ -1,9 +1,16 @@
 
 #include <stdint.h>
+#include <stdlib.h>
 #include <wchar.h>
 
 #include "../../include/tui.h"
 
+extern int current_page;
+extern int records_per_page;
+
+/**
+ * Displays centered ASCII art (4 bytes wide char)
+ */
 void draw_art(void) {
   const wchar_t *ascii_art[] = {L" ▄████▄   █    ██ ▒██   ██▒ ██▓███   ▄▄▄        ██████   ██████    ",
                                 L"▒██▀ ▀█   ██  ▓██▒▒▒ █ █ ▒░▓██░  ██▒▒████▄    ▒██    ▒ ▒██    ▒    ",
@@ -61,19 +68,21 @@ void draw_border(int start_x, int start_y, int width, int height, uintattr_t fg,
   tb_present();
 }
 
-void _draw_table(int current_page, int rec_per_page, record_array_t *records, table_t table) {
-  tb_clear();
-  draw_border(table.start_x, table.start_y, table.width + 2, table.height + 2, COLOR_PAGINATION, TB_DEFAULT);
+void _draw_table(record_array_t *records, queue_t *search_queue, char *search_parttern, table_t table) {
+  /* TODO: redraw the table border and headings once term term resizes */
 
-  tb_printf(table.start_x + 1, table.start_y + 1, COLOR_HEADER, TB_DEFAULT, "%-*s %-*s %-*s", ID_WIDTH, "ID",
-            USERNAME_WIDTH, "USERNAME", DESC_WIDTH, "DESCRIPTION");
+  /* tb_clear(); */
+  /* draw_border(table.start_x, table.start_y, table.width + 2, table.height + 2, COLOR_PAGINATION, TB_DEFAULT); */
 
-  for (int i = 0; i < TABLE_WIDTH; i++) {
-    tb_set_cell(table.start_x + i + 1, table.start_y + 2, 0x2500, COLOR_PAGINATION, TB_DEFAULT);  // ─
-  }
+  /* tb_printf(table.start_x + 1, table.start_y + 1, COLOR_HEADER, TB_DEFAULT, "%-*s %-*s %-*s", ID_WIDTH, "ID", */
+  /* USERNAME_WIDTH, "USERNAME", DESC_WIDTH, "DESCRIPTION"); */
 
-  int64_t start_index = current_page * rec_per_page;
-  int64_t end_index = start_index + rec_per_page;
+  /* for (int i = 0; i < TABLE_WIDTH; i++) { */
+  /*   tb_set_cell(table.start_x + i + 1, table.start_y + 2, 0x2500, COLOR_PAGINATION, TB_DEFAULT);  // ─ */
+  /* } */
+
+  int64_t start_index = current_page * records_per_page;
+  int64_t end_index = start_index + records_per_page;
   if (end_index > records->size) end_index = records->size;
 
   record_t *rec = NULL;
@@ -82,6 +91,23 @@ void _draw_table(int current_page, int rec_per_page, record_array_t *records, ta
   uintattr_t fg;
   uintattr_t bg;
 
+  /* cleanup cells before redrawing rows */
+  for (int i = 1; i < table.height - 1; i++) {
+    for (int j = 0; j < TABLE_WIDTH; j++) {
+      tb_set_cell(table.start_x + j + 1, table.start_y + i + 2, ' ', COLOR_PAGINATION, TB_DEFAULT);  // ─
+    }
+  }
+
+  if (search_parttern != NULL) {
+    /*NOTE: perform a search and free the search_parttern */
+    for (int64_t i = 0; i < records->size; i++) {
+      if (strstr(records->data[i].username, search_parttern) != NULL ||
+          strstr(records->data[i].description, search_parttern) != NULL) {
+        if (!enqueue(search_queue, i)) display_notifctn("Error: Failed to enqueue record index");
+      }
+    }
+  }
+
   for (int64_t i = start_index; i < end_index; i++) {
     rec = &records->data[i];
     row = 4 + (i - start_index);
@@ -89,11 +115,16 @@ void _draw_table(int current_page, int rec_per_page, record_array_t *records, ta
     bg = TB_DEFAULT;
 
     if (rec->id == DELETED) {
-      fg = COLOR_STATUS;
-      bg = TB_WHITE;
-      tb_printf(start_x, row, fg, bg, "%-*s %-*s %-*.*s", ID_WIDTH, "DELETED", USERNAME_WIDTH, rec->username,
-                DESC_WIDTH, DESC_WIDTH, rec->description);
+      tb_printf(start_x, row, COLOR_STATUS, TB_WHITE, "%-*s %-*s %-*.*s", ID_WIDTH, "DELETED", USERNAME_WIDTH,
+                rec->username, DESC_WIDTH, DESC_WIDTH, rec->description);
       continue;
+    }
+
+    if (search_parttern != NULL) {
+      if (strstr(rec->username, search_parttern) != NULL || strstr(rec->description, search_parttern) != NULL) {
+        fg = TB_DEFAULT;
+        bg = COLOR_SEARCH;
+      }
     }
 
     if (i == table.cursor) {
@@ -104,5 +135,6 @@ void _draw_table(int current_page, int rec_per_page, record_array_t *records, ta
     tb_printf(start_x, row, fg, bg, "%-*ld %-*s %-*.*s", ID_WIDTH, rec->id, USERNAME_WIDTH, rec->username, DESC_WIDTH,
               DESC_WIDTH, rec->description);
   }
+
   tb_present();
 }

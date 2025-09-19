@@ -2,20 +2,13 @@
 
 #include <locale.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #include "../../include/database.h"
 
-static record_array_t records = {0, 0, NULL};
-static char search_pattern[MAX_FIELD_LEN] = {0};
-static int64_t current_position = 1;
-static int current_page = 0;
-static int records_per_page = 10;
-
-/**
- * Displays centered ASCII art (4 bytes wide char)
- */
-
-#define LEN(arr) (sizeof(arr) / sizeof((arr)[0]))
+int current_page = 0;
+int records_per_page = 30;
+char *search_pattern = NULL;
 
 bool init_tui(void) {
   if (tb_init() != TB_OK) {
@@ -38,16 +31,25 @@ static bool notify_deleted(int64_t id) {
   return false;
 }
 
+static void draw_table_border(int start_x, int start_y, int table_h) {
+  draw_border(start_x, start_y, TABLE_WIDTH + 2, table_h + 2, COLOR_PAGINATION, TB_DEFAULT);
+  tb_printf(start_x + 1, start_y + 1, COLOR_HEADER, TB_DEFAULT, "%-*s %-*s %-*s", ID_WIDTH, "ID", USERNAME_WIDTH,
+            "USERNAME", DESC_WIDTH, "DESCRIPTION");
+  for (int i = 0; i < TABLE_WIDTH; i++) {
+    tb_set_cell(start_x + i + 1, start_y + 2, 0x2500, COLOR_PAGINATION, TB_DEFAULT);  // ─
+  }
+}
+
 int main_tui(sqlite3 *db) {
-  records.data = NULL;
-  records.size = 0;
-  records.capacity = 0;
-  current_page = 0;
-  records_per_page = 30;
+  queue_t search_queue = {0};
+  record_array_t records = {0, 0, NULL};
   struct tb_event ev = {0};
+
+  int64_t current_position = 1;
 
   int term_width;
   int term_height;
+
   init_tui();
   if (!load_records(db, &records)) {
     cleanup_tui();
@@ -55,16 +57,27 @@ int main_tui(sqlite3 *db) {
     return 0;
   }
 
+  term_width = tb_width();
+  term_height = tb_height();
+  if (term_width < TABLE_WIDTH + 2) {
+    display_notifctn("Warning: Term too small");
+    return 0;
+  }
+
+  int start_x = (term_width - TABLE_WIDTH) / 2;
+  int start_y = 1;
+  int table_h = term_height - 4;
+
+  draw_table_border(start_x, start_y, table_h);
+
   while (1) {
-    term_width = tb_width();
-    term_height = tb_height();
     records_per_page = term_height - 6;
     if (records_per_page < 1) records_per_page = 1;
 
     current_page = current_position / records_per_page;
 
-    draw_table(current_page, records_per_page, &records, .start_x = (term_width - TABLE_WIDTH) / 2,
-               .height = term_height - 4, .cursor = current_position);
+    draw_table(&records, &search_queue, search_pattern, .start_x = start_x, .height = table_h,
+               .cursor = current_position);
 
     int ret = tb_poll_event(&ev);
     if (ret != TB_OK) continue;
@@ -87,13 +100,34 @@ int main_tui(sqlite3 *db) {
       } else if (ev.ch == 'G' || ev.key == TB_KEY_END) {
         current_position = records.size - 1;
       } else if (ev.ch == '/') {
-        /* TODO: handle search*/
+        if (search_pattern != NULL) {
+          /* TODO: handle search*/
+          free(search_pattern);
+          search_pattern = NULL;
+        }
+
+        free_queue(&search_queue);
+        search_pattern = get_search_parttern();
+        draw_table_border(start_x, start_y, table_h);
         continue;
       } else if (ev.ch == 'n') {
-        continue;
+        if (!queue_is_empty(&search_queue)) {
+          int64_t index = dequeue(&search_queue);
+
+          if (index == QUEUE_ERR) {
+            display_notifctn("Error: Failed to dequeue");
+            continue;
+          }
+
+          current_position = index;
+          continue;
+        } else {
+          display_notifctn("Note: Record not found");
+        }
       } else if (ev.ch == '?') {
         /* TODO: show help  */
         display_help();
+        draw_table_border(start_x, start_y, table_h);
         continue;
 
       } else if (ev.ch == 'd') {
@@ -111,19 +145,34 @@ int main_tui(sqlite3 *db) {
         if (!do_updates(db, &records, current_position)) continue;
         display_notifctn("Note: record updated");
 
+        draw_table_border(start_x, start_y, table_h);
       } else if (ev.key == TB_KEY_ENTER) {
         if (notify_deleted(records.data[current_position].id)) continue;
         display_secret(db, records.data[current_position].id);
+        draw_table_border(start_x, start_y, table_h);
       }
     } else if (ev.type == TB_EVENT_RESIZE) {
       term_width = ev.w;
       term_height = ev.h;
+      if (term_width < TABLE_WIDTH + 2) {
+        display_notifctn("Warning: Term too small");
+        break;
+      }
+
       records_per_page = term_height - 6;
       if (records_per_page < 1) records_per_page = 1;
+
+      start_x = (term_width - TABLE_WIDTH) / 2;
+      start_y = 1;
+      table_h = term_height - 4;
+      tb_clear();
+      draw_table_border(start_x, start_y, table_h);
     }
   }
 
   cleanup_tui();
   free_records(&records);
+  free_queue(&search_queue);
+  if (search_pattern != NULL) free(search_pattern);
   return 1;
 }

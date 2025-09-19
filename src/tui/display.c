@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "../../include/database.h"
@@ -20,7 +21,8 @@ void display_notifctn(char *message) {
   tb_print(start_x + 2, start_y + 2, COLOR_STATUS, TB_DEFAULT, message);
   draw_border(start_x, start_y, message_len + 2, 5, COLOR_STATUS, TB_DEFAULT);
   struct tb_event ev;
-  tb_peek_event(&ev, 3000);
+  tb_peek_event(&ev, 2000);
+  raise(SIGWINCH);
 }
 
 void display_secret(sqlite3 *db, uint16_t id) {
@@ -54,6 +56,8 @@ void display_secret(sqlite3 *db, uint16_t id) {
     tb_poll_event(&ev);
     if (ev.type == TB_EVENT_KEY && ev.key == TB_KEY_ENTER) break;
   }
+
+  free((void *)secret);
 }
 
 void display_help(void) {
@@ -73,22 +77,22 @@ void display_help(void) {
 
   tb_clear();
   draw_border(start_x, start_y, help_w + 4, help_h + 2, TB_DEFAULT, TB_DEFAULT);
-  tb_print(start_x + 2, start_y, TB_WHITE | TB_BOLD, TB_BLACK, " Help ");
+  tb_print(start_x + 2, start_y, TB_DEFAULT | TB_BOLD, TB_DEFAULT, " Help ");
 
   int line = start_y + 2;
-  tb_print(start_x + 2, line++, TB_WHITE, TB_BLACK, "Actions:");
-  tb_print(start_x + 2, line++, TB_WHITE, TB_BLACK, " Enter - View secret      u - Update record");
-  tb_print(start_x + 2, line++, TB_WHITE, TB_BLACK, " d - Delete record        ");
-  tb_print(start_x + 2, line++, TB_WHITE, TB_BLACK, " / - Search               n - Next search result");
-  tb_print(start_x + 2, line++, TB_WHITE, TB_BLACK, " ? - Show this help       q/Q - Quit");
+  tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, "Actions:");
+  tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " Enter - View secret      u - Update record");
+  tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " d - Delete record        ");
+  tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " / - Search               n - Next search result");
+  tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " ? - Show this help       q/Q - Quit");
 
   line++;
-  tb_print(start_x + 2, line++, TB_WHITE, TB_BLACK, "Navigation:");
-  tb_print(start_x + 2, line++, TB_WHITE, TB_BLACK, " j/k - Down/Up            h/l - Page left/right");
-  tb_print(start_x + 2, line++, TB_WHITE, TB_BLACK, " g/G - First/Last");
+  tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, "Navigation:");
+  tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " j/k - Down/Up            h/l - Page left/right");
+  tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " g/G - First/Last");
 
   line++;
-  tb_print(start_x + 2, line++, TB_WHITE, TB_BLACK, "Press any key to close...");
+  tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, "Press any key to close...");
 
   tb_present();
   struct tb_event ev;

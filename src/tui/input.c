@@ -21,11 +21,14 @@ char *get_input(const char *prompt, char *input, const int input_len, int start_
     input_is_dynamic = true;
   }
 
-  tb_print(start_x, start_y, TB_WHITE | TB_BOLD, TB_DEFAULT, prompt);
-  tb_present();
+  int prompt_len = 0;
+  if (prompt != NULL) {
+    prompt_len = strlen(prompt);
+    tb_print(start_x, start_y, TB_WHITE | TB_BOLD, TB_DEFAULT, prompt);
+    tb_present();
+  }
 
   int position = 0;
-  int prompt_len = strlen(prompt);
 
   while (position < input_len) {
     struct tb_event ev;
@@ -128,4 +131,26 @@ char *get_secret(const char *prompt) {
   }
 
   return secret;
+}
+
+char *get_search_parttern(void) {
+  int term_w = tb_width();
+  int term_h = tb_height();
+  char *search_parttern = NULL;
+
+  int start_x = (term_w - (SEARCH_TXT_MAX + 2)) / 2;
+  int start_y = (term_h - 4) / 2;
+  if (start_x <= 0 || start_y <= 0) {
+    display_notifctn("Warning: Term width or height too small");
+    return NULL;
+  }
+
+  tb_clear();
+
+  draw_border(start_x, start_y, SEARCH_TXT_MAX + 4, 3, TB_DEFAULT, TB_DEFAULT);
+  tb_print(start_x + 2, start_y, TB_DEFAULT | TB_BOLD, TB_DEFAULT, " Search ");
+  tb_present();
+  search_parttern = get_input(NULL, NULL, SEARCH_TXT_MAX, start_y + 1, start_x + 2);
+  tb_clear();
+  return search_parttern;
 }
