@@ -43,25 +43,27 @@
 | ------------- | ---------- | ---------------- |
 | test@test.com | rdj(:p6Y{p | This is a secret |
 
-### Actions in the TUI mode (--list)
+### Options in the TUI mode (--list)
 
-| Key(s)  | Description              |
-|---------|--------------------------|
-| Enter   | View secret              |
-| u       | Update record            |
-| d       | Delete record            |
-| /       | Search                   |
-| n       | Next search result       |
-| ?       | Show this help           |
-| q / Q   | Quit                     |
+#### Actions
 
-## Navigation
+| Key(s) | Description        |
+| ------ | ------------------ |
+| Enter  | View secret        |
+| u      | Update record      |
+| d      | Delete record      |
+| /      | Search             |
+| n      | Next search result |
+| ?      | Show this help     |
+| q / Q  | Quit               |
 
-| Key(s)             | Description              |
-|--------------------|--------------------------|
-| j / k or ↓ / ↑     | Down / Up                |
-| h / l or ← / →     | Page left / right        |
-| g / G              | First / Last             |
+#### Navigation
+
+| Key(s)         | Description       |
+| -------------- | ----------------- |
+| j / k or ↓ / ↑ | Down / Up         |
+| h / l or ← / → | Page left / right |
+| g / G          | First / Last      |
 
 ## ⚙️ Installation
 
