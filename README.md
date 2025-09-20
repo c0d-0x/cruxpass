@@ -10,19 +10,19 @@
 
 ---
 
-## 🔐 Features
+## Features
 
-- 🔑 Generate strong, random passwords
-- 🛡️ Store passwords securely using encryption
-- 🔍 Retrieve passwords by username
-- 📋 List all saved credentials
-- 📤 Export and 📥 import passwords via CSV
-- 🧹 Delete specific password entries
-- 🧪 Generate throwaway random passwords (not stored)
+- Generate strong, random passwords
+- Store passwords securely using encryption
+- Retrieve passwords by username
+- List all saved credentials
+- Export and import passwords via CSV
+- Delete specific password entries
+- Generate throwaway random passwords (not stored)
 
 ---
 
-## 🚀 Available Options
+## Available Options
 
 | Short | Long                       | Description                                                                      |
 | ----- | -------------------------- | -------------------------------------------------------------------------------- |
@@ -65,7 +65,7 @@
 | h / l or ← / → | Page left / right |
 | g / G          | First / Last      |
 
-## ⚙️ Installation
+## Installation
 
 > [!IMPORTANT]
 >
@@ -94,7 +94,7 @@ cruxpass <option> <argument>
 make uninstall
 ```
 
-## 🛡️ Security
+## Security
 
 Encrypted Storage: All data is securely stored using an encrypted SQLite database (SQLCipher) at ~/.local/share/cruxpass/.
 
@@ -111,20 +111,20 @@ Authentication: A master password is required to access or modify any stored dat
 
 > These limits are designed to balance usability with memory safety and can be adjusted in the source code if needed
 
-## 📈 Roadmap
+## Roadmap
 
 Future enhancements may include:
 
-- 📋 Clipboard integration on password generation
+- Clipboard integration on password generation
 
-- 🧠 Advanced search and filtering within stored data
+- Advanced search and filtering within stored data
 
-- 🧪 Unit testing for critical functions
+- Unit testing for critical functions
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please open issues or submit pull requests to help improve cruxpass.
 
-## 📄 License
+## License
 
 cruxpass is licensed under the MIT License.
