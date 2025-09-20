@@ -4,6 +4,7 @@ test
 *.o
 *.txt
 *.bin
+bin
 .idea
 .vscode
 main

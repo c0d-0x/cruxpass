@@ -72,7 +72,7 @@
 > ### This project requires:
 >
 > - libsqlchipher
-> - ncurses
+> - libsodium
 >
 > This Project is built in a linux envronment and haven't been tested on Windows or Mac.
 
