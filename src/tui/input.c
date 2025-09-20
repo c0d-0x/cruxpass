@@ -9,7 +9,7 @@
 #include "../../include/tui.h"
 
 /* special characters */
-#define is_special(ch) ((ch >= 0x21 && ch <= 0x2F) || (ch == 0x40 || (ch >= 0x7B && ch <= 0x7D)))
+#define is_special(ch) (((ch >= 0x20) && (ch <= 0x7E) && (ch != 0x2C)))
 
 char *get_input(const char *prompt, char *input, const int input_len, int start_y, int start_x) {
   bool input_is_dynamic = false;
@@ -47,7 +47,7 @@ char *get_input(const char *prompt, char *input, const int input_len, int start_
           tb_set_cell(start_x + prompt_len + position, start_y, ' ', TB_DEFAULT, TB_DEFAULT);
           tb_present();
         }
-      } else if (isalnum(ev.ch) != 0 || is_special(ev.ch)) {
+      } else if (is_special(ev.ch)) {
         input[position] = (char)ev.ch;
         tb_set_cell(start_x + prompt_len + position, start_y, ev.ch, TB_DEFAULT, TB_DEFAULT);
         position++;
