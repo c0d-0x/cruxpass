@@ -3,9 +3,6 @@
 #define SQLITE_HAS_CODEC
 #include <sqlcipher/sqlite3.h>
 #include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
 
 #include "cruxpass.h"
 #include "enc.h"

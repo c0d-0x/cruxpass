@@ -7,10 +7,6 @@
 #include <sodium/utils.h>
 #include <sqlcipher/sqlite3.h>
 #include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
 
 #define GEN_KEY 0x01
 #define GEN_HASH 0x02

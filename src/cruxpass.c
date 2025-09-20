@@ -5,9 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <wchar.h>
 
 #include "../include/database.h"
 #include "../include/enc.h"
@@ -59,7 +56,7 @@ int export_secrets(sqlite3 *db, const char *export_file) {
     return 0;
   }
 
-  char *sql_str = "SELECT username, secret, description FROM passwords;";
+  char *sql_str = "SELECT username, secret, description FROM secrets;";
   if (sqlite3_prepare_v2(db, sql_str, -1, &sql_stmt, NULL) != SQLITE_OK) {
     fprintf(stderr, "Error: Failed to prepare statement: %s\n", sqlite3_errmsg(db));
     sqlite3_close(db);

@@ -1,11 +1,9 @@
 #include "../include/main.h"
 
-#include <ncurses.h>
 #include <sodium/utils.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include "../include/argparse.h"
 #include "../include/cruxpass.h"
@@ -70,8 +68,9 @@ int main(int argc, const char **argv) {
   if ((key = decryption_helper(db)) == NULL) {
     return EXIT_FAILURE;
   }
+
+  cleanup_tui();
   if (!prepare_stmt(db)) {
-    cleanup_tui();
     return EXIT_FAILURE;
   }
 
@@ -87,13 +86,20 @@ int main(int argc, const char **argv) {
     init_tui();
     tb_clear();
     secret_t record = {0};
-    get_input("> username: ", record.username, USERNAME_MAX_LEN, 2, 0);
-    get_input("> secret: ", record.secret, SECRET_MAX_LEN, 3, 0);
-    get_input("> description: ", record.description, DESC_MAX_LEN, 4, 0);
+    if (get_input("> username: ", record.username, USERNAME_MAX_LEN, 2, 0) == NULL ||
+        get_input("> secret: ", record.secret, SECRET_MAX_LEN, 3, 0) == NULL ||
+        get_input("> description: ", record.description, DESC_MAX_LEN, 4, 0) == NULL) {
+      cleanup_tui();
+      cleanup_main();
+
+      fprintf(stderr, "Error: Failed to retrieve record\n");
+      return EXIT_FAILURE;
+    }
 
     cleanup_tui();
     if (!insert_record(db, &record)) {
       cleanup_main();
+
       return EXIT_FAILURE;
     }
   }
@@ -110,6 +116,7 @@ int main(int argc, const char **argv) {
       cleanup_main();
       return EXIT_FAILURE;
     }
+
     fprintf(stderr, "Info: secrets imported successfully from: %s\n", import_file);
   }
 
@@ -120,7 +127,6 @@ int main(int argc, const char **argv) {
       return EXIT_FAILURE;
     }
 
-    // TODO: fix set path to set paths to CRUXPASS_DB instead.
     if (!export_secrets(db, export_file)) {
       fprintf(stdout, "Error: Failed to export secrets to: %s\n", export_file);
       cleanup_main();
