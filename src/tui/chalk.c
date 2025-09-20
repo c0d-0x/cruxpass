@@ -68,7 +68,7 @@ void draw_border(int start_x, int start_y, int width, int height, uintattr_t fg,
   tb_present();
 }
 
-static void draw_status(int start_y, int cursor) {
+static void draw_status(int start_y, int cursor, int64_t total_records) {
   int width = 40;
   int start_x = (tb_width() - width) / 2;
 
@@ -82,7 +82,7 @@ static void draw_status(int start_y, int cursor) {
   tb_set_cell(start_x, start_y, 0x256D, COLOR_PAGINATION, TB_DEFAULT);
   tb_set_cell(start_x + width - 1, start_y, 0x256E, COLOR_PAGINATION, TB_DEFAULT);
   tb_printf(start_x + 3, start_y + 1, COLOR_HEADER, TB_DEFAULT, "Page %d of %02d │ Record %d of %d", current_page + 1,
-            total_pages + 1, cursor + 1, (records_per_page * total_pages + 1) + 1);
+            total_pages + 1, cursor + 1, total_records);
 }
 
 void _draw_table(record_array_t *records, queue_t *search_queue, char *search_parttern, table_t table) {
@@ -155,6 +155,6 @@ void _draw_table(record_array_t *records, queue_t *search_queue, char *search_pa
               DESC_WIDTH, rec->description);
   }
 
-  draw_status(table.height, table.cursor);
+  draw_status(table.height, table.cursor, records->size);
   tb_present();
 }
