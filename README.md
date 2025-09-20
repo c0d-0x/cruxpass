@@ -127,4 +127,4 @@ Contributions are welcome! Please open issues or submit pull requests to help im
 
 ## 📄 License
 
-cruxpass is licensed under the MIT License. See the LICENSE file for details.
+cruxpass is licensed under the MIT License.
