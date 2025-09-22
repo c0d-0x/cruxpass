@@ -4,8 +4,7 @@ CFLAGS   ?= -Wall -Wextra -Wformat-security -g
 CPPFLAGS ?= -Iinclude
 
 LDFLAGS  ?=
-LDLIBS    = -lsodium -lncursesw -lpanel -lm -lsqlcipher -ldl -lpthread
-STATIC_LIBS = ./lib/*.a
+LDLIBS    = -lsodium -lm -lsqlcipher -ldl -lpthread
 
 SRC      := $(wildcard src/*.c)
 TUI_SRC  := $(wildcard src/tui/*.c)
@@ -25,7 +24,7 @@ all: $(BIN)
 
 $(BIN): $(OBJ)
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) $(OBJ) -o $@ $(LDFLAGS) $(STATIC_LIBS) $(LDLIBS)
+	$(CC) $(CFLAGS) $(OBJ) -o $@ $(LDFLAGS) $(LDLIBS)
 
 build/%.o: src/%.c
 	@mkdir -p $(dir $@)

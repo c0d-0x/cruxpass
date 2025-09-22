@@ -140,7 +140,10 @@ int main_tui(sqlite3 *db) {
 
       } else if (ev.ch == 'u') {
         if (notify_deleted(records.data[current_position].id)) continue;
-        if (!do_updates(db, &records, current_position)) continue;
+        if (!do_updates(db, &records, current_position)) {
+          draw_table_border(start_x, start_y, table_h);
+          continue;
+        }
         display_notifctn("Note: record updated");
 
         draw_table_border(start_x, start_y, table_h);

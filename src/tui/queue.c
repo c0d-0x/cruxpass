@@ -36,7 +36,7 @@ bool enqueue(queue_t *queue, int64_t index) {
 
 int64_t dequeue(queue_t *queue) {
   if (queue_is_empty(queue)) {
-    return -2;
+    return QUEUE_ERR;
   }
 
   int64_t index = queue->data[queue->head];
@@ -44,7 +44,7 @@ int64_t dequeue(queue_t *queue) {
   return index;
 }
 
-bool queue_is_full(queue_t *queue) { return queue->capacity == queue->size; }
+bool queue_is_full(queue_t *queue) { return queue->capacity == queue->size && queue->data != NULL; }
 
 bool queue_is_empty(queue_t *queue) { return queue->data == NULL; }
 
