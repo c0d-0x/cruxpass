@@ -27,6 +27,7 @@
 | Short | Long                       | Description                                                                      |
 | ----- | -------------------------- | -------------------------------------------------------------------------------- |
 | `-h`  | `--help`                   | Show help message                                                                |
+| `r`   | `--run-directory`            | Specify the directory path where the database will be stored.                  |
 | `-d`  | `--delete <id>`            | Delete a password by its ID                                                      |
 | `-e`  | `--export <file>`          | Export all saved passwords to a CSV file                                         |
 | `-i`  | `--import <file>`          | Import passwords from a CSV file                                                 |
