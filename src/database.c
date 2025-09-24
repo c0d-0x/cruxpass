@@ -13,6 +13,8 @@
 #include "../include/enc.h"
 #include "../include/tui.h"
 
+char *cruxpass_db_path;
+char *auth_db_path;
 char *sql_str[] = {"INSERT INTO secrets (username, secret,description )  VALUES (?, ?, ?);",
                    "DELETE FROM secrets WHERE secret_id = ?;", "SELECT secret FROM secrets WHERE secret_id = ?;"};
 
@@ -52,7 +54,7 @@ sqlite3 *open_db(char *db_name, int flags) {
   sqlite3 *db = NULL;
   int rc = sqlite3_open_v2(db_name, &db, flags, NULL);
   if (rc != SQLITE_OK) {
-    fprintf(stderr, "Error: failed to open cruxpass_db.\n");
+    fprintf(stderr, "Error: failed to open cruxpass_d: %s\n", sqlite3_errmsg(db));
     return NULL;
   }
 
@@ -69,11 +71,11 @@ int init_sqlite(void) {
   hash_t hash_rec;
   hash_t *stored_hash_rec = NULL;
 
-  if ((db = open_db(CRUXPASS_DB, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX)) == NULL) {
+  if ((db = open_db(cruxpass_db_path, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX)) == NULL) {
     return C_ERR;
   }
 
-  if ((hashes_db = open_db(AUTH_DB, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE)) == NULL) {
+  if ((hashes_db = open_db(auth_db_path, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE)) == NULL) {
     sqlite3_close(db);
     return C_ERR;
   }
@@ -336,12 +338,13 @@ hash_t *fetch_hash(void) {
   const unsigned char *salt = NULL;
   char *sql_str = "SELECT hash, salt FROM hashes;";
 
-  if ((auth_db = open_db(AUTH_DB, SQLITE_OPEN_READWRITE)) == NULL) {
+  if ((auth_db = open_db(auth_db_path, SQLITE_OPEN_READWRITE)) == NULL) {
     return NULL;
   }
 
-  if (sqlite3_prepare_v2(auth_db, sql_str, -1, &sql_stmt, NULL) != SQLITE_OK) {
-    fprintf(stderr, "Error: failed to prepare statement: %s\n", sqlite3_errmsg(auth_db));
+  int sql_ret = sqlite3_prepare_v2(auth_db, sql_str, -1, &sql_stmt, NULL);
+  if (sql_ret != SQLITE_OK) {
+    fprintf(stderr, "Warning/Error: failed to prepare statement: %s\n", sqlite3_errmsg(auth_db));
     sqlite3_close(auth_db);
     return NULL;
   }
@@ -383,7 +386,7 @@ int update_hash(hash_t *hash_rec) {
     return 0;
   }
 
-  if ((db = open_db(AUTH_DB, SQLITE_OPEN_READWRITE)) == NULL) {
+  if ((db = open_db(auth_db_path, SQLITE_OPEN_READWRITE)) == NULL) {
     return 0;
   }
 

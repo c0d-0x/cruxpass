@@ -29,11 +29,15 @@
 #define DESC_MAX_LEN 100
 
 #ifndef CRUXPASS_DB
-#define CRUXPASS_DB ".cruxpass/cruxpass.db"
+#define CRUXPASS_DB "cruxpass.db"
 #endif
 
 #ifndef AUTH_DB
-#define AUTH_DB ".cruxpass/auth.db"
+#define AUTH_DB "auth.db"
+#endif
+
+#ifndef CRUXPASS_RUNDIR
+#define CRUXPASS_RUNDIR ".local/share/cruxpass"
 #endif
 
 typedef struct {
@@ -62,7 +66,7 @@ char *setpath(char *);
 int create_new_master_secret(sqlite3 *db, unsigned char *key);
 int export_secrets(sqlite3 *db, const char *export_file);
 int import_secrets(sqlite3 *db, char *import_file);
-sqlite3 *initcrux(void);
+sqlite3 *initcrux(char *run_dir);
 char *init_secret_bank(const secret_bank_options_t *options);
 
 #endif  // !CRUXPASS_H

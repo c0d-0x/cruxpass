@@ -26,10 +26,14 @@ static int password_id;
 static int gen_secret_len;
 static int unambiguous_password;
 static char *export_file;
+static char *cruxpass_run_dir;
 static char *import_file;
 
 sqlite3 *db;
 unsigned char *key;
+
+extern char *cruxpass_db_path;
+extern char *auth_db_path;
 
 struct argparse argparse;
 void cleanup_main(void);
@@ -61,7 +65,14 @@ int main(int argc, const char **argv) {
     return EXIT_SUCCESS;
   }
 
-  if ((db = initcrux()) == NULL) {
+  if (cruxpass_run_dir != NULL) {
+    if (strlen(cruxpass_run_dir) >= MAX_PATH_LEN - 16) {
+      fprintf(stderr, "Error: Path to run-directory too long.\n");
+      return EXIT_FAILURE;
+    }
+  }
+
+  if ((db = initcrux(cruxpass_run_dir)) == NULL) {
     return EXIT_FAILURE;
   }
 
@@ -155,6 +166,9 @@ int main(int argc, const char **argv) {
 void cleanup_main(void) {
   sqlite3_close(db);
   cleanup_stmts();
+  if (cruxpass_db_path != NULL) free(cruxpass_run_dir);
+  if (auth_db_path != NULL) free(auth_db_path);
+
   if (key != NULL) {
     sodium_memzero(key, KEY_LEN);
     sodium_free(key);
@@ -162,10 +176,11 @@ void cleanup_main(void) {
 }
 
 int parse_options(int argc, const char **argv) {
-  int argc_cp = argc;
   struct argparse_option options[] = {
       OPT_HELP(),
       OPT_GROUP("cruxpass options"),
+      OPT_STRING('r', "run-directory", &cruxpass_run_dir,
+                 "Specify the directory path where the database will be stored.\n", NULL, 0, 0),
       OPT_INTEGER('d', "delete", &password_id, "Deletes a password by id\n", NULL, 0, 0),
       OPT_STRING('e', "export", &export_file, "Export all saved passwords to a csv format\n", NULL, 0, 0),
       OPT_STRING('i', "import", &import_file, "Import passwords from a csv file\n", NULL, 0, 0),
@@ -186,10 +201,10 @@ int parse_options(int argc, const char **argv) {
                     "entries, with authentication separated from password storage. Access is controlled\n"
                     "via a master password.\n",
                     "\ncruxpass emphasizes simplicity, security, and efficiency for developers and power users.\n");
-  argc = argparse_parse(&argparse, argc, argv);
+  argparse_parse(&argparse, argc, argv);
 
   /* prevents exclude-ambiguous from being an independent option  */
-  if (argc_cp <= 1 || (!gen_secret_len && unambiguous_password)) {
+  if (argc <= 1 || (!gen_secret_len && unambiguous_password)) {
     argparse_usage(&argparse);
     return 0;
   }

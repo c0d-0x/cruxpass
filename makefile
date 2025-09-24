@@ -15,9 +15,6 @@ OBJ      := $(ALL_SRC:src/%.c=build/%.o)
 BIN := bin/cruxpass
 
 PREFIX ?= /usr/local
-RUNDIR ?= $(HOME)/.local/share/cruxpass
-INSTALL_CRUXPASS_DB := $(RUNDIR)/cruxpass.db
-INSTALL_AUTH_DB    := $(RUNDIR)/auth.db
 
 all: $(BIN)
 	@echo 'Build complete (dev).'
@@ -32,14 +29,9 @@ build/%.o: src/%.c
 
 install: clean
 	# cleanup and rebuild with production DB paths
-	$(MAKE) CPPFLAGS='$(CPPFLAGS) -DCRUXPASS_DB=\"$(INSTALL_CRUXPASS_DB)\" -DAUTH_DB=\"$(INSTALL_AUTH_DB)\"' $(BIN)
-	install -d $(RUNDIR)
+	$(MAKE) $(CPPFLAGS) $(BIN)
 	sudo install -d $(PREFIX)/bin
 	sudo install -m 0755 $(BIN) $(PREFIX)/bin
-	@echo "Installed with:"
-	@echo "  CRUXPASS_DB=$(INSTALL_CRUXPASS_DB)"
-	@echo "  AUTH_DB=$(INSTALL_AUTH_DB)"
-
 .PHONY: all clean install uninstall
 
 clean:
@@ -47,6 +39,5 @@ clean:
 	@echo "Clean up complete..."
 
 uninstall:
-	rm -rf $(RUNDIR)
 	sudo rm -f $(PREFIX)/bin/cruxpass
 

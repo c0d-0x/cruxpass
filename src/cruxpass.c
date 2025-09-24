@@ -1,13 +1,20 @@
 #include "../include/cruxpass.h"
 
+#include <asm-generic/errno-base.h>
 #include <errno.h>
 #include <sqlcipher/sqlite3.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <wchar.h>
 
 #include "../include/database.h"
 #include "../include/enc.h"
+
+extern char *cruxpass_db_path;
+extern char *auth_db_path;
 
 char *random_secret(int secret_len, secret_bank_options_t *bank_options) {
   if (secret_len < SECRET_MIN_LEN || secret_len > SECRET_MAX_LEN) {
@@ -146,7 +153,85 @@ int import_secrets(sqlite3 *db, char *import_file) {
   return 1;
 }
 
-sqlite3 *initcrux() {
+static bool create_run_dir(const char *path) {
+  int ret = mkdir(path, 0776);
+  if (ret == 0)
+    fprintf(stderr, "Note: Run directory created\n");
+  else if (errno != EEXIST) {
+    fprintf(stderr, "Error: Failed to create run directory: %s\n", strerror(errno));
+    return false;
+  }
+
+  return true;
+}
+
+static char *set_path(char *path, char *file_name) {
+  char *full_path = NULL;
+
+  if (path == NULL || file_name == NULL) return NULL;
+  if ((full_path = calloc(MAX_PATH_LEN + 1, sizeof(char))) == NULL) {
+    fprintf(stderr, "Error: Failed to allocate Memory\n");
+    return NULL;
+  }
+
+  if (snprintf(full_path, MAX_PATH_LEN, "%s/%s", path, file_name) <= 0) return NULL;
+
+  return full_path;
+}
+
+static bool validate_run_dir(char *path) {
+  bool path_is_dynamic = false;
+  if (path == NULL) {
+    char *home = NULL;
+    if ((home = getenv("HOME")) == NULL) return false;
+
+    if ((path = calloc(MAX_PATH_LEN + 1, sizeof(char))) == NULL) {
+      fprintf(stderr, "Error: Failed to allocate Memory\n");
+      return false;
+    }
+
+    if (snprintf(path, MAX_PATH_LEN, "%s/%s", home, CRUXPASS_RUNDIR) <= 0) {
+      free(path);
+      return false;
+    }
+
+    if (!create_run_dir(path)) {
+      free(path);
+      return false;
+    }
+
+    path_is_dynamic = true;
+  } else if (strlen(path) > MAX_PATH_LEN) {
+    fprintf(stderr, "Error: Run directory path too long\n");
+    return false;
+  }
+
+  struct stat file_stat;
+
+  if (stat(path, &file_stat) != 0) {
+    if (path_is_dynamic) free(path);
+    fprintf(stderr, "Error: Failed to validate path\n");
+    fprintf(stderr, "Warning: Default run directory is ~/.local/share/cruxpass/ (create it if missing).\n");
+    return false;
+  }
+
+  if (!S_ISDIR(file_stat.st_mode)) {
+    if (path_is_dynamic) free(path);
+    fprintf(stderr, "Error: [ %s ] is not a valid directory\n", path);
+    return false;
+  }
+
+  cruxpass_db_path = set_path(path, CRUXPASS_DB);
+  auth_db_path = set_path(path, AUTH_DB);
+
+  if (path_is_dynamic) free(path);
+  if (cruxpass_db_path == NULL || auth_db_path == NULL) return false;
+
+  return true;
+}
+
+sqlite3 *initcrux(char *run_dir) {
+  if (!validate_run_dir(run_dir)) return NULL;
   int inited = init_sqlite();
   if (inited == C_RET_OKK) {
     printf("Note: New password created\nWarning: Retry your opetation\n");
@@ -154,7 +239,7 @@ sqlite3 *initcrux() {
   }
 
   sqlite3 *db = NULL;
-  if (inited != C_ERR) db = open_db(CRUXPASS_DB, SQLITE_OPEN_READWRITE);
+  if (inited != C_ERR) db = open_db(cruxpass_db_path, SQLITE_OPEN_READWRITE);
 
   return db;
 }
