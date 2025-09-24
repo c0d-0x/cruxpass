@@ -91,6 +91,7 @@ int main(int argc, const char **argv) {
       cleanup_main();
       return EXIT_FAILURE;
     }
+    fprintf(stderr, "Note: Password changed successfully.\n");
   }
 
   if (save != 0) {
@@ -166,7 +167,7 @@ int main(int argc, const char **argv) {
 void cleanup_main(void) {
   sqlite3_close(db);
   cleanup_stmts();
-  if (cruxpass_db_path != NULL) free(cruxpass_run_dir);
+  if (cruxpass_db_path != NULL) free(cruxpass_db_path);
   if (auth_db_path != NULL) free(auth_db_path);
 
   if (key != NULL) {

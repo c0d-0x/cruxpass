@@ -9,5 +9,6 @@ bin
 .vscode
 main
 build
+.gdb*
 *cruxpass
 *.db
