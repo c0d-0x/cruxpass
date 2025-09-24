@@ -6,7 +6,9 @@
 
 #ifndef CRUXPASS_H
 #define CRUXPASS_H
+#ifndef SQLITE_HAS_CODEC
 #define SQLITE_HAS_CODEC
+#endif
 #include <ctype.h>
 #include <sodium.h>
 #include <sodium/core.h>

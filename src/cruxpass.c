@@ -1,8 +1,9 @@
 #include "../include/cruxpass.h"
 
+#ifdef __linux__
 #include <asm-generic/errno-base.h>
+#endif
 #include <errno.h>
-#include <sqlcipher/sqlite3.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>

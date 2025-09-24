@@ -1,6 +1,8 @@
 #ifndef SQLITE_H
 #define SQLITE_H
+#ifndef SQLITE_HAS_CODEC
 #define SQLITE_HAS_CODEC
+#endif
 #include <sqlcipher/sqlite3.h>
 #include <stdint.h>
 

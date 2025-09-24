@@ -1,6 +1,8 @@
 #ifndef ENC_H
 #define ENC_H
+#ifndef SQLITE_HAS_CODEC
 #define SQLITE_HAS_CODEC
+#endif
 #include <sodium.h>
 #include <sodium/core.h>
 #include <sodium/crypto_pwhash.h>
