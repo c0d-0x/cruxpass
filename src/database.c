@@ -2,7 +2,6 @@
 
 #include <sodium/core.h>
 #include <sodium/utils.h>
-#include <sqlcipher/sqlite3.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
