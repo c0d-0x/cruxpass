@@ -201,7 +201,7 @@ static bool validate_run_dir(char *path) {
     }
 
     path_is_dynamic = true;
-  } else if (strlen(path) > MAX_PATH_LEN) {
+  } else if (strlen(path) > MAX_PATH_LEN-16) {
     fprintf(stderr, "Error: Run directory path too long\n");
     return false;
   }
