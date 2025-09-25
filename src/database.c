@@ -288,7 +288,6 @@ int update_record(sqlite3 *db, secret_t *secret_record, int record_id, uint8_t f
   return 1;
 }
 
-// TODO: use callbacks to feed records dynamic array instead.
 int load_records(sqlite3 *db, record_array_t *records) {
   char *err_msg = 0;
 
@@ -321,7 +320,6 @@ const unsigned char *fetch_secret(sqlite3 *db, const int64_t id) {
     return NULL;
   }
 
-  /* WARN: memory leak found: statement not finalized */
   char *tmp = (char *)sqlite3_column_text(sql_stmts[FETCH_SEC_STMT], 0);
   if (tmp != NULL) secret = (unsigned char *)strdup(tmp);
   sqlite3_reset(sql_stmts[FETCH_SEC_STMT]);

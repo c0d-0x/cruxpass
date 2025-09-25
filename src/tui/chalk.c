@@ -86,18 +86,6 @@ static void draw_status(int start_y, int cursor, int64_t total_records) {
 }
 
 void _draw_table(record_array_t *records, queue_t *search_queue, char *search_parttern, table_t table) {
-  /* TODO: redraw the table border and headings once term term resizes */
-
-  /* tb_clear(); */
-  /* draw_border(table.start_x, table.start_y, table.width + 2, table.height + 2, COLOR_PAGINATION, TB_DEFAULT); */
-
-  /* tb_printf(table.start_x + 1, table.start_y + 1, COLOR_HEADER, TB_DEFAULT, "%-*s %-*s %-*s", ID_WIDTH, "ID", */
-  /* USERNAME_WIDTH, "USERNAME", DESC_WIDTH, "DESCRIPTION"); */
-
-  /* for (int i = 0; i < TABLE_WIDTH; i++) { */
-  /*   tb_set_cell(table.start_x + i + 1, table.start_y + 2, 0x2500, COLOR_PAGINATION, TB_DEFAULT);  // ─ */
-  /* } */
-
   total_pages = records->size / records_per_page;
 
   int64_t start_index = current_page * records_per_page;

@@ -17,6 +17,7 @@ bool do_updates(sqlite3 *db, record_array_t *records, int64_t current_position) 
   if (start_x < 0) start_x = 0;
   if (start_y < 0) start_y = 0;
 
+  /* TODO: A proper menu here */
   tb_print(start_x, start_y++, TB_WHITE | TB_BOLD, TB_DEFAULT, "1: update username");
   tb_print(start_x, start_y++, TB_WHITE | TB_BOLD, TB_DEFAULT, "2: update description");
   tb_print(start_x, start_y++, TB_WHITE | TB_BOLD, TB_DEFAULT, "3: update secrets");

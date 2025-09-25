@@ -1,8 +1,5 @@
 #include "../include/cruxpass.h"
 
-#ifdef __linux__
-#include <asm-generic/errno-base.h>
-#endif
 #include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -143,7 +140,6 @@ int import_secrets(sqlite3 *db, char *import_file) {
       continue;
     }
 
-    /* TODO: proper error handling */
     if (!insert_record(db, secret_record)) fprintf(stderr, "Error: Failed to insert record at line: %ld", line_number);
     line_number++;
     memset(secret_record, 0, sizeof(secret_t));

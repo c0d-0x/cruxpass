@@ -99,7 +99,6 @@ int main_tui(sqlite3 *db) {
         current_position = records.size - 1;
       } else if (ev.ch == '/') {
         if (search_pattern != NULL) {
-          /* TODO: handle search*/
           free(search_pattern);
           search_pattern = NULL;
         }
@@ -123,7 +122,6 @@ int main_tui(sqlite3 *db) {
           display_notifctn("Note: Record not found");
         }
       } else if (ev.ch == '?') {
-        /* TODO: show help  */
         display_help();
         draw_table_border(start_x, start_y, table_h);
         continue;
@@ -144,6 +142,7 @@ int main_tui(sqlite3 *db) {
           draw_table_border(start_x, start_y, table_h);
           continue;
         }
+
         display_notifctn("Note: record updated");
 
         draw_table_border(start_x, start_y, table_h);

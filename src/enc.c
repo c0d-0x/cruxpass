@@ -63,7 +63,6 @@ hash_t *authenticate(char *master_passd) {
   }
 
   if (crypto_pwhash_str_verify(hash_obj->hash, master_passd, strlen(master_passd)) != 0) {
-    /* wrong password */
     free(hash_obj);
     fprintf(stderr, "Warning: Wrong Password\n");
     return NULL;
@@ -78,13 +77,15 @@ int create_new_master_secret(sqlite3 *db, unsigned char *key) {
   char *temp_secret = NULL;
   unsigned char *new_key = NULL;
   hash_t *new_hashed_secret = NULL;
+
   init_tui();
-  // TODO: Refactor _get_new_password
   if ((new_secret = get_secret("New Password: ")) == NULL ||
       (temp_secret = get_secret("Confirm New Password: ")) == NULL) {
+    cleanup_tui();
     return ret;
   }
 
+  cleanup_tui();
   if (strncmp(new_secret, temp_secret, MASTER_MAX_LEN) != 0) {
     fprintf(stderr, "Error: Passwords do not match\n");
     sodium_free(new_secret);
@@ -130,7 +131,6 @@ int create_new_master_secret(sqlite3 *db, unsigned char *key) {
 
   ret = 1;
 free_all:
-  cleanup_tui();
   free(new_hashed_secret);
   sodium_free(new_secret);
   sodium_free(temp_secret);

@@ -80,7 +80,6 @@ int main(int argc, const char **argv) {
     return EXIT_FAILURE;
   }
 
-  cleanup_tui();
   if (!prepare_stmt(db)) {
     return EXIT_FAILURE;
   }
@@ -91,6 +90,7 @@ int main(int argc, const char **argv) {
       cleanup_main();
       return EXIT_FAILURE;
     }
+
     fprintf(stderr, "Note: Password changed successfully.\n");
   }
 
@@ -114,6 +114,8 @@ int main(int argc, const char **argv) {
 
       return EXIT_FAILURE;
     }
+
+    fprintf(stderr, "Note: Password saved successfully.\n");
   }
 
   if (import_file != NULL) {
@@ -149,7 +151,6 @@ int main(int argc, const char **argv) {
   }
 
   if (password_id != 0) {
-    /* WARNING: db object never used but necessary to initcrux() */
     if (!delete_record(db, password_id)) {
       cleanup_main();
       return EXIT_FAILURE;

@@ -46,8 +46,8 @@ void display_secret(sqlite3 *db, uint16_t id) {
 
   tb_clear();
 
-  draw_border(start_x, start_y, secret_len + 4, 3, TB_DEFAULT, TB_DEFAULT);
-  tb_print(start_x + 2, start_y, TB_DEFAULT | TB_BOLD, TB_DEFAULT, " Secret ");
+  draw_border(start_x, start_y, secret_len + 4, 3, COLOR_PAGINATION, TB_DEFAULT);
+  tb_print(start_x + 2, start_y, COLOR_HEADER, TB_DEFAULT, " Secret ");
   tb_print(start_x + 2, start_y + 1, TB_DEFAULT | TB_BOLD, TB_DEFAULT, (char *)secret);
   tb_present();
 
@@ -76,8 +76,8 @@ void display_help(void) {
   int start_y = (term_h - help_h) / 2;
 
   tb_clear();
-  draw_border(start_x, start_y, help_w + 4, help_h + 2, TB_DEFAULT, TB_DEFAULT);
-  tb_print(start_x + 2, start_y, TB_DEFAULT | TB_BOLD, TB_DEFAULT, " Help ");
+  draw_border(start_x, start_y, help_w + 4, help_h + 2, COLOR_PAGINATION, TB_DEFAULT);
+  tb_print(start_x + 2, start_y, COLOR_HEADER, TB_DEFAULT, " Help ");
 
   int line = start_y + 2;
   tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, "Actions:");
