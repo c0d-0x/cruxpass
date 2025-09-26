@@ -24,7 +24,7 @@ char *get_input(const char *prompt, char *input, const int input_len, int start_
   int prompt_len = 0;
   if (prompt != NULL) {
     prompt_len = strlen(prompt);
-    tb_print(start_x, start_y, TB_WHITE | TB_BOLD, TB_DEFAULT, prompt);
+    tb_print(start_x, start_y, TB_DEFAULT | TB_BOLD, TB_DEFAULT, prompt);
     tb_present();
   }
 
@@ -79,7 +79,7 @@ char *get_secret(const char *prompt) {
   if (start_x < 0) start_x = 0;
   if (start_y >= term_h - 1) start_y = term_h - 2;
 
-  tb_print(start_x, start_y, TB_BOLD | TB_WHITE, TB_DEFAULT, prompt);
+  tb_print(start_x, start_y, TB_DEFAULT | TB_BOLD, TB_DEFAULT, prompt);
   tb_present();
 
   int i = 0;
@@ -100,7 +100,7 @@ char *get_secret(const char *prompt) {
       if (ev.key == TB_KEY_BACKSPACE2 || ev.key == TB_KEY_BACKSPACE) {
         if (i > 0) {
           secret[--i] = '\0';
-          tb_set_cell(start_x + prompt_len + i, start_y, ' ', TB_WHITE, TB_DEFAULT);
+          tb_set_cell(start_x + prompt_len + i, start_y, ' ', TB_DEFAULT, TB_DEFAULT);
           tb_present();
           continue;
         }
@@ -109,7 +109,7 @@ char *get_secret(const char *prompt) {
       if (isalnum(ev.ch) == 0 && !is_special(ev.ch)) continue;
 
       secret[i] = (char)ev.ch;
-      tb_set_cell(start_x + prompt_len + i, start_y, '*', TB_WHITE, TB_DEFAULT);
+      tb_set_cell(start_x + prompt_len + i, start_y, '*', TB_DEFAULT, TB_DEFAULT);
       tb_present();
       i++;
     } else if (ev.type == TB_EVENT_RESIZE) {
@@ -123,7 +123,7 @@ char *get_secret(const char *prompt) {
       if (start_x < 0) start_x = 0;
       if (start_y >= term_h - 1) start_y = term_h - 2;
 
-      tb_print(start_x, start_y, TB_BOLD | TB_WHITE, TB_DEFAULT, prompt);
+      tb_print(start_x, start_y, TB_DEFAULT | TB_BOLD, TB_DEFAULT, prompt);
       tb_present();
 
       continue;

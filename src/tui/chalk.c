@@ -38,8 +38,9 @@ void draw_art(void) {
   for (int i = 0; i < art_lines; i++) {
     art_width = wcslen(ascii_art[i]);
     for (int j = 0; j < art_width; j++) {
-      tb_set_cell(coord_x++, coord_y, ascii_art[i][j], TB_WHITE, TB_DEFAULT);
+      tb_set_cell(coord_x++, coord_y, ascii_art[i][j], TB_DEFAULT, TB_DEFAULT);
     }
+
     coord_x -= art_width;
     coord_y++;
   }
@@ -106,7 +107,6 @@ void _draw_table(record_array_t *records, queue_t *search_queue, char *search_pa
   }
 
   if (search_parttern != NULL) {
-    /*NOTE: perform a search and free the search_parttern */
     for (int64_t i = 0; i < records->size; i++) {
       if (strstr(records->data[i].username, search_parttern) != NULL ||
           strstr(records->data[i].description, search_parttern) != NULL) {
