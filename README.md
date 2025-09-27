@@ -27,7 +27,7 @@
 | Short | Long                       | Description                                                                      |
 | ----- | -------------------------- | -------------------------------------------------------------------------------- |
 | `-h`  | `--help`                   | Show help message                                                                |
-| `-r`   | `--run-directory`         | Specify the directory path where the database will be stored.                    |
+| `-r`  | `--run-directory`          | Specify the directory path where the database will be stored.                    |
 | `-d`  | `--delete <id>`            | Delete a password by its ID                                                      |
 | `-e`  | `--export <file>`          | Export all saved passwords to a CSV file                                         |
 | `-i`  | `--import <file>`          | Import passwords from a CSV file                                                 |
@@ -82,10 +82,13 @@
 git clone https://github.com/c0d-0x/cruxpass
 
 cd cruxpass
+## build and test out cruxpass
 mkdir bin # cruxpass binary is built here
 mkdir .cruxpass # only if you're testing: you can import moc.csv for testing
+make
+./bin/cruxpass -i moc.csv -r ./cruxpass
 
-# Install the program
+# Install the cruxpass
 make install
 
 # Run the program
@@ -99,28 +102,20 @@ make uninstall
 
 Encrypted Storage: All data is securely stored using an encrypted SQLite database (SQLCipher) at ~/.local/share/cruxpass/.
 
+- secret database: `~/.local/share/cruxpass/cruxpass.db`
+- Authentication hash db: `~/.local/share/cruxpass/auth.db`
+
 Authentication: A master password is required to access or modify any stored data.
 
 > [!NOTE]
 > cruxpass enforces internal limits on the size of various fields to ensure performance and security. Here are the default constraints:
 >
-> - Minimum Password Length: Passwords must be at least 8 characters long to ensure basic security.
-> - Master Password Length: The master password can be up to 45 characters long (excluding the null terminator). This provides enough entropy while remaining user-manageable.
+> - Minimum Password Length: Passwords must be at least 8 characters long to ensure basic security and maximum of 45 characters.
 > - Stored Password Length: Each saved password can be up to 128 characters long. This accommodates strong, randomly generated credentials.
 > - Username Length: Usernames are limited to 20 characters. This is sufficient for most standard account identifiers.
 > - Description Length: Each password entry can include a label or description up to 100 characters, helping users recognize the purpose of stored credentials.
 
 > These limits are designed to balance usability with memory safety and can be adjusted in the source code if needed
-
-## Roadmap
-
-Future enhancements may include:
-
-- Clipboard integration on password generation
-
-- Advanced search and filtering within stored data
-
-- Unit testing for critical functions
 
 ## Contributing
 
