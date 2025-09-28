@@ -104,6 +104,7 @@ Encrypted Storage: All secrets are securely stored using an encrypted SQLite dat
 
 - secret database: `~/.local/share/cruxpass/cruxpass.db`
 - Authentication hash db: `~/.local/share/cruxpass/auth.db`
+- The `-r` option lets you specify a directory where cruxpass will store its databases. Make sure the directory already exists before using it..
 
 Authentication: A master password is required to access or modify any stored data.
 
