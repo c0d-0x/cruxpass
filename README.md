@@ -98,9 +98,9 @@ cruxpass <option> <argument>
 make uninstall
 ```
 
-## Security
+## Defaults
 
-Encrypted Storage: All data is securely stored using an encrypted SQLite database (SQLCipher) at ~/.local/share/cruxpass/.
+Encrypted Storage: All secrets are securely stored using an encrypted SQLite database (SQLCipher) at ~/.local/share/cruxpass/.
 
 - secret database: `~/.local/share/cruxpass/cruxpass.db`
 - Authentication hash db: `~/.local/share/cruxpass/auth.db`
@@ -111,7 +111,7 @@ Authentication: A master password is required to access or modify any stored dat
 > cruxpass enforces internal limits on the size of various fields to ensure performance and security. Here are the default constraints:
 >
 > - Minimum Password Length: Passwords must be at least 8 characters long to ensure basic security and maximum of 45 characters.
-> - Stored Password Length: Each saved password can be up to 128 characters long. This accommodates strong, randomly generated credentials.
+> - Stored Passwords/secrets Length: Each saved password can be up to 128 characters long. This accommodates strong, randomly generated credentials.
 > - Username Length: Usernames are limited to 20 characters. This is sufficient for most standard account identifiers.
 > - Description Length: Each password entry can include a label or description up to 100 characters, helping users recognize the purpose of stored credentials.
 
