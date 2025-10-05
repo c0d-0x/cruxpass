@@ -53,8 +53,9 @@ void display_secret(sqlite3 *db, uint16_t id) {
 
   struct tb_event ev;
   while (1) {
-    tb_poll_event(&ev);
-    if (ev.type == TB_EVENT_KEY && ev.key == TB_KEY_ENTER) break;
+    if (tb_poll_event(&ev) != TB_OK ||
+        (ev.type == TB_EVENT_KEY && (ev.key == TB_KEY_ENTER || ev.ch == 'q' || ev.ch == 'Q')))
+      break;
   }
 
   free((void *)secret);

@@ -72,7 +72,7 @@ void draw_border(int start_x, int start_y, int width, int height, uintattr_t fg,
 static void draw_status(int start_y, int cursor, int64_t total_records) {
   int width = 40;
   int start_x = (tb_width() - width) / 2;
-
+  int rec_number = (total_records == 0) ? 0 : cursor + 1;
   for (int i = 1; i < width - 1; i++) {
     tb_set_cell(start_x + i, start_y, 0x2500, COLOR_PAGINATION, TB_DEFAULT);
   }
@@ -83,7 +83,41 @@ static void draw_status(int start_y, int cursor, int64_t total_records) {
   tb_set_cell(start_x, start_y, 0x256D, COLOR_PAGINATION, TB_DEFAULT);
   tb_set_cell(start_x + width - 1, start_y, 0x256E, COLOR_PAGINATION, TB_DEFAULT);
   tb_printf(start_x + 3, start_y + 1, COLOR_HEADER, TB_DEFAULT, "Page %d of %02d │ Record %d of %d", current_page + 1,
-            total_pages + 1, cursor + 1, total_records);
+            total_pages + 1, rec_number, total_records);
+}
+
+void draw_update_menu(int option, int start_x, int start_y) {
+  int option_w = 22;
+  uintattr_t fg = (option == 0) ? COLOR_PAGINATION : TB_DEFAULT;
+  draw_border(start_x, start_y, option_w, 3, fg, TB_DEFAULT);
+  tb_print(start_x + 3, start_y + 1, fg, TB_DEFAULT, "Update Username");
+  start_y += 4;
+
+  fg = (option == 1) ? COLOR_PAGINATION : TB_DEFAULT;
+  draw_border(start_x, start_y, option_w, 3, fg, TB_DEFAULT);
+  tb_print(start_x + 2, start_y + 1, fg, TB_DEFAULT, "Update Description");
+  start_y += 4;
+
+  fg = (option == 2) ? COLOR_PAGINATION : TB_DEFAULT;
+  draw_border(start_x, start_y, option_w, 3, fg, TB_DEFAULT);
+  tb_print(start_x + 4, start_y + 1, fg, TB_DEFAULT, "Update Secrets");
+  start_y += 4;
+
+  fg = (option == 3) ? COLOR_PAGINATION : TB_DEFAULT;
+  draw_border(start_x, start_y, option_w, 3, fg, TB_DEFAULT);
+  tb_print(start_x + 2, start_y + 1, fg, TB_DEFAULT, "Update All Fields");
+  start_y += 4;
+  tb_present();
+}
+
+void draw_table_border(int start_x, int start_y, int table_h) {
+  tb_clear();
+  draw_border(start_x, start_y, TABLE_WIDTH + 2, table_h + 2, COLOR_PAGINATION, TB_DEFAULT);
+  tb_printf(start_x + 1, start_y + 1, COLOR_HEADER, TB_DEFAULT, "%-*s %-*s %-*s", ID_WIDTH, "ID", USERNAME_WIDTH,
+            "USERNAME", DESC_WIDTH, "DESCRIPTION");
+  for (int i = 0; i < TABLE_WIDTH; i++) {
+    tb_set_cell(start_x + i + 1, start_y + 2, 0x2500, COLOR_PAGINATION, TB_DEFAULT);  // ─
+  }
 }
 
 void _draw_table(record_array_t *records, queue_t *search_queue, char *search_parttern, table_t table) {
@@ -96,9 +130,9 @@ void _draw_table(record_array_t *records, queue_t *search_queue, char *search_pa
   record_t *rec = NULL;
   int64_t row = table.start_y + 4;
   int start_x = table.start_x + 1;
-  uintattr_t fg;
-  uintattr_t bg;
 
+  uintattr_t fg = TB_DEFAULT;
+  uintattr_t bg = TB_DEFAULT;
   /* cleanup cells before redrawing rows */
   for (int i = 1; i < table.height - 1; i++) {
     for (int j = 0; j < TABLE_WIDTH; j++) {

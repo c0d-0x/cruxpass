@@ -5,57 +5,73 @@
 #include "../../include/database.h"
 #include "../../include/tui.h"
 
+static int updates_menu(void) {
+  int option = 0;
+  tb_clear();
+  int term_h = tb_height();
+  int term_w = tb_width();
+
+  int start_x = (term_w / 2) - 8;
+  if (start_x < 0) start_x = 0;
+  int start_y = (term_h / 2) - 5;
+  if (start_y < 0) start_y = 0;
+
+  struct tb_event ev;
+
+  draw_update_menu(option, start_x, start_y);
+  while (true) {
+    if (tb_poll_event(&ev) != TB_OK || ev.type != TB_EVENT_KEY || ev.ch == 'q' || ev.ch == 'Q') {
+      return (-1);
+    }
+
+    start_x = (term_w / 2) - 8;
+    if (start_x < 0) start_x = 0;
+    start_y = (term_h / 2) - 5;
+    if (start_y < 0) start_y = 0;
+
+    if (ev.type == TB_EVENT_KEY) {
+      if (ev.key == TB_KEY_ENTER) {
+        break;
+      } else if (ev.ch == 'k' || ev.key == TB_KEY_ARROW_UP) {
+        if (option > 0) option--;
+      } else if (ev.ch == 'j' || ev.key == TB_KEY_ARROW_DOWN) {
+        if (option < 3) option++;
+      }
+      draw_update_menu(option, start_x, start_y);
+    }
+  }
+
+  return option;
+}
+
 bool do_updates(sqlite3 *db, record_array_t *records, int64_t current_position) {
   int64_t id = records->data[current_position].id;
 
-  tb_clear();
-  int term_w = tb_width();
-  int term_h = tb_height();
+  int start_x = 0;
+  int start_y = 1;
 
-  int start_x = (term_w - TABLE_WIDTH) / 2 + 18;
-  int start_y = (term_h / 2 - 5);
-  if (start_x < 0) start_x = 0;
-  if (start_y < 0) start_y = 0;
-
-  /* TODO: A proper menu here */
-  tb_print(start_x, start_y++, TB_WHITE | TB_BOLD, TB_DEFAULT, "1: update username");
-  tb_print(start_x, start_y++, TB_WHITE | TB_BOLD, TB_DEFAULT, "2: update description");
-  tb_print(start_x, start_y++, TB_WHITE | TB_BOLD, TB_DEFAULT, "3: update secrets");
-  tb_print(start_x, start_y++, TB_WHITE | TB_BOLD, TB_DEFAULT, "4: update all three");
-  tb_print(start_x + 4, start_y++, TB_WHITE | TB_BOLD, TB_DEFAULT, "> option: ");
-  tb_present();
-
-  struct tb_event ev;
-  while (1) {
-    int ret = tb_poll_event(&ev);
-    if (ret != TB_OK || ev.type != TB_EVENT_KEY || ev.ch == 'q' || ev.ch == 'Q') {
-      return false;
-    }
-
-    if (ev.ch >= 0x31 && ev.ch <= 0x34) break;
-  }
+  int option = updates_menu();
+  if (option < 0) return false;
 
   int8_t flags = 0;
   secret_t rec = {0};
-  tb_print(start_x, ++start_y, TB_WHITE | TB_BOLD, TB_DEFAULT, "Enter fields: ");
-  tb_present();
 
-  start_y++;
-  if (ev.ch == '1') {
+  tb_clear();
+  if (option == 0) {
     get_input("> username: ", rec.username, USERNAME_MAX_LEN, start_y, start_x + 4);
     flags = UPDATE_USERNAME;
     if (strlen(rec.username) == 0) return false;
     memcpy(records->data[current_position].username, rec.username, USERNAME_MAX_LEN);
-  } else if (ev.ch == '2') {
+  } else if (option == 1) {
     get_input("> description: ", rec.description, DESC_MAX_LEN, start_y, start_x + 4);
     flags = UPDATE_DESCRIPTION;
     if (strlen(rec.description) == 0) return false;
     memcpy(records->data[current_position].description, rec.description, DESC_MAX_LEN);
-  } else if (ev.ch == '3') {
+  } else if (option == 2) {
     get_input("> secret: ", rec.secret, SECRET_MAX_LEN, start_y, start_x + 4);
     if (strlen(rec.secret) < 8) return false;
     flags = UPDATE_SECRET;
-  } else if (ev.ch == '4') {
+  } else if (option == 3) {
     get_input("> username: ", rec.username, USERNAME_MAX_LEN, start_y++, start_x + 4);
     get_input("> secret: ", rec.secret, SECRET_MAX_LEN, start_y++, start_x + 4);
     get_input("> description: ", rec.description, DESC_MAX_LEN, start_y, start_x + 4);

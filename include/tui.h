@@ -66,6 +66,8 @@ int main_tui(sqlite3 *db);
 void draw_art(void);
 void draw_border(int start_x, int start_y, int width, int height, uintattr_t fg, uintattr_t bg);
 void _draw_table(record_array_t *records, queue_t *search_queue, char *search_parttern, table_t table);
+void draw_update_menu(int option, int start_x, int start_y);
+void draw_table_border(int start_x, int start_y, int table_h);
 
 bool do_updates(sqlite3 *db, record_array_t *records, int64_t current_position);
 
