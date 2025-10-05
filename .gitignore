@@ -1,5 +1,4 @@
-test.c
-test
+test*
 *.out
 *.o
 *.txt

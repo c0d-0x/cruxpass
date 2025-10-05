@@ -1,6 +1,6 @@
 CC = gcc
 
-CFLAGS   ?= -Wall -Wextra -Wformat-security -g
+CFLAGS   ?= -Wall -Wextra -Wformat-security 
 CPPFLAGS ?= -Iinclude
 
 LDFLAGS  ?=
@@ -28,10 +28,11 @@ build/%.o: src/%.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
 install: clean
-	# cleanup and rebuild with production DB paths
 	$(MAKE) $(CPPFLAGS) $(BIN)
 	sudo install -d $(PREFIX)/bin
 	sudo install -m 0755 $(BIN) $(PREFIX)/bin
+	@echo 'Installation complete.'
+
 .PHONY: all clean install uninstall
 
 clean:

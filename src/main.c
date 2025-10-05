@@ -1,17 +1,10 @@
 #include "../include/main.h"
 
-#include <sodium/utils.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "../include/argparse.h"
 #include "../include/cruxpass.h"
 #include "../include/database.h"
 #include "../include/enc.h"
 #include "../include/tui.h"
-
-#define FILE_PATH_LEN 32
 
 static const char *const usages[] = {
     "cruxpass --options [FILE]",
@@ -77,10 +70,12 @@ int main(int argc, const char **argv) {
   }
 
   if ((key = decryption_helper(db)) == NULL) {
+    sqlite3_close(db);
     return EXIT_FAILURE;
   }
 
   if (!prepare_stmt(db)) {
+    sqlite3_close(db);
     return EXIT_FAILURE;
   }
 

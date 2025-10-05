@@ -8,8 +8,8 @@
 
 #include "../../include/tui.h"
 
-/* special characters */
-#define is_special(ch) (((ch >= 0x20) && (ch <= 0x7E) && (ch != 0x2C)))
+/* All printable characters except ','*/
+#define IS_SPECIAL(ch) (((ch >= 0x20) && (ch <= 0x7E) && (ch != 0x2C)))
 
 char *get_input(const char *prompt, char *input, const int input_len, int start_y, int start_x) {
   bool input_is_dynamic = false;
@@ -47,7 +47,7 @@ char *get_input(const char *prompt, char *input, const int input_len, int start_
           tb_set_cell(start_x + prompt_len + position, start_y, ' ', TB_DEFAULT, TB_DEFAULT);
           tb_present();
         }
-      } else if (is_special(ev.ch)) {
+      } else if (IS_SPECIAL(ev.ch)) {
         input[position] = (char)ev.ch;
         tb_set_cell(start_x + prompt_len + position, start_y, ev.ch, TB_DEFAULT, TB_DEFAULT);
         position++;
@@ -106,7 +106,7 @@ char *get_secret(const char *prompt) {
         }
       }
 
-      if (isalnum(ev.ch) == 0 && !is_special(ev.ch)) continue;
+      if (!IS_SPECIAL(ev.ch)) continue;
 
       secret[i] = (char)ev.ch;
       tb_set_cell(start_x + prompt_len + i, start_y, '*', TB_DEFAULT, TB_DEFAULT);

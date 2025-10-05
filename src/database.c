@@ -98,6 +98,7 @@ int init_sqlite(void) {
     return C_ERR;
   }
 
+  tb_clear();
   tb_print(0, 2, TB_DEFAULT, TB_DEFAULT, "Create a new master password for cruxpass.");
   tb_present();
   char *master_psswd = get_input("> Enter password: ", NULL, MASTER_MAX_LEN, 3, 0);

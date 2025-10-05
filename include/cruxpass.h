@@ -23,12 +23,13 @@
 #include <time.h>
 #include <unistd.h>
 
-#define MAX_PATH_LEN 255
-#define MASTER_MAX_LEN 45
-#define SECRET_MIN_LEN 8
-#define SECRET_MAX_LEN 128
-#define USERNAME_MAX_LEN 30
 #define DESC_MAX_LEN 100
+#define FILE_PATH_LEN 32
+#define MASTER_MAX_LEN 45
+#define MAX_PATH_LEN 255
+#define SECRET_MAX_LEN 128
+#define SECRET_MIN_LEN 8
+#define USERNAME_MAX_LEN 30
 
 #ifndef CRUXPASS_DB
 #define CRUXPASS_DB "cruxpass.db"
@@ -39,7 +40,7 @@
 #endif
 
 #ifndef CRUXPASS_RUNDIR
-#define CRUXPASS_RUNDIR ".local/share/cruxpass"
+#define CRUXPASS_RUNDIR ".local/share/cruxpass"  // default ~/.local/share/cruxpass/
 #endif
 
 typedef struct {
@@ -56,8 +57,8 @@ typedef enum {
 } ERROR_T;
 
 typedef struct {
-  bool uppercase;  // Uppercase alphabets
-  bool lowercase;  // Lowercase alphabets
+  bool uppercase;
+  bool lowercase;
   bool numbers;
   bool symbols;
   bool exclude_ambiguous;

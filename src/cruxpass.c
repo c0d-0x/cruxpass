@@ -23,13 +23,13 @@ char *random_secret(int secret_len, secret_bank_options_t *bank_options) {
   char *secret = NULL;
   char *secret_bank = NULL;
   if ((secret_bank = init_secret_bank(bank_options)) == NULL) {
-    perror("Error: Fail to init password");
+    fprintf(stderr, "Error: Fail to init password");
     return NULL;
   }
   const int bank_len = strlen(secret_bank);
 
   if ((secret = calloc(1, secret_len)) == NULL) {
-    perror("Error: Fail to creat password");
+    fprintf(stderr, "Error: Fail to creat password");
     free(secret_bank);
     return NULL;
   }
@@ -231,7 +231,7 @@ sqlite3 *initcrux(char *run_dir) {
   if (!validate_run_dir(run_dir)) return NULL;
   int inited = init_sqlite();
   if (inited == C_RET_OKK) {
-    printf("Note: New password created\nWarning: Retry your opetation\n");
+    fprintf(stderr, "Note: New password created\nWarning: Retry your opetation\n");
     return NULL;
   }
 

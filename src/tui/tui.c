@@ -22,7 +22,10 @@ bool init_tui(void) {
   return true;
 }
 
-void cleanup_tui(void) { tb_shutdown(); }
+void cleanup_tui(void) {
+  tb_clear();
+  tb_shutdown();
+}
 
 static bool notify_deleted(int64_t id) {
   if (id == DELETED) {
@@ -30,15 +33,6 @@ static bool notify_deleted(int64_t id) {
     return true;
   }
   return false;
-}
-
-static void draw_table_border(int start_x, int start_y, int table_h) {
-  draw_border(start_x, start_y, TABLE_WIDTH + 2, table_h + 2, COLOR_PAGINATION, TB_DEFAULT);
-  tb_printf(start_x + 1, start_y + 1, COLOR_HEADER, TB_DEFAULT, "%-*s %-*s %-*s", ID_WIDTH, "ID", USERNAME_WIDTH,
-            "USERNAME", DESC_WIDTH, "DESCRIPTION");
-  for (int i = 0; i < TABLE_WIDTH; i++) {
-    tb_set_cell(start_x + i + 1, start_y + 2, 0x2500, COLOR_PAGINATION, TB_DEFAULT);  // ─
-  }
 }
 
 int main_tui(sqlite3 *db) {
@@ -49,20 +43,22 @@ int main_tui(sqlite3 *db) {
 
   int64_t current_position = 0;
 
-  int term_width;
-  int term_height;
-
-  init_tui();
   if (!load_records(db, &records)) {
-    cleanup_tui();
     fprintf(stderr, "Error: Failed to load data from database\n");
     return 0;
   }
 
-  term_width = tb_width();
-  term_height = tb_height();
+  if (records.size == 0) {
+    fprintf(stderr, "Warning: No records found\n");
+    return 0;
+  }
+
+  init_tui();
+  int term_width = tb_width();
+  int term_height = tb_height();
 
   int start_x = (term_width - TABLE_WIDTH) / 2;
+  if (start_x < 0) start_x = 0;
   int start_y = 1;
   int table_h = term_height - 4;
 
@@ -77,8 +73,7 @@ int main_tui(sqlite3 *db) {
     draw_table(&records, &search_queue, search_pattern, .start_x = start_x, .height = table_h,
                .cursor = current_position);
 
-    int ret = tb_poll_event(&ev);
-    if (ret != TB_OK) continue;
+    if (tb_poll_event(&ev) != TB_OK) continue;
 
     if (ev.type == TB_EVENT_KEY) {
       if (ev.key == TB_KEY_ESC || ev.ch == 'q' || ev.ch == 'Q') {
