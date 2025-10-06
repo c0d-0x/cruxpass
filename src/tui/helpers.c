@@ -20,7 +20,8 @@ static int updates_menu(void) {
 
   draw_update_menu(option, start_x, start_y);
   while (true) {
-    if (tb_poll_event(&ev) != TB_OK || ev.type != TB_EVENT_KEY || ev.ch == 'q' || ev.ch == 'Q') {
+    if (tb_poll_event(&ev) != TB_OK || ev.type != TB_EVENT_KEY || ev.ch == 'q' || ev.ch == 'Q' ||
+        ev.key == TB_KEY_ESC) {
       return (-1);
     }
 
@@ -30,15 +31,14 @@ static int updates_menu(void) {
     if (start_y < 0) start_y = 0;
 
     if (ev.type == TB_EVENT_KEY) {
-      if (ev.key == TB_KEY_ENTER) {
-        break;
-      } else if (ev.ch == 'k' || ev.key == TB_KEY_ARROW_UP) {
-        if (option > 0) option--;
-      } else if (ev.ch == 'j' || ev.key == TB_KEY_ARROW_DOWN) {
-        if (option < 3) option++;
-      }
-      draw_update_menu(option, start_x, start_y);
+      break;
+    } else if (ev.ch == 'k' || ev.key == TB_KEY_ARROW_UP) {
+      if (option > 0) option--;
+    } else if (ev.ch == 'j' || ev.key == TB_KEY_ARROW_DOWN) {
+      if (option < 3) option++;
     }
+
+    draw_update_menu(option, start_x, start_y);
   }
 
   return option;
