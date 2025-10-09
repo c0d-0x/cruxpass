@@ -81,14 +81,14 @@ void display_help(void) {
   tb_print(start_x + 2, start_y, COLOR_HEADER, TB_DEFAULT, " Help ");
 
   int line = start_y + 2;
-  tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, "Actions:");
+  tb_print(start_x + 2, line++, TB_DEFAULT | TB_BOLD, TB_DEFAULT, "Actions:");
   tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " Enter - View secret      u - Update record");
   tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " d - Delete record        ");
   tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " / - Search               n - Next search result");
   tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " ? - Show this help       q/Q - Quit");
 
   line++;
-  tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, "Navigation:");
+  tb_print(start_x + 2, line++, TB_DEFAULT | TB_BOLD, TB_DEFAULT, "Navigation:");
   tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " j/k - Down/Up            h/l - Page left/right");
   tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " g/G - First/Last");
 
