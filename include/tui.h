@@ -31,8 +31,8 @@
 
 typedef struct {
   int64_t id;
-  char username[USERNAME_MAX_LEN];
-  char description[MAX_FIELD_LEN];
+  char username[USERNAME_MAX_LEN + 1];
+  char description[MAX_FIELD_LEN + 1];
 } record_t;
 
 typedef struct {

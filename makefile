@@ -1,6 +1,7 @@
 CC = gcc
 
-CFLAGS   ?= -Wall -Wextra -Wformat-security 
+CFLAGS   ?= -Wall -Wextra -Wformat-security -Wformat-overflow=2
+
 CPPFLAGS ?= -Iinclude
 
 LDFLAGS  ?=

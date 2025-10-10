@@ -82,7 +82,7 @@ static void draw_status(int start_y, int cursor, int64_t total_records) {
 
   tb_set_cell(start_x, start_y, 0x256D, COLOR_PAGINATION, TB_DEFAULT);
   tb_set_cell(start_x + width - 1, start_y, 0x256E, COLOR_PAGINATION, TB_DEFAULT);
-  tb_printf(start_x + 3, start_y + 1, COLOR_HEADER, TB_DEFAULT, "Page %d of %02d │ Record %d of %d", current_page + 1,
+  tb_printf(start_x + 4, start_y + 1, COLOR_HEADER, TB_DEFAULT, "Page %d of %02d │ Record %d of %d", current_page + 1,
             total_pages + 1, rec_number, total_records);
 }
 

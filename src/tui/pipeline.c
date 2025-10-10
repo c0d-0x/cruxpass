@@ -27,16 +27,16 @@ int pipeline(void *data, int argc, char **argv, char **azColName) {
   rec.id = argv[0] ? atoi(argv[0]) : 0;
 
   if (argv[1] != NULL)
-    strncpy(rec.username, argv[1], USERNAME_MAX_LEN - 1);
+    strncpy(rec.username, argv[1], USERNAME_MAX_LEN);
   else
     strcpy(rec.username, "");
-  rec.username[USERNAME_MAX_LEN - 1] = '\0';
+  rec.username[USERNAME_MAX_LEN] = '\0';
 
   if (argv[2] != NULL)
-    strncpy(rec.description, argv[2], DESC_MAX_LEN - 1);
+    strncpy(rec.description, argv[2], DESC_MAX_LEN);
   else
     strcpy(rec.description, "");
-  rec.description[DESC_MAX_LEN - 1] = '\0';
+  rec.description[DESC_MAX_LEN] = '\0';
 
   add_record(arr, rec);
   return 0;
