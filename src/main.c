@@ -119,11 +119,6 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  if (!prepare_stmt(db)) {
-    sqlite3_close(db);
-    return EXIT_FAILURE;
-  }
-
   if (*new_password != 0) {
     if (!create_new_master_secret(db, key)) {
       fprintf(stderr, "Error: Failed to Creat a New Password\n");

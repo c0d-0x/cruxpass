@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <wchar.h>
 
 #include "cruxpass.h"
 #include "database.h"
@@ -183,6 +184,13 @@ unsigned char *decryption_helper(sqlite3 *db) {
 
   /*WARNING: db handler is mutated after a successful decryption*/
   if ((db = decrypt(db, key)) == NULL) {
+    sodium_free(master_passd);
+    free(hashed_password);
+    sodium_free(key);
+    return NULL;
+  }
+
+  if (!prepare_stmt(db)) {
     sodium_free(master_passd);
     free(hashed_password);
     sodium_free(key);
