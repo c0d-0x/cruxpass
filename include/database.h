@@ -3,9 +3,9 @@
 #ifndef SQLITE_HAS_CODEC
 #define SQLITE_HAS_CODEC
 #endif
+
 #include <sqlcipher/sqlite3.h>
 #include <stdint.h>
-
 #include "cruxpass.h"
 #include "enc.h"
 #include "tui.h"
@@ -16,11 +16,16 @@
 
 #define NUM_STMTS 3
 
-typedef enum { INSERT_REC_STMT, DELETE_REC_STMT, FETCH_SEC_STMT } SQL_STMT;
+typedef enum {
+  INSERT_REC_STMT,
+  DELETE_REC_STMT,
+  FETCH_SEC_STMT
+} SQL_STMT;
 
 hash_t *fetch_hash(void);
 bool prepare_stmt(sqlite3 *db);
 void cleanup_stmts(void);
+
 int delete_record(sqlite3 *db, int password_id);
 int init_sqlite(void);
 int insert_hash(sqlite3 *db, hash_t *hash_obj);

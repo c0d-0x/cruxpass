@@ -1,15 +1,17 @@
 #include "../include/cruxpass.h"
 
 #include <errno.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <time.h>
+#include <unistd.h>
 #include <wchar.h>
 
-#include "../include/database.h"
-#include "../include/enc.h"
+#include "database.h"
+#include "enc.h"
 
 extern char *cruxpass_db_path;
 extern char *auth_db_path;
@@ -26,8 +28,8 @@ char *random_secret(int secret_len, secret_bank_options_t *bank_options) {
     fprintf(stderr, "Error: Fail to init password");
     return NULL;
   }
-  const int bank_len = strlen(secret_bank);
 
+  const int bank_len = strlen(secret_bank);
   if ((secret = calloc(1, secret_len)) == NULL) {
     fprintf(stderr, "Error: Fail to creat password");
     free(secret_bank);
@@ -42,7 +44,7 @@ char *random_secret(int secret_len, secret_bank_options_t *bank_options) {
   }
 
   for (int i = 0; i < secret_len; i++) {
-    secret[i] = secret_bank[(int)randombytes_uniform(bank_len)];
+    secret[i] = secret_bank[(int) randombytes_uniform(bank_len)];
   }
 
   free(secret_bank);
@@ -94,7 +96,7 @@ static int process_field(char *field, const int max_length, char *token, const c
     fprintf(stderr, "Error: Missing %s at line %ld\n", field_name, line_number);
     return 0;
   }
-  if ((const int)strlen(token) > max_length) {
+  if ((const int) strlen(token) > max_length) {
     fprintf(stderr, "Error: %s at line %ld is more than %d characters\n", field_name, line_number, max_length);
     return 0;
   }
@@ -152,8 +154,7 @@ int import_secrets(sqlite3 *db, char *import_file) {
 
 static bool create_run_dir(const char *path) {
   int ret = mkdir(path, 0776);
-  if (ret == 0)
-    fprintf(stderr, "Note: Run directory created\n");
+  if (ret == 0) fprintf(stderr, "Note: Run directory created\n");
   else if (errno != EEXIST) {
     fprintf(stderr, "Error: Failed to create run directory: %s\n", strerror(errno));
     return false;

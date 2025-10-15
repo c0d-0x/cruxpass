@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "../../include/tui.h"
+#include "tui.h"
 
 bool enqueue(queue_t *queue, int64_t index) {
   if (queue_is_empty(queue)) {

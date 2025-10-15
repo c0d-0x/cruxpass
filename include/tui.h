@@ -1,9 +1,9 @@
 #ifndef TUI_H
 #define TUI_H
+
 #include <sodium/utils.h>
 #include <stdbool.h>
 #include <stdint.h>
-
 #include "cruxpass.h"
 #include "termbox2.h"
 
@@ -25,9 +25,10 @@
 #define EMPTY_QUEUE (-2)
 #define QUEUE_ERR (-2)
 #define HELP_WIN_WIDTH (TABLE_WIDTH / 2)
+
 #define LEN(arr) (sizeof(arr) / sizeof((arr)[0]))
 #define draw_table(records, search_queue, search_parttern, ...) \
-  _draw_table((records), (search_queue), (search_parttern), (table_t){.width = TABLE_WIDTH, .start_y = 1, __VA_ARGS__})
+  _draw_table((records), (search_queue), (search_parttern), (table_t) {.width = TABLE_WIDTH, .start_y = 1, __VA_ARGS__})
 
 typedef struct {
   int64_t id;

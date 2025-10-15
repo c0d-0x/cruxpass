@@ -1,9 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../../include/tui.h"
+#include "tui.h"
 
-#define ESC_KEY 27
 void add_record(record_array_t *arr, record_t rec) {
   if (arr->size >= arr->capacity) {
     int new_capacity = arr->capacity == 0 ? 8 : arr->capacity * 2;
@@ -21,21 +20,17 @@ void add_record(record_array_t *arr, record_t rec) {
 
 /*NOTE: This is used by the load_records */
 int pipeline(void *data, int argc, char **argv, char **azColName) {
-  record_array_t *arr = (record_array_t *)data;
+  record_array_t *arr = (record_array_t *) data;
   record_t rec;
 
   rec.id = argv[0] ? atoi(argv[0]) : 0;
 
-  if (argv[1] != NULL)
-    strncpy(rec.username, argv[1], USERNAME_MAX_LEN);
-  else
-    strcpy(rec.username, "");
+  if (argv[1] != NULL) strncpy(rec.username, argv[1], USERNAME_MAX_LEN);
+  else strcpy(rec.username, "");
   rec.username[USERNAME_MAX_LEN] = '\0';
 
-  if (argv[2] != NULL)
-    strncpy(rec.description, argv[2], DESC_MAX_LEN);
-  else
-    strcpy(rec.description, "");
+  if (argv[2] != NULL) strncpy(rec.description, argv[2], DESC_MAX_LEN);
+  else strcpy(rec.description, "");
   rec.description[DESC_MAX_LEN] = '\0';
 
   add_record(arr, rec);

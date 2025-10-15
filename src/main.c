@@ -1,47 +1,81 @@
 #include "../include/main.h"
 
-#include "../include/argparse.h"
-#include "../include/cruxpass.h"
-#include "../include/database.h"
-#include "../include/enc.h"
-#include "../include/tui.h"
+#include <signal.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <unistd.h>
 
-static const char *const usages[] = {
-    "cruxpass --options [FILE]",
-    NULL,
-};
-
-static int save;
-static int list;
-static int version;
-static int new_password;
-static int password_id;
-static int gen_secret_len;
-static int unambiguous_password;
-static char *export_file;
-static char *cruxpass_run_dir;
-static char *import_file;
+#include "args.h"
+#include "cruxpass.h"
+#include "database.h"
+#include "enc.h"
+#include "tui.h"
 
 sqlite3 *db;
 unsigned char *key;
 
 extern char *cruxpass_db_path;
 extern char *auth_db_path;
+char *description
+    = "cruxpass is a lightweight, command-line password manager designed to securely\nstore and retrieve encrypted "
+      "credentials. It uses an SQLCipher database to manage\nentries, with authentication separated from password "
+      "storage. Access is controlled\nvia a master password.\n";
+char *footer = "cruxpass emphasizes simplicity, security, and efficiency for developers and power users.";
 
-struct argparse argparse;
 void cleanup_main(void);
-int parse_options(int argc, const char **argv);
 
-int main(int argc, const char **argv) {
-  if (!parse_options(argc, argv)) return EXIT_FAILURE;
+void sig_handler(int sig) {
+  if (sig == SIGTERM || sig == SIGINT) {
+    cleanup_main();
+    cleanup_tui();
+    exit(EXIT_SUCCESS);
+  }
+}
 
-  if (version != 0) {
+int main(int argc, char **argv) {
+  args args_obj = {0};
+  bool *help = option_flag(&args_obj, 'h', "help", "Show this help");
+  bool *save = option_flag(&args_obj, 's', "save", "Save a given password");
+  bool *list = option_flag(&args_obj, 'l', "list", "List all passwords");
+  bool *version = option_flag(&args_obj, 'v', "version", "Cruxpass version");
+  bool *new_password = option_flag(&args_obj, 'n', "new-password", "Creates a new master password for cruxpass");
+  long *password_id = option_long(&args_obj, 'd', "delete", "Deletes a password by id", true, -1);
+  long *gen_secret_len
+      = option_long(&args_obj, 'g', "generate-rand", "Generates a random password of a given length", true, 0);
+
+  bool *unambiguous_password
+      = option_flag(&args_obj, 'x', "exclude-ambiguous",
+                    "Exclude ambiguous characters when generating a random password (combine with -g)");
+
+  const char **export_file
+      = option_str(&args_obj, 'e', "export", "Export all saved passwords to a csv format", true, NULL);
+  const char **cruxpass_run_dir = option_str(
+      &args_obj, 'r', "run-directory", "Specify the directory path where the database will be stored.", true, NULL);
+  const char **import_file = option_str(&args_obj, 'i', "import", "Import passwords from a csv file", true, NULL);
+
+  char **pos_args;
+  int pos_args_len = parse_args(&args_obj, argc, argv, &pos_args);
+  bool check_gen_flags = *unambiguous_password && !*gen_secret_len;
+
+  if (*help || pos_args_len != 0 || argc == 1 || check_gen_flags) {
+    fprintf(stdout, "usage: %s [options]\n", argv[0]);
+    fprintf(stdout, "\n");
+    fprintf(stdout, "%s\n", description);
+    print_options(&args_obj, stdout);
+    fprintf(stdout, "\n%s\n", footer);
+    free_args(&args_obj);
+    return EXIT_SUCCESS;
+  }
+
+  if (*version != 0) {
     fprintf(stdout, "cruxpass version: %s\n", VERSION);
     fprintf(stdout, "Authur: %s\n", AUTHUR);
     return EXIT_SUCCESS;
   }
 
-  if (gen_secret_len != 0) {
+  if (*gen_secret_len != 0) {
     secret_bank_options_t bank_options = {0};
     bank_options.uppercase = true;
     bank_options.lowercase = true;
@@ -49,7 +83,7 @@ int main(int argc, const char **argv) {
     bank_options.symbols = true;
     bank_options.exclude_ambiguous = (unambiguous_password != 0) ? true : false;
     char *secret = NULL;
-    if ((secret = random_secret(gen_secret_len, &bank_options)) == NULL) {
+    if ((secret = random_secret(*gen_secret_len, &bank_options)) == NULL) {
       return EXIT_FAILURE;
     }
 
@@ -58,14 +92,25 @@ int main(int argc, const char **argv) {
     return EXIT_SUCCESS;
   }
 
-  if (cruxpass_run_dir != NULL) {
-    if (strlen(cruxpass_run_dir) >= MAX_PATH_LEN - 16) {
+  if (*cruxpass_run_dir != NULL) {
+    if (strlen(*cruxpass_run_dir) >= MAX_PATH_LEN - 16) {
       fprintf(stderr, "Error: Path to run-directory too long.\n");
       return EXIT_FAILURE;
     }
   }
 
-  if ((db = initcrux(cruxpass_run_dir)) == NULL) {
+  struct sigaction sigact;
+  sigemptyset(&sigact.sa_mask);
+  sigact.sa_handler = sig_handler;
+  sigact.sa_flags = SA_RESTART;
+
+  if (sigaction(SIGTERM, &sigact, NULL) != 0 || sigaction(SIGINT, &sigact, NULL) != 0) {
+    fprintf(stderr, "Fail to make reception for signals");
+    cleanup_main();
+    exit(EXIT_FAILURE);
+  }
+
+  if ((db = initcrux((char *) *cruxpass_run_dir)) == NULL) {
     return EXIT_FAILURE;
   }
 
@@ -79,7 +124,7 @@ int main(int argc, const char **argv) {
     return EXIT_FAILURE;
   }
 
-  if (new_password != 0) {
+  if (*new_password != 0) {
     if (!create_new_master_secret(db, key)) {
       fprintf(stderr, "Error: Failed to Creat a New Password\n");
       cleanup_main();
@@ -89,13 +134,13 @@ int main(int argc, const char **argv) {
     fprintf(stderr, "Note: Password changed successfully.\n");
   }
 
-  if (save != 0) {
+  if (*save != 0) {
     init_tui();
     tb_clear();
     secret_t record = {0};
-    if (get_input("> username: ", record.username, USERNAME_MAX_LEN, 2, 0) == NULL ||
-        get_input("> secret: ", record.secret, SECRET_MAX_LEN, 3, 0) == NULL ||
-        get_input("> description: ", record.description, DESC_MAX_LEN, 4, 0) == NULL) {
+    if (get_input("> username: ", record.username, USERNAME_MAX_LEN, 2, 0) == NULL
+        || get_input("> secret: ", record.secret, SECRET_MAX_LEN, 3, 0) == NULL
+        || get_input("> description: ", record.description, DESC_MAX_LEN, 4, 0) == NULL) {
       cleanup_tui();
       cleanup_main();
 
@@ -113,46 +158,46 @@ int main(int argc, const char **argv) {
     fprintf(stderr, "Note: Password saved successfully.\n");
   }
 
-  if (import_file != NULL) {
-    if (strlen(import_file) > FILE_PATH_LEN) {
+  if (*import_file != NULL) {
+    if (strlen(*import_file) > FILE_PATH_LEN) {
       fprintf(stderr, "Warning: Import file name too long [MAX: %d character long]\n", FILE_PATH_LEN);
       cleanup_main();
       return EXIT_FAILURE;
     }
 
-    if (!import_secrets(db, import_file)) {
-      fprintf(stderr, "Error: Failed to import secrets from: %s", import_file);
+    if (!import_secrets(db, (char *) *import_file)) {
+      fprintf(stderr, "Error: Failed to import secrets from: %s", *import_file);
       cleanup_main();
       return EXIT_FAILURE;
     }
 
-    fprintf(stderr, "Info: secrets imported successfully from: %s\n", import_file);
+    fprintf(stderr, "Info: secrets imported successfully from: %s\n", *import_file);
   }
 
-  if (export_file != NULL) {
-    if (strlen(export_file) > FILE_PATH_LEN) {
+  if (*export_file != NULL) {
+    if (strlen(*export_file) > FILE_PATH_LEN) {
       fprintf(stderr, "Warning: Export file name too long: MAX_LEN =>15\n");
       cleanup_main();
       return EXIT_FAILURE;
     }
 
-    if (!export_secrets(db, export_file)) {
-      fprintf(stdout, "Error: Failed to export secrets to: %s\n", export_file);
+    if (!export_secrets(db, *export_file)) {
+      fprintf(stdout, "Error: Failed to export secrets to: %s\n", *export_file);
       cleanup_main();
       return EXIT_FAILURE;
     };
 
-    fprintf(stderr, "Info: secrets exported successfully to: %s\n", export_file);
+    fprintf(stderr, "Info: secrets exported successfully to: %s\n", *export_file);
   }
 
-  if (password_id != 0) {
-    if (!delete_record(db, password_id)) {
+  if (*password_id != -1) {
+    if (!delete_record(db, *password_id)) {
       cleanup_main();
       return EXIT_FAILURE;
     }
   }
 
-  if (list != 0) {
+  if (*list) {
     main_tui(db);
   }
 
@@ -170,40 +215,4 @@ void cleanup_main(void) {
     sodium_memzero(key, KEY_LEN);
     sodium_free(key);
   }
-}
-
-int parse_options(int argc, const char **argv) {
-  struct argparse_option options[] = {
-      OPT_HELP(),
-      OPT_GROUP("cruxpass options"),
-      OPT_STRING('r', "run-directory", &cruxpass_run_dir,
-                 "Specify the directory path where the database will be stored.\n", NULL, 0, 0),
-      OPT_INTEGER('d', "delete", &password_id, "Deletes a password by id\n", NULL, 0, 0),
-      OPT_STRING('e', "export", &export_file, "Export all saved passwords to a csv format\n", NULL, 0, 0),
-      OPT_STRING('i', "import", &import_file, "Import passwords from a csv file\n", NULL, 0, 0),
-      OPT_INTEGER('g', "generate-rand", &gen_secret_len, "Generates a random password of a given length\n", NULL, 0, 0),
-      OPT_BOOLEAN('x', "exclude-ambiguous", &unambiguous_password,
-                  "Exclude ambiguous characters when generating a random password (combine with -g)\n", NULL, 0, 0),
-      OPT_BOOLEAN('l', "list", &list, "List all passwords\n", NULL, 0, 0),
-      OPT_BOOLEAN('n', "new-password", &new_password, "Creates a new master password for cruxpass\n", NULL, 0, 0),
-      OPT_BOOLEAN('s', "save", &save, "Save a given password\n", NULL, 0, 0),
-      OPT_BOOLEAN('v', "version", &version, "Cruxpass version\n", NULL, 0, 0),
-      OPT_END(),
-  };
-
-  argparse_init(&argparse, options, usages, ARGPARSE_STOP_AT_NON_OPTION);
-  argparse_describe(&argparse,
-                    "cruxpass is a lightweight, command-line password manager designed to securely\n"
-                    "store and retrieve encrypted credentials. It uses an SQLCipher database to manage\n"
-                    "entries, with authentication separated from password storage. Access is controlled\n"
-                    "via a master password.\n",
-                    "\ncruxpass emphasizes simplicity, security, and efficiency for developers and power users.\n");
-  argparse_parse(&argparse, argc, argv);
-
-  /* prevents exclude-ambiguous from being an independent option  */
-  if (argc <= 1 || (!gen_secret_len && unambiguous_password)) {
-    argparse_usage(&argparse);
-    return 0;
-  }
-  return 1;
 }

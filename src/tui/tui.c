@@ -1,11 +1,10 @@
 #define TB_IMPL
 #include "../../include/tui.h"
-
 #include <locale.h>
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "../../include/database.h"
+#include "database.h"
 
 int records_per_page = 30;
 int current_page;

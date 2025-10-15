@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../../include/database.h"
-#include "../../include/tui.h"
+#include "database.h"
+#include "tui.h"
 
 void display_notifctn(char *message) {
   int term_h = tb_height();
@@ -32,7 +32,7 @@ void display_secret(sqlite3 *db, uint16_t id) {
     return;
   }
 
-  int secret_len = strlen((char *)secret);
+  int secret_len = strlen((char *) secret);
 
   int term_w = tb_width();
   int term_h = tb_height();
@@ -48,17 +48,17 @@ void display_secret(sqlite3 *db, uint16_t id) {
 
   draw_border(start_x, start_y, secret_len + 4, 3, COLOR_PAGINATION, TB_DEFAULT);
   tb_print(start_x + 2, start_y, COLOR_HEADER, TB_DEFAULT, " Secret ");
-  tb_print(start_x + 2, start_y + 1, TB_DEFAULT | TB_BOLD, TB_DEFAULT, (char *)secret);
+  tb_print(start_x + 2, start_y + 1, TB_DEFAULT | TB_BOLD, TB_DEFAULT, (char *) secret);
   tb_present();
 
   struct tb_event ev;
   while (1) {
-    if (tb_poll_event(&ev) != TB_OK ||
-        (ev.type == TB_EVENT_KEY && (ev.key == TB_KEY_ENTER || ev.ch == 'q' || ev.ch == 'Q')))
+    if (tb_poll_event(&ev) != TB_OK
+        || (ev.type == TB_EVENT_KEY && (ev.key == TB_KEY_ENTER || ev.ch == 'q' || ev.ch == 'Q')))
       break;
   }
 
-  free((void *)secret);
+  free((void *) secret);
 }
 
 void display_help(void) {

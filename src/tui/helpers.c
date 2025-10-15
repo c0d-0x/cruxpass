@@ -2,8 +2,8 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "../../include/database.h"
-#include "../../include/tui.h"
+#include "database.h"
+#include "tui.h"
 
 static int updates_menu(void) {
   int option = 0;
@@ -20,8 +20,8 @@ static int updates_menu(void) {
 
   draw_update_menu(option, start_x, start_y);
   while (true) {
-    if (tb_poll_event(&ev) != TB_OK || ev.type != TB_EVENT_KEY || ev.ch == 'q' || ev.ch == 'Q' ||
-        ev.key == TB_KEY_ESC) {
+    if (tb_poll_event(&ev) != TB_OK || ev.type != TB_EVENT_KEY || ev.ch == 'q' || ev.ch == 'Q'
+        || ev.key == TB_KEY_ESC) {
       return (-1);
     }
 

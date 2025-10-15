@@ -6,22 +6,17 @@
 
 #ifndef CRUXPASS_H
 #define CRUXPASS_H
+
 #ifndef SQLITE_HAS_CODEC
 #define SQLITE_HAS_CODEC
 #endif
-#include <ctype.h>
+
 #include <sodium.h>
 #include <sodium/core.h>
 #include <sodium/crypto_pwhash.h>
 #include <sodium/utils.h>
 #include <sqlcipher/sqlite3.h>
 #include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-#include <time.h>
-#include <unistd.h>
 
 #define DESC_MAX_LEN 100
 #define FILE_PATH_LEN 32

@@ -2,7 +2,7 @@
 #define MAIN_H
 
 #ifndef VERSION
-#define VERSION "v1.2.1"
+#define VERSION "v1.0.0"
 #endif  // !VERSION
 
 #define AUTHUR "c0d_0x"

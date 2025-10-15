@@ -1,5 +1,4 @@
 #include "../include/database.h"
-
 #include <sodium/core.h>
 #include <sodium/utils.h>
 #include <stdbool.h>
@@ -8,9 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../include/cruxpass.h"
-#include "../include/enc.h"
-#include "../include/tui.h"
+#include "cruxpass.h"
+#include "enc.h"
+#include "tui.h"
 
 char *cruxpass_db_path;
 char *auth_db_path;
@@ -60,31 +59,11 @@ sqlite3 *open_db(char *db_name, int flags) {
   return db;
 }
 
-int init_sqlite(void) {
+static int create_databases(sqlite3 *db, sqlite3 *hashes_db) {
   char *sql_err_msg = NULL;
   char *sql_fmt_str = NULL;
-  sqlite3 *db = NULL;
-  sqlite3 *hashes_db = NULL;
   unsigned char *key = NULL;
-
-  hash_t hash_rec;
-  hash_t *stored_hash_rec = NULL;
-
-  if ((db = open_db(cruxpass_db_path, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX)) == NULL) {
-    return C_ERR;
-  }
-
-  if ((hashes_db = open_db(auth_db_path, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE)) == NULL) {
-    sqlite3_close(db);
-    return C_ERR;
-  }
-
-  if ((stored_hash_rec = fetch_hash()) != NULL) {
-    free(stored_hash_rec);
-    sqlite3_close(db);
-    sqlite3_close(hashes_db);
-    return C_RET_OK;
-  }
+  hash_t hash_rec = {0};
 
   if (sodium_init() == -1) {
     sqlite3_close(db);
@@ -109,7 +88,7 @@ int init_sqlite(void) {
     return C_ERR;
   }
 
-  if ((key = (unsigned char *)sodium_malloc(KEY_LEN)) == NULL) {
+  if ((key = (unsigned char *) sodium_malloc(KEY_LEN)) == NULL) {
     fprintf(stderr, "Error: Memory allocation failed.\n");
     sqlite3_close(db);
     sqlite3_close(hashes_db);
@@ -134,9 +113,8 @@ int init_sqlite(void) {
   }
 
   sodium_free(key);
-  sql_fmt_str =
-      "CREATE TABLE IF NOT EXISTS hashes ( hash_id INTEGER "
-      "PRIMARY KEY, hash TEXT NOT NULL, salt TEXT NOT NULL );";
+  sql_fmt_str
+      = "CREATE TABLE IF NOT EXISTS hashes ( hash_id INTEGER PRIMARY KEY, hash TEXT NOT NULL, salt TEXT NOT NULL );";
   if (!sql_exec_n_err(hashes_db, sql_fmt_str, sql_err_msg, NULL, NULL)) {
     sqlite3_close(db);
     sqlite3_close(hashes_db);
@@ -150,15 +128,47 @@ int init_sqlite(void) {
   }
 
   sqlite3_close(hashes_db);
-  sql_fmt_str =
-      "CREATE TABLE IF NOT EXISTS secrets ( secret_id INTEGER PRIMARY KEY, username TEXT NOT NULL, "
-      "secret TEXT NOT NULL, description TEXT NOT NULL, date_added TEXT DEFAULT CURRENT_DATE);";
+  sql_fmt_str
+      = "CREATE TABLE IF NOT EXISTS secrets ( secret_id INTEGER PRIMARY KEY, username TEXT NOT NULL, "
+        "secret TEXT NOT NULL, description TEXT NOT NULL, date_added TEXT DEFAULT CURRENT_DATE);";
   if (!sql_exec_n_err(db, sql_fmt_str, sql_err_msg, NULL, NULL)) {
     sqlite3_close(db);
     return C_ERR;
   }
 
   sqlite3_close(db);
+
+  return C_RET_OK;
+}
+
+int init_sqlite(void) {
+  sqlite3 *db = NULL;
+  sqlite3 *hashes_db = NULL;
+
+  hash_t *stored_hash_rec = NULL;
+
+  if ((db = open_db(cruxpass_db_path, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX)) == NULL) {
+    return C_ERR;
+  }
+
+  if ((hashes_db = open_db(auth_db_path, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE)) == NULL) {
+    sqlite3_close(db);
+    return C_ERR;
+  }
+
+  if ((stored_hash_rec = fetch_hash()) != NULL) {
+    free(stored_hash_rec);
+    sqlite3_close(db);
+    sqlite3_close(hashes_db);
+    return C_RET_OK;
+  }
+
+  if (!create_databases(db, hashes_db)) {
+    sqlite3_close(db);
+    sqlite3_close(hashes_db);
+    return C_RET_OK;
+  }
+
   return C_RET_OKK;
 }
 
@@ -168,9 +178,9 @@ int insert_record(sqlite3 *db, secret_t *record) {
     return 0;
   }
 
-  if (sqlite3_bind_text(sql_stmts[INSERT_REC_STMT], 1, record->username, -1, SQLITE_STATIC) != SQLITE_OK ||
-      sqlite3_bind_text(sql_stmts[INSERT_REC_STMT], 2, record->secret, -1, SQLITE_STATIC) != SQLITE_OK ||
-      sqlite3_bind_text(sql_stmts[INSERT_REC_STMT], 3, record->description, -1, SQLITE_STATIC) != SQLITE_OK) {
+  if (sqlite3_bind_text(sql_stmts[INSERT_REC_STMT], 1, record->username, -1, SQLITE_STATIC) != SQLITE_OK
+      || sqlite3_bind_text(sql_stmts[INSERT_REC_STMT], 2, record->secret, -1, SQLITE_STATIC) != SQLITE_OK
+      || sqlite3_bind_text(sql_stmts[INSERT_REC_STMT], 3, record->description, -1, SQLITE_STATIC) != SQLITE_OK) {
     fprintf(stderr, "Error: failed to bind sql statement: %s\n", sqlite3_errmsg(db));
     sqlite3_reset(sql_stmts[INSERT_REC_STMT]);
     sqlite3_clear_bindings(sql_stmts[INSERT_REC_STMT]);
@@ -215,8 +225,8 @@ static int sql_prep_n_exec(sqlite3 *db, char *sql_fmt_str, sqlite3_stmt *sql_stm
     return 0;
   }
 
-  if (sqlite3_bind_text(sql_stmt, 1, field, -1, SQLITE_STATIC) != SQLITE_OK ||
-      sqlite3_bind_int(sql_stmt, 2, secret_id) != SQLITE_OK) {
+  if (sqlite3_bind_text(sql_stmt, 1, field, -1, SQLITE_STATIC) != SQLITE_OK
+      || sqlite3_bind_int(sql_stmt, 2, secret_id) != SQLITE_OK) {
     fprintf(stderr, "Error: failed to bind sql statement: %s", sqlite3_errmsg(db));
     sqlite3_finalize(sql_stmt);
     return 0;
@@ -321,8 +331,8 @@ const unsigned char *fetch_secret(sqlite3 *db, const int64_t id) {
     return NULL;
   }
 
-  char *tmp = (char *)sqlite3_column_text(sql_stmts[FETCH_SEC_STMT], 0);
-  if (tmp != NULL) secret = (unsigned char *)strdup(tmp);
+  char *tmp = (char *) sqlite3_column_text(sql_stmts[FETCH_SEC_STMT], 0);
+  if (tmp != NULL) secret = (unsigned char *) strdup(tmp);
   sqlite3_reset(sql_stmts[FETCH_SEC_STMT]);
   sqlite3_clear_bindings(sql_stmts[FETCH_SEC_STMT]);
   return secret;
@@ -398,7 +408,7 @@ int update_hash(hash_t *hash_rec) {
   sqlite3_finalize(sql_stmt);
 
   sql_fmt_str = "UPDATE hashes SET salt= ? WHERE hash_id = ?;";
-  if (!sql_prep_n_exec(db, sql_fmt_str, sql_stmt, (char *)hash_rec->salt, 1)) {
+  if (!sql_prep_n_exec(db, sql_fmt_str, sql_stmt, (char *) hash_rec->salt, 1)) {
     sqlite3_close(db);
     return 0;
   }
@@ -424,8 +434,8 @@ int insert_hash(sqlite3 *db, hash_t *hash_rec) {
     return 0;
   }
 
-  if (sqlite3_bind_text(sql_stmt, 1, hash_rec->hash, -1, SQLITE_STATIC) != SQLITE_OK ||
-      sqlite3_bind_text(sql_stmt, 2, (char *)hash_rec->salt, -1, SQLITE_STATIC) != SQLITE_OK) {
+  if (sqlite3_bind_text(sql_stmt, 1, hash_rec->hash, -1, SQLITE_STATIC) != SQLITE_OK
+      || sqlite3_bind_text(sql_stmt, 2, (char *) hash_rec->salt, -1, SQLITE_STATIC) != SQLITE_OK) {
     fprintf(stderr, "Error: failed to bind sql statement: %s", sqlite3_errmsg(db));
     sqlite3_close(db);
     return 0;

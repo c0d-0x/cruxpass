@@ -1,7 +1,6 @@
 test*
 *.out
 *.o
-*.txt
 *.bin
 bin
 .idea

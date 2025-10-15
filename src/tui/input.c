@@ -6,7 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "../../include/tui.h"
+#include "tui.h"
 
 /* All printable characters except ','*/
 #define IS_SPECIAL(ch) (((ch >= 0x20) && (ch <= 0x7E) && (ch != 0x2C)))
@@ -48,7 +48,7 @@ char *get_input(const char *prompt, char *input, const int input_len, int start_
           tb_present();
         }
       } else if (IS_SPECIAL(ev.ch)) {
-        input[position] = (char)ev.ch;
+        input[position] = (char) ev.ch;
         tb_set_cell(start_x + prompt_len + position, start_y, ev.ch, TB_DEFAULT, TB_DEFAULT);
         position++;
         tb_present();
@@ -67,12 +67,12 @@ char *get_secret(const char *prompt) {
   draw_art();
   int term_w = tb_width();
   int term_h = tb_height();
-  if ((secret = (char *)sodium_malloc(MASTER_MAX_LEN + 1)) == NULL) {
+  if ((secret = (char *) sodium_malloc(MASTER_MAX_LEN + 1)) == NULL) {
     fprintf(stderr, "Error: Failed to allocate memory\n");
     return NULL;
   }
 
-  sodium_memzero((void *const)secret, MASTER_MAX_LEN + 1);
+  sodium_memzero((void *const) secret, MASTER_MAX_LEN + 1);
   int start_y = (term_h / 2) + 4;
   int start_x = (term_w - prompt_len - MASTER_MAX_LEN) / 2;
 
@@ -92,7 +92,7 @@ char *get_secret(const char *prompt) {
       }
 
       if (ev.key == TB_KEY_ESC) {
-        sodium_memzero((void *const)secret, MASTER_MAX_LEN);
+        sodium_memzero((void *const) secret, MASTER_MAX_LEN);
         sodium_free(secret);
         return NULL;
       }
@@ -108,7 +108,7 @@ char *get_secret(const char *prompt) {
 
       if (!IS_SPECIAL(ev.ch)) continue;
 
-      secret[i] = (char)ev.ch;
+      secret[i] = (char) ev.ch;
       tb_set_cell(start_x + prompt_len + i, start_y, '*', TB_DEFAULT, TB_DEFAULT);
       tb_present();
       i++;

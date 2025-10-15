@@ -1,8 +1,7 @@
 
 #include <stdint.h>
 #include <wchar.h>
-
-#include "../../include/tui.h"
+#include "tui.h"
 
 extern int current_page;
 extern int records_per_page;
@@ -142,8 +141,8 @@ void _draw_table(record_array_t *records, queue_t *search_queue, char *search_pa
 
   if (search_parttern != NULL) {
     for (int64_t i = 0; i < records->size; i++) {
-      if (strstr(records->data[i].username, search_parttern) != NULL ||
-          strstr(records->data[i].description, search_parttern) != NULL) {
+      if (strstr(records->data[i].username, search_parttern) != NULL
+          || strstr(records->data[i].description, search_parttern) != NULL) {
         if (!enqueue(search_queue, i)) display_notifctn("Error: Failed to enqueue record index");
       }
     }
