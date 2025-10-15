@@ -99,7 +99,7 @@ int main(int argc, char **argv) {
   sigact.sa_flags = SA_RESTART;
 
   if (sigaction(SIGTERM, &sigact, NULL) != 0 || sigaction(SIGINT, &sigact, NULL) != 0) {
-    fprintf(stderr, "Fail to make reception for signals");
+    fprintf(stderr, "Error: Fail to make reception for signals");
     cleanup_main();
     exit(EXIT_FAILURE);
   }
