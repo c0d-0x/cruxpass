@@ -24,14 +24,7 @@ char *description
 char *footer = "cruxpass emphasizes simplicity, security, and efficiency for developers and power users.";
 
 void cleanup_main(void);
-
-void sig_handler(int sig) {
-    if (sig == SIGTERM || sig == SIGINT) {
-        cleanup_main();
-        cleanup_tui();
-        exit(EXIT_SUCCESS);
-    }
-}
+void sig_handler(int sig);
 
 int main(int argc, char **argv) {
     args args_obj = {0};
@@ -195,6 +188,14 @@ int main(int argc, char **argv) {
 
     cleanup_main();
     return EXIT_SUCCESS;
+}
+
+void sig_handler(int sig) {
+    if (sig == SIGTERM || sig == SIGINT) {
+        cleanup_main();
+        cleanup_tui();
+        exit(EXIT_SUCCESS);
+    }
 }
 
 void cleanup_main(void) {
