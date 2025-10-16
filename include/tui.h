@@ -4,6 +4,7 @@
 #include <sodium/utils.h>
 #include <stdbool.h>
 #include <stdint.h>
+
 #include "cruxpass.h"
 #include "termbox2.h"
 
@@ -28,34 +29,35 @@
 
 #define LEN(arr) (sizeof(arr) / sizeof((arr)[0]))
 #define draw_table(records, search_queue, search_parttern, ...) \
-  _draw_table((records), (search_queue), (search_parttern), (table_t) {.width = TABLE_WIDTH, .start_y = 1, __VA_ARGS__})
+    _draw_table((records), (search_queue), (search_parttern),   \
+                (table_t) {.width = TABLE_WIDTH, .start_y = 1, __VA_ARGS__})
 
 typedef struct {
-  int64_t id;
-  char username[USERNAME_MAX_LEN + 1];
-  char description[MAX_FIELD_LEN + 1];
+    int64_t id;
+    char username[USERNAME_MAX_LEN + 1];
+    char description[MAX_FIELD_LEN + 1];
 } record_t;
 
 typedef struct {
-  int size;
-  int capacity;
-  record_t *data;
+    int size;
+    int capacity;
+    record_t *data;
 } record_array_t;
 
 typedef struct {
-  int start_x;
-  int start_y;
-  int width;
-  int height;
-  int64_t cursor;
+    int start_x;
+    int start_y;
+    int width;
+    int height;
+    int64_t cursor;
 } table_t;
 
 typedef struct {
-  int64_t *data;
-  int size;
-  int head;
-  int tail;
-  int capacity;
+    int64_t *data;
+    int size;
+    int head;
+    int tail;
+    int capacity;
 } queue_t;
 
 char *get_input(const char *prompt, char *input, const int text_len, int cod_y, int cod_x);

@@ -20,8 +20,8 @@
 #define BUFFMAX SECRET_MAX_LEN + USERNAME_MAX_LEN + DESC_MAX_LEN
 
 typedef struct {
-  char hash[PASS_HASH_LEN + 1];
-  unsigned char salt[SALT_HASH_LEN];
+    char hash[PASS_HASH_LEN + 1];
+    unsigned char salt[SALT_HASH_LEN];
 } hash_t;
 
 hash_t *authenticate(char *master_passdm);

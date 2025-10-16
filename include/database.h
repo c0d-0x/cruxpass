@@ -6,6 +6,7 @@
 
 #include <sqlcipher/sqlite3.h>
 #include <stdint.h>
+
 #include "cruxpass.h"
 #include "enc.h"
 #include "tui.h"
@@ -17,9 +18,9 @@
 #define NUM_STMTS 3
 
 typedef enum {
-  INSERT_REC_STMT,
-  DELETE_REC_STMT,
-  FETCH_SEC_STMT
+    INSERT_REC_STMT,
+    DELETE_REC_STMT,
+    FETCH_SEC_STMT
 } SQL_STMT;
 
 hash_t *fetch_hash(void);

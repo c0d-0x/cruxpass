@@ -39,28 +39,27 @@
 #endif
 
 typedef struct {
-  ssize_t id;
-  char username[USERNAME_MAX_LEN + 1];
-  char secret[SECRET_MAX_LEN + 1];
-  char description[DESC_MAX_LEN + 1];
+    ssize_t id;
+    char username[USERNAME_MAX_LEN + 1];
+    char secret[SECRET_MAX_LEN + 1];
+    char description[DESC_MAX_LEN + 1];
 } secret_t;
 
 typedef enum {
-  C_ERR,     // C_ERR:     Error
-  C_RET_OK,  // C_RET_0K:  Custom OK 1
-  C_RET_OKK  // C_RET_OKK: Custom OK 2
+    C_ERR,     // C_ERR:     Error
+    C_RET_OK,  // C_RET_0K:  Custom OK 1
+    C_RET_OKK  // C_RET_OKK: Custom OK 2
 } ERROR_T;
 
 typedef struct {
-  bool uppercase;
-  bool lowercase;
-  bool numbers;
-  bool symbols;
-  bool exclude_ambiguous;
+    bool uppercase;
+    bool lowercase;
+    bool numbers;
+    bool symbols;
+    bool exclude_ambiguous;
 } secret_bank_options_t;
 
 char *random_secret(int secret_len, secret_bank_options_t *bank_options);
-char *setpath(char *);
 int create_new_master_secret(sqlite3 *db, unsigned char *key);
 int export_secrets(sqlite3 *db, const char *export_file);
 int import_secrets(sqlite3 *db, char *import_file);
