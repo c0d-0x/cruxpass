@@ -13,11 +13,6 @@
 
 int generate_key_or_hash(unsigned char *key, char *hash, const char *const passd_str, unsigned char *salt,
                          uint8_t flag) {
-    if (sodium_init() == -1) {
-        fprintf(stderr, "Error: Failed to initialize libsodium");
-        return 0;
-    }
-
     if (flag & GEN_KEY) {
         if (key == NULL) return 0;
         sodium_memzero(key, sizeof(unsigned char) * KEY_LEN);
@@ -56,10 +51,6 @@ sqlite3 *decrypt(sqlite3 *db, unsigned char *key) {
 }
 
 hash_t *authenticate(char *master_passd) {
-    if (sodium_init() == -1) {
-        return NULL;
-    }
-
     hash_t *hash_obj = NULL;
     if ((hash_obj = fetch_hash()) == NULL) {
         return NULL;
@@ -74,7 +65,7 @@ hash_t *authenticate(char *master_passd) {
     return hash_obj;
 }
 
-int create_new_master_secret(sqlite3 *db, unsigned char *key) {
+int create_new_master_secret(sqlite3 *db) {
     int ret = 0;
     char *new_secret = NULL;
     char *temp_secret = NULL;
@@ -96,17 +87,10 @@ int create_new_master_secret(sqlite3 *db, unsigned char *key) {
         return ret;
     }
 
-    if (sodium_init() == -1) {
-        fprintf(stderr, "Error: Failed to initialize libsodium");
-        sodium_free(new_secret);
-        sodium_free(temp_secret);
-        return ret;
-    }
-
     new_hashed_secret = calloc(1, sizeof(hash_t));
     new_key = (unsigned char *) sodium_malloc(sizeof(unsigned char) * KEY_LEN);
 
-    if (new_hashed_secret == NULL || key == NULL || new_key == NULL) {
+    if (new_hashed_secret == NULL || new_key == NULL) {
         fprintf(stderr, "Error: Memory Allocation Fail\n");
         sodium_free(new_secret);
         sodium_free(temp_secret);
@@ -137,6 +121,7 @@ free_all:
     free(new_hashed_secret);
     sodium_free(new_secret);
     sodium_free(temp_secret);
+    sodium_memzero(new_key, KEY_LEN);
     sodium_free(new_key);
     return ret;
 }
@@ -149,11 +134,6 @@ unsigned char *decryption_helper(sqlite3 *db) {
     char *master_passd = NULL;
     unsigned char *key;
     hash_t *hashed_password = NULL;
-
-    if (sodium_init() == -1) {
-        fprintf(stderr, "Error: Failed to initialize libsodium");
-        return NULL;
-    }
 
     if ((key = (unsigned char *) sodium_malloc(sizeof(unsigned char) * KEY_LEN)) == NULL) {
         fprintf(stderr, "Error: Failed to Allocate Memory: sodium_malloc\n");

@@ -53,11 +53,11 @@ typedef struct {
 } table_t;
 
 typedef struct {
-    int64_t *data;
     int size;
     int head;
     int tail;
     int capacity;
+    int64_t *data;
 } queue_t;
 
 char *get_input(const char *prompt, char *input, const int text_len, int cod_y, int cod_x);

@@ -59,11 +59,11 @@ typedef struct {
     bool exclude_ambiguous;
 } secret_bank_options_t;
 
-char *random_secret(int secret_len, secret_bank_options_t *bank_options);
-int create_new_master_secret(sqlite3 *db, unsigned char *key);
-int export_secrets(sqlite3 *db, const char *export_file);
-int import_secrets(sqlite3 *db, char *import_file);
 sqlite3 *initcrux(char *run_dir);
 char *init_secret_bank(const secret_bank_options_t *options);
+
+char *random_secret(int secret_len, secret_bank_options_t *bank_options);
+int export_secrets(sqlite3 *db, const char *export_file);
+int import_secrets(sqlite3 *db, char *import_file);
 
 #endif  // !CRUXPASS_H

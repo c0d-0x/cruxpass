@@ -23,19 +23,21 @@ typedef enum {
     FETCH_SEC_STMT
 } SQL_STMT;
 
-hash_t *fetch_hash(void);
 bool prepare_stmt(sqlite3 *db);
 void cleanup_stmts(void);
 
-int delete_record(sqlite3 *db, int password_id);
 int init_sqlite(void);
+sqlite3 *open_db(char *db_name, int flags);
+
+hash_t *fetch_hash(void);
+int update_hash(hash_t *hash_obj);
 int insert_hash(sqlite3 *db, hash_t *hash_obj);
+
+int delete_record(sqlite3 *db, int password_id);
 int insert_record(sqlite3 *db, secret_t *password_obj);
 int load_records(sqlite3 *db, record_array_t *records);
 int lookup_record(char *db_name, char *searchstr);
-int update_hash(hash_t *hash_obj);
 int update_record(sqlite3 *db, secret_t *secret_rec, int id, uint8_t flags);
-const unsigned char *fetch_secret(sqlite3 *db, const int64_t id);
-sqlite3 *open_db(char *db_name, int flags);
 
+const unsigned char *fetch_secret(sqlite3 *db, const int64_t id);
 #endif  // !SQLITE_H

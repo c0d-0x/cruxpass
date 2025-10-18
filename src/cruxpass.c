@@ -232,6 +232,12 @@ static bool validate_run_dir(char *path) {
 
 sqlite3 *initcrux(char *run_dir) {
     if (!validate_run_dir(run_dir)) return NULL;
+
+    if (sodium_init() == -1) {
+        fprintf(stderr, "Error: Failed to initialize libsodium\n");
+        return NULL;
+    }
+
     int inited = init_sqlite();
     if (inited == C_RET_OKK) {
         fprintf(stderr, "Note: New password created\nWarning: Retry your opetation\n");

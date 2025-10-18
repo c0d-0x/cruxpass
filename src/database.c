@@ -66,15 +66,7 @@ static int create_databases(sqlite3 *db, sqlite3 *hashes_db) {
     unsigned char *key = NULL;
     hash_t hash_rec = {0};
 
-    if (sodium_init() == -1) {
-        sqlite3_close(db);
-        sqlite3_close(hashes_db);
-        return C_ERR;
-    }
-
     if (!init_tui()) {
-        sqlite3_close(db);
-        sqlite3_close(hashes_db);
         return C_ERR;
     }
 
@@ -91,8 +83,6 @@ static int create_databases(sqlite3 *db, sqlite3 *hashes_db) {
 
     if ((key = (unsigned char *) sodium_malloc(KEY_LEN)) == NULL) {
         fprintf(stderr, "Error: Memory allocation failed.\n");
-        sqlite3_close(db);
-        sqlite3_close(hashes_db);
         free(master_psswd);
         return C_ERR;
     }
@@ -100,8 +90,6 @@ static int create_databases(sqlite3 *db, sqlite3 *hashes_db) {
     randombytes_buf(hash_rec.salt, crypto_pwhash_SALTBYTES);
     if (!generate_key_or_hash(key, hash_rec.hash, master_psswd, hash_rec.salt, GEN_HASH | GEN_KEY)) {
         sodium_free(key);
-        sqlite3_close(db);
-        sqlite3_close(hashes_db);
         free(master_psswd);
         return C_ERR;
     }
@@ -109,7 +97,6 @@ static int create_databases(sqlite3 *db, sqlite3 *hashes_db) {
     free(master_psswd);
     if ((db = decrypt(db, key)) == NULL) {
         sodium_free(key);
-        sqlite3_close(hashes_db);
         return C_ERR;
     }
 
@@ -118,29 +105,24 @@ static int create_databases(sqlite3 *db, sqlite3 *hashes_db) {
         = "CREATE TABLE IF NOT EXISTS hashes ( hash_id INTEGER PRIMARY "
           "KEY, hash TEXT NOT NULL, salt TEXT NOT NULL );";
     if (!sql_exec_n_err(hashes_db, sql_fmt_str, sql_err_msg, NULL, NULL)) {
-        sqlite3_close(db);
-        sqlite3_close(hashes_db);
         return C_ERR;
     }
 
     if (!insert_hash(hashes_db, &hash_rec)) {
-        sqlite3_close(db);
-        sqlite3_close(hashes_db);
         return C_ERR;
     }
 
-    sqlite3_close(hashes_db);
     sql_fmt_str
         = "CREATE TABLE IF NOT EXISTS secrets ( secret_id INTEGER "
           "PRIMARY KEY, username TEXT NOT NULL, "
           "secret TEXT NOT NULL, description TEXT NOT NULL, date_added "
           "TEXT DEFAULT CURRENT_DATE);";
     if (!sql_exec_n_err(db, sql_fmt_str, sql_err_msg, NULL, NULL)) {
-        sqlite3_close(db);
         return C_ERR;
     }
 
     sqlite3_close(db);
+    sqlite3_close(hashes_db);
 
     return C_RET_OK;
 }

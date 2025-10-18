@@ -27,6 +27,7 @@ typedef struct {
 hash_t *authenticate(char *master_passdm);
 int generate_key_or_hash(unsigned char *key, char *hash, const char *const passwd_str, unsigned char *salt,
                          uint8_t flag);
+int create_new_master_secret(sqlite3 *db);
 sqlite3 *decrypt(sqlite3 *db, unsigned char *key);
 unsigned char *decryption_helper(sqlite3 *db);
 
