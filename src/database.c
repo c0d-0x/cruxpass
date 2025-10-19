@@ -73,7 +73,7 @@ static int create_databases(sqlite3 *db, sqlite3 *hashes_db) {
     tb_clear();
     tb_print(0, 2, TB_DEFAULT, TB_DEFAULT, "Create a new master password for cruxpass.");
     tb_present();
-    char *master_psswd = get_input("> Enter password: ", NULL, MASTER_MAX_LEN, 3, 0);
+    char *master_psswd = get_input("> Enter password: ", NULL, MASTER_MAX_LEN, 0, 3);
     cleanup_tui();
 
     if (master_psswd == NULL || strlen(master_psswd) < SECRET_MIN_LEN) {
@@ -351,7 +351,7 @@ hash_t *fetch_hash(void) {
         salt = sqlite3_column_text(sql_stmt, 1);
         if (hash != NULL || salt != NULL) {
             if ((hash_rec = calloc(1, sizeof(hash_t))) == NULL) {
-                fprintf(stderr, "Error: Memory allocation failed: calloc\n");
+                fprintf(stderr, "Error: Failed to allocate Memory\n");
                 sqlite3_close(auth_db);
                 return NULL;
             }

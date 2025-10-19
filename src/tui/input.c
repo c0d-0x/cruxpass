@@ -11,11 +11,11 @@
 /* All printable characters except ','*/
 #define IS_SPECIAL(ch) (((ch >= 0x20) && (ch <= 0x7E) && (ch != 0x2C)))
 
-char *get_input(const char *prompt, char *input, const int input_len, int start_y, int start_x) {
+char *get_input(const char *prompt, char *input, const int input_len, int start_x, int start_y) {
     bool input_is_dynamic = false;
     if (input == NULL) {
         if ((input = calloc(1, input_len)) == NULL) {
-            fprintf(stderr, "Error: Failed to allocate memory");
+            fprintf(stderr, "Error: Failed to allocate Memory");
             return NULL;
         }
         input_is_dynamic = true;
@@ -150,7 +150,7 @@ char *get_search_parttern(void) {
     draw_border(start_x, start_y, SEARCH_TXT_MAX + 4, 3, TB_DEFAULT, TB_DEFAULT);
     tb_print(start_x + 2, start_y, TB_DEFAULT | TB_BOLD, TB_DEFAULT, " Search ");
     tb_present();
-    search_parttern = get_input(NULL, NULL, SEARCH_TXT_MAX, start_y + 1, start_x + 2);
+    search_parttern = get_input(NULL, NULL, SEARCH_TXT_MAX, start_x + 2, start_y + 1);
     tb_clear();
     return search_parttern;
 }

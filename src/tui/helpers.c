@@ -60,23 +60,23 @@ bool do_updates(sqlite3 *db, record_array_t *records, int64_t current_position) 
 
     tb_clear();
     if (option == 0) {
-        get_input("> username: ", rec.username, USERNAME_MAX_LEN, start_y, start_x + 4);
+        get_input("> username: ", rec.username, USERNAME_MAX_LEN, start_x + 4, start_y);
         flags = UPDATE_USERNAME;
         if (strlen(rec.username) == 0) return false;
         memcpy(records->data[current_position].username, rec.username, USERNAME_MAX_LEN);
     } else if (option == 1) {
-        get_input("> description: ", rec.description, DESC_MAX_LEN, start_y, start_x + 4);
+        get_input("> description: ", rec.description, DESC_MAX_LEN, start_x + 4, start_y);
         flags = UPDATE_DESCRIPTION;
         if (strlen(rec.description) == 0) return false;
         memcpy(records->data[current_position].description, rec.description, DESC_MAX_LEN);
     } else if (option == 2) {
-        get_input("> secret: ", rec.secret, SECRET_MAX_LEN, start_y, start_x + 4);
+        get_input("> secret: ", rec.secret, SECRET_MAX_LEN, start_x + 4, start_y);
         if (strlen(rec.secret) < 8) return false;
         flags = UPDATE_SECRET;
     } else if (option == 3) {
-        get_input("> username: ", rec.username, USERNAME_MAX_LEN, start_y++, start_x + 4);
-        get_input("> secret: ", rec.secret, SECRET_MAX_LEN, start_y++, start_x + 4);
-        get_input("> description: ", rec.description, DESC_MAX_LEN, start_y, start_x + 4);
+        get_input("> username: ", rec.username, USERNAME_MAX_LEN, start_x + 4, start_y++);
+        get_input("> secret: ", rec.secret, SECRET_MAX_LEN, start_x + 4, start_y++);
+        get_input("> description: ", rec.description, DESC_MAX_LEN, start_x + 4, start_y++);
 
         flags = UPDATE_USERNAME | UPDATE_DESCRIPTION | UPDATE_SECRET;
 

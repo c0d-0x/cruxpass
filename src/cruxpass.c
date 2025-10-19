@@ -202,7 +202,7 @@ static bool validate_run_dir(char *path) {
 
         path_is_dynamic = true;
     } else if (strlen(path) > MAX_PATH_LEN - 16) {
-        fprintf(stderr, "Error: Run directory path too long\n");
+        fprintf(stderr, "Error: Run directory path too long (max: %d characters)\n", MAX_PATH_LEN);
         return false;
     }
 
@@ -210,8 +210,7 @@ static bool validate_run_dir(char *path) {
 
     if (stat(path, &file_stat) != 0) {
         if (path_is_dynamic) free(path);
-        fprintf(stderr, "Error: Failed to validate path\n");
-        fprintf(stderr, "Warning: Default run directory is ~/.local/share/cruxpass/ (create it if missing).\n");
+        fprintf(stderr, "Error: [ %s ] is either missing or not a valid directory\n", path);
         return false;
     }
 
@@ -279,7 +278,10 @@ char *init_secret_bank(const secret_bank_options_t *options) {
     if (bank_len == 0) return NULL;  // User didn't use any of the available banks.
     bank_len += 1;                   // Add 1 for NULL termination character.
     char *bank = NULL;
-    if ((bank = calloc(bank_len, sizeof(char))) == NULL) return NULL;
+    if ((bank = calloc(bank_len, sizeof(char))) == NULL) {
+        fprintf(stderr, "Error: Failed to allocate Memory\n");
+        return NULL;
+    }
 
     if (options->exclude_ambiguous) {
         if (options->uppercase) strncat(bank, unambiguous_upper, strlen(unambiguous_upper));

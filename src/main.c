@@ -130,9 +130,9 @@ int main(int argc, char **argv) {
         init_tui();
         tb_clear();
         secret_t record = {0};
-        if (get_input("> username: ", record.username, USERNAME_MAX_LEN, 2, 0) == NULL
-            || get_input("> secret: ", record.secret, SECRET_MAX_LEN, 3, 0) == NULL
-            || get_input("> description: ", record.description, DESC_MAX_LEN, 4, 0) == NULL) {
+        if (get_input("> username: ", record.username, USERNAME_MAX_LEN, 0, 2) == NULL
+            || get_input("> secret: ", record.secret, SECRET_MAX_LEN, 0, 3) == NULL
+            || get_input("> description: ", record.description, DESC_MAX_LEN, 0, 4) == NULL) {
             cleanup_tui();
             cleanup_main();
             free_args(&args_obj);

@@ -91,7 +91,7 @@ int create_new_master_secret(sqlite3 *db) {
     new_key = (unsigned char *) sodium_malloc(sizeof(unsigned char) * KEY_LEN);
 
     if (new_hashed_secret == NULL || new_key == NULL) {
-        fprintf(stderr, "Error: Memory Allocation Fail\n");
+        fprintf(stderr, "Error: Failed to allocate Memory\n");
         sodium_free(new_secret);
         sodium_free(temp_secret);
         return ret;

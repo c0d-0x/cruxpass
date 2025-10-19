@@ -27,6 +27,13 @@
 #define QUEUE_ERR (-2)
 #define HELP_WIN_WIDTH (TABLE_WIDTH / 2)
 
+#define BORDER_H 0x2500             // ─
+#define BORDER_V 0x2502             // │
+#define BORDER_TOP_LEFT 0x256D      // ╭
+#define BORDER_TOP_RIGHT 0x256E     // ╮
+#define BORDER_BOTTOM_LEFT 0x2570   // ╰
+#define BORDER_BOTTOM_RIGHT 0x256F  // ╯
+
 #define LEN(arr) (sizeof(arr) / sizeof((arr)[0]))
 #define draw_table(records, search_queue, search_parttern, ...) \
     _draw_table((records), (search_queue), (search_parttern),   \

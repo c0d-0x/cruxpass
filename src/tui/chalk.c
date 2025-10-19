@@ -50,21 +50,21 @@ void draw_art(void) {
 void draw_border(int start_x, int start_y, int width, int height, uintattr_t fg, uintattr_t bg) {
     /* top and bottom borders */
     for (int i = 1; i < width - 1; i++) {
-        tb_set_cell(start_x + i, start_y, 0x2500, fg, bg);               // ─
-        tb_set_cell(start_x + i, start_y + height - 1, 0x2500, fg, bg);  // ─
+        tb_set_cell(start_x + i, start_y, BORDER_H, fg, bg);
+        tb_set_cell(start_x + i, start_y + height - 1, BORDER_H, fg, bg);
     }
 
     /* left and right borders */
     for (int i = 1; i < height - 1; i++) {
-        tb_set_cell(start_x, start_y + i, 0x2502, fg, bg);              // │
-        tb_set_cell(start_x + width - 1, start_y + i, 0x2502, fg, bg);  // │
+        tb_set_cell(start_x, start_y + i, BORDER_V, fg, bg);
+        tb_set_cell(start_x + width - 1, start_y + i, BORDER_V, fg, bg);
     }
 
     /* Rounded corners */
-    tb_set_cell(start_x, start_y, 0x256D, fg, bg);                           // ╭
-    tb_set_cell(start_x + width - 1, start_y, 0x256E, fg, bg);               // ╮
-    tb_set_cell(start_x, start_y + height - 1, 0x2570, fg, bg);              // ╰
-    tb_set_cell(start_x + width - 1, start_y + height - 1, 0x256F, fg, bg);  // ╯
+    tb_set_cell(start_x, start_y, BORDER_TOP_LEFT, fg, bg);                               // ╭
+    tb_set_cell(start_x + width - 1, start_y, BORDER_TOP_RIGHT, fg, bg);                  // ╮
+    tb_set_cell(start_x, start_y + height - 1, BORDER_BOTTOM_LEFT, fg, bg);               // ╰
+    tb_set_cell(start_x + width - 1, start_y + height - 1, BORDER_BOTTOM_RIGHT, fg, bg);  // ╯
     tb_present();
 }
 
@@ -73,14 +73,14 @@ static void draw_status(int start_y, int cursor, int64_t total_records) {
     int start_x = (tb_width() - width) / 2;
     int rec_number = (total_records == 0) ? 0 : cursor + 1;
     for (int i = 1; i < width - 1; i++) {
-        tb_set_cell(start_x + i, start_y, 0x2500, COLOR_PAGINATION, TB_DEFAULT);
+        tb_set_cell(start_x + i, start_y, BORDER_H, COLOR_PAGINATION, TB_DEFAULT);
     }
 
-    tb_set_cell(start_x, start_y + 1, 0x2502, COLOR_PAGINATION, TB_DEFAULT);
-    tb_set_cell(start_x + width - 1, start_y + 1, 0x2502, COLOR_PAGINATION, TB_DEFAULT);
+    tb_set_cell(start_x, start_y + 1, BORDER_V, COLOR_PAGINATION, TB_DEFAULT);
+    tb_set_cell(start_x + width - 1, start_y + 1, BORDER_V, COLOR_PAGINATION, TB_DEFAULT);
 
-    tb_set_cell(start_x, start_y, 0x256D, COLOR_PAGINATION, TB_DEFAULT);
-    tb_set_cell(start_x + width - 1, start_y, 0x256E, COLOR_PAGINATION, TB_DEFAULT);
+    tb_set_cell(start_x, start_y, BORDER_TOP_LEFT, COLOR_PAGINATION, TB_DEFAULT);
+    tb_set_cell(start_x + width - 1, start_y, BORDER_TOP_RIGHT, COLOR_PAGINATION, TB_DEFAULT);
     tb_printf(start_x + 4, start_y + 1, COLOR_HEADER, TB_DEFAULT, "Page %d of %02d │ Record %d of %d", current_page + 1,
               total_pages + 1, rec_number, total_records);
 }
@@ -115,7 +115,7 @@ void draw_table_border(int start_x, int start_y, int table_h) {
     tb_printf(start_x + 1, start_y + 1, COLOR_HEADER, TB_DEFAULT, "%-*s %-*s %-*s", ID_WIDTH, "ID", USERNAME_WIDTH,
               "USERNAME", DESC_WIDTH, "DESCRIPTION");
     for (int i = 0; i < TABLE_WIDTH; i++) {
-        tb_set_cell(start_x + i + 1, start_y + 2, 0x2500, COLOR_PAGINATION, TB_DEFAULT);  // ─
+        tb_set_cell(start_x + i + 1, start_y + 2, BORDER_H, COLOR_PAGINATION, TB_DEFAULT);
     }
 }
 
@@ -135,7 +135,7 @@ void _draw_table(record_array_t *records, queue_t *search_queue, char *search_pa
     /* cleanup cells before redrawing rows */
     for (int i = 1; i < table.height - 1; i++) {
         for (int j = 0; j < TABLE_WIDTH; j++) {
-            tb_set_cell(table.start_x + j + 1, table.start_y + i + 2, ' ', COLOR_PAGINATION, TB_DEFAULT);  // ─
+            tb_set_cell(table.start_x + j + 1, table.start_y + i + 2, ' ', COLOR_PAGINATION, TB_DEFAULT);
         }
     }
 
