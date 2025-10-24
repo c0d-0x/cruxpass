@@ -1,3 +1,4 @@
+#include <unistd.h>
 #define TB_IMPL
 #include "tui.h"
 
@@ -42,7 +43,6 @@ int main_tui(sqlite3 *db) {
     struct tb_event ev = {0};
 
     int64_t current_position = 0;
-
     if (!load_records(db, &records)) {
         fprintf(stderr, "Error: Failed to load data from database\n");
         return 0;
@@ -139,7 +139,6 @@ int main_tui(sqlite3 *db) {
                 }
 
                 display_notifctn("Note: record updated");
-
                 draw_table_border(start_x, start_y, table_h);
             } else if (ev.key == TB_KEY_ENTER) {
                 if (notify_deleted(records.data[current_position].id)) continue;

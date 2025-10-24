@@ -3,7 +3,6 @@
 #include <sodium/utils.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -15,7 +14,7 @@ char *get_input(const char *prompt, char *input, const int input_len, int start_
     bool input_is_dynamic = false;
     if (input == NULL) {
         if ((input = calloc(1, input_len)) == NULL) {
-            fprintf(stderr, "Error: Failed to allocate Memory");
+            display_notifctn("Error: Failed to allocate Memory");
             return NULL;
         }
         input_is_dynamic = true;
@@ -29,9 +28,8 @@ char *get_input(const char *prompt, char *input, const int input_len, int start_
     }
 
     int position = 0;
-
+    struct tb_event ev;
     while (position < input_len) {
-        struct tb_event ev;
         if (tb_poll_event(&ev) != TB_OK) continue;
 
         if (ev.type == TB_EVENT_KEY) {
@@ -68,7 +66,7 @@ char *get_secret(const char *prompt) {
     int term_w = tb_width();
     int term_h = tb_height();
     if ((secret = (char *) sodium_malloc(MASTER_MAX_LEN + 1)) == NULL) {
-        fprintf(stderr, "Error: Failed to allocate memory\n");
+        display_notifctn("Error: Failed to allocate memory\n");
         return NULL;
     }
 

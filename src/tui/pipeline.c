@@ -1,21 +1,23 @@
 #include "tui.h"
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 
-void add_record(record_array_t *arr, record_t rec) {
+bool add_record(record_array_t *arr, record_t rec) {
     if (arr->size >= arr->capacity) {
         int new_capacity = arr->capacity == 0 ? 8 : arr->capacity * 2;
         record_t *new_data = realloc(arr->data, new_capacity * sizeof(record_t));
         if (new_data == NULL) {
-            fprintf(stderr, "Error: Memory allocation failed\n");
-            return;
+            fprintf(stderr, "Error: Failed to allocate Memory\n");
+            return false;
         }
         arr->data = new_data;
         arr->capacity = new_capacity;
     }
 
     arr->data[arr->size++] = rec;
+    return true;
 }
 
 /*NOTE: This is used by the load_records */
@@ -33,7 +35,7 @@ int pipeline(void *data, int argc, char **argv, char **azColName) {
     else strcpy(rec.description, "");
     rec.description[DESC_MAX_LEN] = '\0';
 
-    add_record(arr, rec);
+    if (!add_record(arr, rec)) return 1;
     return 0;
 }
 
@@ -42,6 +44,7 @@ void free_records(record_array_t *arr) {
         free(arr->data);
         arr->data = NULL;
     }
+
     arr->size = 0;
     arr->capacity = 0;
 }

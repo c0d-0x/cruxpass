@@ -94,7 +94,7 @@ bool queue_is_full(queue_t *queue);
 bool queue_is_empty(queue_t *queue);
 void free_queue(queue_t *queue);
 
-void add_record(record_array_t *arr, record_t rec);
+bool add_record(record_array_t *arr, record_t rec);
 void free_records(record_array_t *arr);
 
 bool init_tui(void);

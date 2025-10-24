@@ -208,7 +208,8 @@ int main(int argc, char **argv) {
 void sig_handler(int sig) {
     cleanup_main();
     cleanup_tui();
-    fprintf(stdout, "Note: Signal %d receive\n", sig);
+    fprintf(stdout, "Warning: Signal %d Received\n", sig);
+    fprintf(stdout, "Warning: Terminating cruxpass\n");
     exit(EXIT_FAILURE);
 }
 
