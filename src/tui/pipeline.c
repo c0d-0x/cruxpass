@@ -21,7 +21,7 @@ bool add_record(record_array_t *arr, record_t rec) {
 }
 
 /*NOTE: This is used by the load_records */
-int pipeline(void *data, [[maybe_unused]] int argc, char **argv, [[maybe_unused]] char **azColName) {
+int pipeline(void *data, MAYBE_UNUSED int argc, char **argv, MAYBE_UNUSED char **azColName) {
     record_array_t *arr = (record_array_t *) data;
     record_t rec;
 

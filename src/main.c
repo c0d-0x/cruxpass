@@ -6,6 +6,9 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
+#define ARGS_LINE_LENGTH 120
+#define ARGS_MIN_DESC_LENGTH 80
+
 #include "args.h"
 #include "cruxpass.h"
 #include "database.h"
@@ -27,42 +30,42 @@ void cleanup_main(void);
 void sig_handler(int sig);
 
 int main(int argc, char **argv) {
-    args args_obj = {0};
-    bool *help = option_flag(&args_obj, 'h', "help", "Show this help");
-    bool *save = option_flag(&args_obj, 's', "save", "Save a given record");
-    bool *list = option_flag(&args_obj, 'l', "list", "List all records");
-    bool *version = option_flag(&args_obj, 'v', "version", "Cruxpass version");
-    bool *new_password = option_flag(&args_obj, 'n', "new-password", "Creates a new master password for cruxpass");
-    long *record_id = option_long(&args_obj, 'd', "delete", "Deletes a record by id", true, -1);
+    args cmd_args = {0};
+    bool *help = option_flag(&cmd_args, 'h', "help", "Show this help");
+    bool *save = option_flag(&cmd_args, 's', "save", "Save a given record");
+    bool *list = option_flag(&cmd_args, 'l', "list", "List all records");
+    bool *version = option_flag(&cmd_args, 'v', "version", "Cruxpass version");
+    bool *new_password = option_flag(&cmd_args, 'n', "new-password", "Creates a new master password for cruxpass");
+    long *record_id = option_long(&cmd_args, 'd', "delete", "Deletes a record by id", true, -1);
     long *gen_secret_len
-        = option_long(&args_obj, 'g', "generate-rand", "Generates a random secret of a given length", true, 0);
+        = option_long(&cmd_args, 'g', "generate-rand", "Generates a random secret of a given length", true, 0);
     bool *unambiguous_password
-        = option_flag(&args_obj, 'x', "exclude-ambiguous",
+        = option_flag(&cmd_args, 'x', "exclude-ambiguous",
                       "Exclude ambiguous characters when generating a random secret (combine with -g)");
     const char **export_file
-        = option_str(&args_obj, 'e', "export", "Export all saved records to a csv format", true, NULL);
+        = option_str(&cmd_args, 'e', "export", "Export all saved records to a csv format", true, NULL);
     const char **cruxpass_run_dir = option_str(
-        &args_obj, 'r', "run-directory", "Specify the directory path where the database will be stored.", true, NULL);
-    const char **import_file = option_str(&args_obj, 'i', "import", "Import records from a csv file", true, NULL);
+        &cmd_args, 'r', "run-directory", "Specify the directory path where the database will be stored.", true, NULL);
+    const char **import_file = option_str(&cmd_args, 'i', "import", "Import records from a csv file", true, NULL);
 
     char **pos_args = NULL;
-    int pos_args_len = parse_args(&args_obj, argc, argv, &pos_args);
+    int pos_args_len = parse_args(&cmd_args, argc, argv, &pos_args);
     bool check_gen_flags = *unambiguous_password && !*gen_secret_len;
 
     if (*help || pos_args_len != 0 || argc == 1 || check_gen_flags) {
         fprintf(stdout, "usage: %s [options]\n", argv[0]);
         fprintf(stdout, "\n");
         fprintf(stdout, "%s\n", description);
-        print_options(&args_obj, stdout);
+        print_options(&cmd_args, stdout);
         fprintf(stdout, "\n%s\n", footer);
-        free_args(&args_obj);
+        free_args(&cmd_args);
         return EXIT_SUCCESS;
     }
 
     if (*version) {
         fprintf(stdout, "cruxpass version: %s\n", VERSION);
         fprintf(stdout, "Authur: %s\n", AUTHUR);
-        free_args(&args_obj);
+        free_args(&cmd_args);
         return EXIT_SUCCESS;
     }
 
@@ -75,20 +78,20 @@ int main(int argc, char **argv) {
         bank_options.exclude_ambiguous = (unambiguous_password != 0) ? true : false;
         char *secret = NULL;
         if ((secret = random_secret(*gen_secret_len, &bank_options)) == NULL) {
-            free_args(&args_obj);
+            free_args(&cmd_args);
             return EXIT_FAILURE;
         }
 
         fprintf(stdout, "secret: %s\n", secret);
         free(secret);
-        free_args(&args_obj);
+        free_args(&cmd_args);
         return EXIT_SUCCESS;
     }
 
     if (*cruxpass_run_dir != NULL) {
         if (strlen(*cruxpass_run_dir) >= MAX_PATH_LEN - 16) {
             fprintf(stderr, "Error: Path to run-directory too long.\n");
-            free_args(&args_obj);
+            free_args(&cmd_args);
             return EXIT_FAILURE;
         }
     }
@@ -100,18 +103,18 @@ int main(int argc, char **argv) {
 
     if (sigaction(SIGTERM, &sigact, NULL) != 0 || sigaction(SIGINT, &sigact, NULL) != 0) {
         fprintf(stderr, "Fail to make reception for signals");
-        free_args(&args_obj);
+        free_args(&cmd_args);
         return EXIT_FAILURE;
     }
 
     if ((db = initcrux((char *) *cruxpass_run_dir)) == NULL) {
-        free_args(&args_obj);
+        free_args(&cmd_args);
         return EXIT_FAILURE;
     }
 
     if ((key = decryption_helper(db)) == NULL) {
         cleanup_main();
-        free_args(&args_obj);
+        free_args(&cmd_args);
         return EXIT_FAILURE;
     }
 
@@ -119,7 +122,7 @@ int main(int argc, char **argv) {
         if (!create_new_master_secret(db)) {
             fprintf(stderr, "Error: Failed to creat a new master password\n");
             cleanup_main();
-            free_args(&args_obj);
+            free_args(&cmd_args);
             return EXIT_FAILURE;
         }
 
@@ -135,7 +138,7 @@ int main(int argc, char **argv) {
             || get_input("> description: ", record.description, DESC_MAX_LEN, 0, 4) == NULL) {
             cleanup_tui();
             cleanup_main();
-            free_args(&args_obj);
+            free_args(&cmd_args);
 
             fprintf(stderr, "Error: Failed to retrieve record\n");
             return EXIT_FAILURE;
@@ -145,7 +148,7 @@ int main(int argc, char **argv) {
         if (!insert_record(db, &record)) {
             cleanup_main();
 
-            free_args(&args_obj);
+            free_args(&cmd_args);
             return EXIT_FAILURE;
         }
 
@@ -156,14 +159,14 @@ int main(int argc, char **argv) {
         if (strlen(*import_file) > FILE_PATH_LEN) {
             fprintf(stderr, "Warning: Import file name too long [MAX: %d character long]\n", FILE_PATH_LEN);
             cleanup_main();
-            free_args(&args_obj);
+            free_args(&cmd_args);
             return EXIT_FAILURE;
         }
 
         if (!import_secrets(db, (char *) *import_file)) {
             fprintf(stderr, "Error: Failed to import secrets from: %s", *import_file);
             cleanup_main();
-            free_args(&args_obj);
+            free_args(&cmd_args);
             return EXIT_FAILURE;
         }
 
@@ -174,14 +177,14 @@ int main(int argc, char **argv) {
         if (strlen(*export_file) > FILE_PATH_LEN) {
             fprintf(stderr, "Warning: Export file name too long: MAX_LEN =>15\n");
             cleanup_main();
-            free_args(&args_obj);
+            free_args(&cmd_args);
             return EXIT_FAILURE;
         }
 
         if (!export_secrets(db, *export_file)) {
             fprintf(stdout, "Error: Failed to export secrets to: %s\n", *export_file);
             cleanup_main();
-            free_args(&args_obj);
+            free_args(&cmd_args);
             return EXIT_FAILURE;
         };
 
@@ -191,7 +194,7 @@ int main(int argc, char **argv) {
     if (*record_id != -1) {
         if (!delete_record(db, *record_id)) {
             cleanup_main();
-            free_args(&args_obj);
+            free_args(&cmd_args);
             return EXIT_FAILURE;
         }
     }
@@ -200,7 +203,7 @@ int main(int argc, char **argv) {
         main_tui(db);
     }
 
-    free_args(&args_obj);
+    free_args(&cmd_args);
     cleanup_main();
     return EXIT_SUCCESS;
 }

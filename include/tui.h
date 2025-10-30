@@ -34,6 +34,8 @@
 #define BORDER_BOTTOM_LEFT 0x2570   // ╰
 #define BORDER_BOTTOM_RIGHT 0x256F  // ╯
 
+#define MAYBE_UNUSED __attribute__((unused))
+
 #define LEN(arr) (sizeof(arr) / sizeof((arr)[0]))
 #define draw_table(records, search_queue, search_parttern, ...) \
     _draw_table((records), (search_queue), (search_parttern),   \
