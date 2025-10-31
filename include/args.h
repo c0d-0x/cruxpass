@@ -71,14 +71,14 @@ typedef struct args_option {
         char *str;
         bool bool_;
     } value;
-} args_option;
+} Args_option;
 
 typedef struct {
-    args_option *head;
-    args_option *tail;
+    Args_option *head;
+    Args_option *tail;
     char **pos_args;
     size_t max_descr_len;
-} args;
+} Args;
 
 #if defined(__has_attribute) && __has_attribute(unused)
 #define ARGS__MAYBE_UNUSED __attribute__((unused))
@@ -132,7 +132,7 @@ static const char *args__basename(const char *path) {
     return filename == NULL ? path : filename + 1;
 }
 
-static args_option *args__new_option(args *a, char short_name, const char *long_name, const char *description,
+static Args_option *args__new_option(Args *a, char short_name, const char *long_name, const char *description,
                                      bool is_optional) {
     ARGS__ASSERT(a != NULL);
 
@@ -159,7 +159,7 @@ static args_option *args__new_option(args *a, char short_name, const char *long_
         if (length > a->max_descr_len) a->max_descr_len = length;
     }
 
-    args_option *option = (args_option *) malloc(sizeof(*option));
+    Args_option *option = (Args_option *) malloc(sizeof(*option));
     if (option == NULL) ARGS__OUT_OF_MEMORY();
     option->next = NULL;
     option->short_name = short_name;
@@ -177,7 +177,7 @@ static args_option *args__new_option(args *a, char short_name, const char *long_
     return option;
 }
 
-static void args__parse_value(args_option *option, const char *value) {
+static void args__parse_value(Args_option *option, const char *value) {
     ARGS__ASSERT(option != NULL && value != NULL);
     switch (option->type) {
         case ARGS__TYPE_LONG: {
@@ -238,22 +238,22 @@ static void args__completion_fish_print(const char *program_name) {
         program_name, program_name, program_name);
 }
 
-static void args__completion_bash_complete(args *a) {
+static void args__completion_bash_complete(Args *a) {
     ARGS__ASSERT(a != NULL);
-    for (args_option *i = a->head; i != NULL; i = i->next) {
+    for (Args_option *i = a->head; i != NULL; i = i->next) {
         if (i->short_name != '\0') printf("-%c ", i->short_name);
         printf("--%s ", i->long_name);
     }
     printf("\n");
 }
 
-static void args__completion_zsh_complete(args *a) {
+static void args__completion_zsh_complete(Args *a) {
     ARGS__ASSERT(a != NULL);
 
     // Double the size in the extreme case that description consists entirely of escaped characters.
     char *buffer = malloc(a->max_descr_len * 2 + 1);
     if (buffer == NULL) ARGS__OUT_OF_MEMORY();
-    for (args_option *i = a->head; i != NULL; i = i->next) {
+    for (Args_option *i = a->head; i != NULL; i = i->next) {
         const char *description = "";
         if (i->description != NULL) {
             // Escape ']' and '\' in description, and wrap in square brackets as format requires.
@@ -282,13 +282,13 @@ static void args__completion_zsh_complete(args *a) {
     free(buffer);
 }
 
-static void args__completion_fish_complete(args *a) {
+static void args__completion_fish_complete(Args *a) {
     ARGS__ASSERT(a != NULL);
 
     // Double the size in the extreme case that description consists entirely of escaped characters.
     char *buffer = malloc(a->max_descr_len * 2 + 1);
     if (buffer == NULL) ARGS__OUT_OF_MEMORY();
-    for (args_option *i = a->head; i != NULL; i = i->next) {
+    for (Args_option *i = a->head; i != NULL; i = i->next) {
         printf("-l %s -%c", i->long_name, i->type == ARGS__TYPE_PATH ? 'F' : 'f');
         if (i->short_name != '\0') printf(" -s %c -r", i->short_name);
         if (i->description != NULL) {
@@ -313,12 +313,12 @@ static void args__completion_fish_complete(args *a) {
 // ====================================================================================================================
 
 // Frees all the memory, including option values and array of positional arguments.
-static void free_args(args *a) {
+static void free_args(Args *a) {
     if (a == NULL) return;
 
-    args_option *current = a->head;
+    Args_option *current = a->head;
     while (current != NULL) {
-        args_option *next = current->next;
+        Args_option *next = current->next;
         free(current->long_name);
         free(current->description);
         if (current->type == ARGS__TYPE_STR || current->type == ARGS__TYPE_PATH) free(current->value.str);
@@ -335,11 +335,11 @@ static void free_args(args *a) {
 // Defines a long option, returns a pointer set by `parse_args`.
 // Use '\0' for no short name.
 // Exits if `a` or `long_name` is NULL, or out of memory.
-ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static long *option_long(args *a, char short_name, const char *long_name,
+ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static long *option_long(Args *a, char short_name, const char *long_name,
                                                                      const char *description, bool is_optional,
                                                                      long default_value) {
     ARGS__ASSERT(a != NULL);
-    args_option *option = args__new_option(a, short_name, long_name, description, is_optional);
+    Args_option *option = args__new_option(a, short_name, long_name, description, is_optional);
     option->type = ARGS__TYPE_LONG;
     option->value.long_ = default_value;
     return &option->value.long_;
@@ -348,11 +348,11 @@ ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static long *option_long(args *a, ch
 // Defines a float option, returns a pointer set by `parse_args`.
 // Use '\0' for no short name.
 // Exits if `a` or `long_name` is NULL, or out of memory.
-ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static float *option_float(args *a, char short_name, const char *long_name,
+ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static float *option_float(Args *a, char short_name, const char *long_name,
                                                                        const char *description, bool is_optional,
                                                                        float default_value) {
     ARGS__ASSERT(a != NULL);
-    args_option *option = args__new_option(a, short_name, long_name, description, is_optional);
+    Args_option *option = args__new_option(a, short_name, long_name, description, is_optional);
     option->type = ARGS__TYPE_FLOAT;
     option->value.float_ = default_value;
     return &option->value.float_;
@@ -362,12 +362,12 @@ ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static float *option_float(args *a, 
 // String memory is owned by library, freed by `free_args`.
 // Use '\0' for no short name.
 // Exits if `a` or `long_name` is NULL, or out of memory.
-ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static const char **option_str(args *a, char short_name,
+ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static const char **option_str(Args *a, char short_name,
                                                                            const char *long_name,
                                                                            const char *description, bool is_optional,
                                                                            const char *default_value) {
     ARGS__ASSERT(a != NULL);
-    args_option *option = args__new_option(a, short_name, long_name, description, is_optional);
+    Args_option *option = args__new_option(a, short_name, long_name, description, is_optional);
     option->type = ARGS__TYPE_STR;
     option->value.str = default_value == NULL ? NULL : args__strdup(default_value);
     return (const char **) &option->value.str;
@@ -375,12 +375,12 @@ ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static const char **option_str(args 
 
 // Same as `option_str` except that shell completion will suggest paths.
 // Does NOT check that the value is a path.
-ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static const char **option_path(args *a, char short_name,
+ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static const char **option_path(Args *a, char short_name,
                                                                             const char *long_name,
                                                                             const char *description, bool is_optional,
                                                                             const char *default_value) {
     ARGS__ASSERT(a != NULL);
-    args_option *option = args__new_option(a, short_name, long_name, description, is_optional);
+    Args_option *option = args__new_option(a, short_name, long_name, description, is_optional);
     option->type = ARGS__TYPE_PATH;
     option->value.str = default_value == NULL ? NULL : args__strdup(default_value);
     return (const char **) &option->value.str;
@@ -389,10 +389,10 @@ ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static const char **option_path(args
 // Defines a boolean flag, returns a pointer set by `parse_args`.
 // Use '\0' for no short name.
 // Exits if `a` or `long_name` is NULL, or out of memory.
-ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static bool *option_flag(args *a, char short_name, const char *long_name,
+ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static bool *option_flag(Args *a, char short_name, const char *long_name,
                                                                      const char *description) {
     ARGS__ASSERT(a != NULL);
-    args_option *option = args__new_option(a, short_name, long_name, description, true);
+    Args_option *option = args__new_option(a, short_name, long_name, description, true);
     option->type = ARGS__TYPE_BOOL;
     option->value.bool_ = false;
     return &option->value.bool_;
@@ -404,7 +404,7 @@ ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static bool *option_flag(args *a, ch
 // Returns positional arguments via `pos_args`, and their count as return value.
 // Elements are from `argv`, while the array memory is managed by library.
 // On error, prints to stderr and exits.
-static int parse_args(args *a, int argc, char **argv, char ***pos_args) {
+static int parse_args(Args *a, int argc, char **argv, char ***pos_args) {
     ARGS__ASSERT(a != NULL && argv != NULL);
 
     ARGS__ASSERT(argc >= 0);
@@ -413,8 +413,8 @@ static int parse_args(args *a, int argc, char **argv, char ***pos_args) {
     argc--;
     argv++;
 
-    for (args_option *i = a->head; i != NULL; i = i->next) {
-        for (args_option *j = i->next; j != NULL; j = j->next) {
+    for (Args_option *i = a->head; i != NULL; i = i->next) {
+        for (Args_option *j = i->next; j != NULL; j = j->next) {
             if (i->short_name == j->short_name && i->short_name != '\0') {
                 ARGS__FATAL("Duplicate short name '%c' in options \"%s\" and \"%s\"",  //
                             i->short_name, i->long_name, j->long_name);
@@ -488,7 +488,7 @@ static int parse_args(args *a, int argc, char **argv, char ***pos_args) {
             arg += 2;
             arg_len -= 2;
 
-            args_option *option = a->head;
+            Args_option *option = a->head;
             size_t option_len;
             while (option != NULL) {
                 option_len = strlen(option->long_name);
@@ -533,7 +533,7 @@ static int parse_args(args *a, int argc, char **argv, char ***pos_args) {
             arg_len -= 1;
             char ch = *arg;
 
-            args_option *option = a->head;
+            Args_option *option = a->head;
             while (option != NULL && option->short_name != ch) option = option->next;
 
 #ifdef ARGS_SKIP_UNKNOWN
@@ -561,7 +561,7 @@ static int parse_args(args *a, int argc, char **argv, char ***pos_args) {
         }
     }
 
-    for (args_option *option = a->head; option != NULL; option = option->next) {
+    for (Args_option *option = a->head; option != NULL; option = option->next) {
         if (!option->is_optional && !option->is_set) ARGS__FATAL("Missing a required option \"%s\"", option->long_name);
     }
 
@@ -570,17 +570,17 @@ static int parse_args(args *a, int argc, char **argv, char ***pos_args) {
 
 // Prints all options to `fp`.
 // Caller is responsible for printing usage, as well as `completion` command.
-ARGS__MAYBE_UNUSED static void print_options(args *a, FILE *fp) {
+ARGS__MAYBE_UNUSED static void print_options(Args *a, FILE *fp) {
     ARGS__ASSERT(a != NULL && fp != NULL);
 
     size_t longest_option = 0;
-    for (args_option *option = a->head; option != NULL; option = option->next) {
+    for (Args_option *option = a->head; option != NULL; option = option->next) {
         size_t length = strlen(option->long_name);
         if (length > longest_option) longest_option = length;
     }
 
     fprintf(fp, "Options:\n");
-    for (args_option *option = a->head; option != NULL; option = option->next) {
+    for (Args_option *option = a->head; option != NULL; option = option->next) {
         fprintf(fp, "  ");
 
         if (option->short_name != '\0') {
@@ -626,23 +626,26 @@ ARGS__MAYBE_UNUSED static void print_options(args *a, FILE *fp) {
             }
         }
 
-        // if (option->is_optional) {
-        //     fprintf(fp, "(default: ");
-        //     switch (option->type) {
-        //         case ARGS__TYPE_LONG:  fprintf(fp, "%ld", option->value.long_); break;
-        //         case ARGS__TYPE_FLOAT: fprintf(fp, "%.3f", option->value.float_); break;
-        //         case ARGS__TYPE_STR:
-        //         case ARGS__TYPE_PATH:
-        //             if (option->value.str == NULL) {
-        //                 fprintf(fp, "none");
-        //             } else {
-        //                 fprintf(fp, "%s", option->value.str);
-        //             }
-        //             break;
-        //         case ARGS__TYPE_BOOL: fprintf(fp, "%s", option->value.bool_ ? "true" : "false"); break;
-        //     }
-        //     fprintf(fp, ")");
-        // }
+#ifndef ARGS_HIDE_DEFAULTS
+
+        if (option->is_optional) {
+            fprintf(fp, "(default: ");
+            switch (option->type) {
+                case ARGS__TYPE_LONG:  fprintf(fp, "%ld", option->value.long_); break;
+                case ARGS__TYPE_FLOAT: fprintf(fp, "%.3f", option->value.float_); break;
+                case ARGS__TYPE_STR:
+                case ARGS__TYPE_PATH:
+                    if (option->value.str == NULL) {
+                        fprintf(fp, "none");
+                    } else {
+                        fprintf(fp, "%s", option->value.str);
+                    }
+                    break;
+                case ARGS__TYPE_BOOL: fprintf(fp, "%s", option->value.bool_ ? "true" : "false"); break;
+            }
+            fprintf(fp, ")");
+        }
+#endif
         fprintf(fp, "\n");
     }
 }

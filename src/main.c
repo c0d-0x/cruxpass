@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
+#define ARGS_HIDE_DEFAULTS
 #define ARGS_LINE_LENGTH 120
 #define ARGS_MIN_DESC_LENGTH 80
 
@@ -30,7 +31,7 @@ void cleanup_main(void);
 void sig_handler(int sig);
 
 int main(int argc, char **argv) {
-    args cmd_args = {0};
+    Args cmd_args = {0};
     bool *help = option_flag(&cmd_args, 'h', "help", "Show this help");
     bool *save = option_flag(&cmd_args, 's', "save", "Save a given record");
     bool *list = option_flag(&cmd_args, 'l', "list", "List all records");
