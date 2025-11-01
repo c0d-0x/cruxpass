@@ -2,7 +2,7 @@
 
 ![cruxpass Screenshot](https://raw.githubusercontent.com/c0d-0x/cruxpass/dev/resources/cruxpass.png)
 
-[![Version](https://img.shields.io/badge/version-v1.2.1-blue.svg)](https://github.com/c0d-0x/cruxpass/releases)
+[![Version](https://img.shields.io/badge/version-v1.0.0-blue.svg)](https://github.com/c0d-0x/cruxpass/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Language](https://img.shields.io/badge/language-C-blue.svg)](https://github.com/c0d-0x/cruxpass)
 
