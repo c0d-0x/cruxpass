@@ -1,10 +1,12 @@
-#include "main.h"
-
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
+
+#ifndef VERSION
+#define VERSION "v1.0.0"
+#endif
 
 #define ARGS_HIDE_DEFAULTS
 #define ARGS_LINE_LENGTH 120
@@ -21,6 +23,7 @@ unsigned char *key;
 
 extern char *cruxpass_db_path;
 extern char *auth_db_path;
+
 char *description
     = "A lightweight, command-line password/secrets manager designed to securely store and\nretrieve encrypted "
       "credentials. It uses an SQLCipher database to manage entries, with\nauthentication separated from password "
@@ -35,27 +38,25 @@ int main(int argc, char **argv) {
     bool *help = option_flag(&cmd_args, 'h', "help", "Show this help");
     bool *save = option_flag(&cmd_args, 's', "save", "Save a given record");
     bool *list = option_flag(&cmd_args, 'l', "list", "List all records");
-    bool *version = option_flag(&cmd_args, 'v', "version", "Cruxpass version");
-    bool *new_password = option_flag(&cmd_args, 'n', "new-password", "Creates a new master password for cruxpass");
+    bool *version = option_flag(&cmd_args, 'v', "version", "Display version");
+    bool *new_password = option_flag(&cmd_args, 'n', "new-password", "Change your master password");
     long *record_id = option_long(&cmd_args, 'd', "delete", "Deletes a record by id", true, -1);
     long *gen_secret_len
         = option_long(&cmd_args, 'g', "generate-rand", "Generates a random secret of a given length", true, 0);
     bool *unambiguous_password
         = option_flag(&cmd_args, 'x', "exclude-ambiguous",
                       "Exclude ambiguous characters when generating a random secret (combine with -g)");
-    const char **export_file
-        = option_str(&cmd_args, 'e', "export", "Export all saved records to a csv format", true, NULL);
-    const char **cruxpass_run_dir = option_str(
+    const char **export_file = option_path(&cmd_args, 'e', "export", "Export all records to a csv format", true, NULL);
+    const char **cruxpass_run_dir = option_path(
         &cmd_args, 'r', "run-directory", "Specify the directory path where the database will be stored.", true, NULL);
-    const char **import_file = option_str(&cmd_args, 'i', "import", "Import records from a csv file", true, NULL);
+    const char **import_file = option_path(&cmd_args, 'i', "import", "Import records from a csv file", true, NULL);
 
     char **pos_args = NULL;
     int pos_args_len = parse_args(&cmd_args, argc, argv, &pos_args);
     bool check_gen_flags = *unambiguous_password && !*gen_secret_len;
 
     if (*help || pos_args_len != 0 || argc == 1 || check_gen_flags) {
-        fprintf(stdout, "usage: %s [options]\n", argv[0]);
-        fprintf(stdout, "\n");
+        fprintf(stdout, "usage: %s [options]\n\n", argv[0]);
         fprintf(stdout, "%s\n", description);
         print_options(&cmd_args, stdout);
         fprintf(stdout, "\n%s\n", footer);
@@ -64,8 +65,7 @@ int main(int argc, char **argv) {
     }
 
     if (*version) {
-        fprintf(stdout, "cruxpass version: %s\n", VERSION);
-        fprintf(stdout, "Authur: %s\n", AUTHUR);
+        fprintf(stdout, "cruxpass-%s\n", VERSION);
         free_args(&cmd_args);
         return EXIT_SUCCESS;
     }

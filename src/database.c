@@ -12,8 +12,9 @@
 #include "enc.h"
 #include "tui.h"
 
-char *cruxpass_db_path;
-char *auth_db_path;
+extern char *cruxpass_db_path;
+extern char *auth_db_path;
+
 char *sql_str[] = {"INSERT INTO secrets (username, secret,description )  VALUES (?, ?, ?);",
                    "DELETE FROM secrets WHERE secret_id = ?;", "SELECT secret FROM secrets WHERE secret_id = ?;"};
 

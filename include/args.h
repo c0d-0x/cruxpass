@@ -51,8 +51,8 @@
 #define ARGS_MIN_DESC_LENGTH 30
 #endif
 
-typedef struct args_option {
-    struct args_option *next;
+typedef struct Args__Option {
+    struct Args__Option *next;
     char short_name;
     char *long_name;
     char *description;
@@ -71,11 +71,11 @@ typedef struct args_option {
         char *str;
         bool bool_;
     } value;
-} Args_option;
+} Args__Option;
 
 typedef struct {
-    Args_option *head;
-    Args_option *tail;
+    Args__Option *head;
+    Args__Option *tail;
     char **pos_args;
     size_t max_descr_len;
 } Args;
@@ -132,8 +132,13 @@ static const char *args__basename(const char *path) {
     return filename == NULL ? path : filename + 1;
 }
 
-static Args_option *args__new_option(Args *a, char short_name, const char *long_name, const char *description,
-                                     bool is_optional) {
+static Args__Option *args__new_option(
+    Args *a,
+    char short_name,
+    const char *long_name,
+    const char *description,
+    bool is_optional
+) {
     ARGS__ASSERT(a != NULL);
 
     if (short_name != '\0' && !isalnum(short_name)) {
@@ -144,13 +149,17 @@ static Args_option *args__new_option(Args *a, char short_name, const char *long_
     for (const char *c = long_name; *c != '\0'; c++) {
         if (isalnum(*c) || *c == '_' || *c == '+') continue;
         if (*c == '-' && c != long_name) continue;
-        ARGS__FATAL("Invalid long name \"%s\". It must consist of alphanumerics and \"-_+\", and cannot start with '-'",
-                    long_name);
+        ARGS__FATAL(
+            "Invalid long name \"%s\". It must consist of alphanumerics and \"-_+\", and cannot start with '-'",
+            long_name
+        );
     }
 
     if (description != NULL) {
         for (const char *c = description; *c != '\0'; c++) {
-            if (*c == '\n') ARGS__FATAL("Description must not contain newlines. It will be split automatically");
+            if (*c == '\n' || *c == '\r') {
+                ARGS__FATAL("Description must not contain newlines. It will be split automatically");
+            }
             if (*c == '\t') ARGS__FATAL("Description must not contain tabs to maintain proper length");
             if (!isprint(*c)) ARGS__FATAL("Description of \"%s\" contains an invalid character 0x%x", long_name, *c);
         }
@@ -159,7 +168,7 @@ static Args_option *args__new_option(Args *a, char short_name, const char *long_
         if (length > a->max_descr_len) a->max_descr_len = length;
     }
 
-    Args_option *option = (Args_option *) malloc(sizeof(*option));
+    Args__Option *option = (Args__Option *) malloc(sizeof(*option));
     if (option == NULL) ARGS__OUT_OF_MEMORY();
     option->next = NULL;
     option->short_name = short_name;
@@ -177,7 +186,7 @@ static Args_option *args__new_option(Args *a, char short_name, const char *long_
     return option;
 }
 
-static void args__parse_value(Args_option *option, const char *value) {
+static void args__parse_value(Args__Option *option, const char *value) {
     ARGS__ASSERT(option != NULL && value != NULL);
     switch (option->type) {
         case ARGS__TYPE_LONG: {
@@ -210,7 +219,8 @@ static void args__completion_bash_print(const char *program_name) {
         "}\n"
         "\n"
         "complete -o default -F _%s %s\n",
-        program_name, program_name, program_name, program_name);
+        program_name, program_name, program_name, program_name
+    );
 }
 
 static void args__completion_zsh_print(const char *program_name) {
@@ -224,7 +234,8 @@ static void args__completion_zsh_print(const char *program_name) {
         "}\n"
         "\n"
         "_%s\n",
-        program_name, program_name, program_name, program_name);
+        program_name, program_name, program_name, program_name
+    );
 }
 
 static void args__completion_fish_print(const char *program_name) {
@@ -235,12 +246,13 @@ static void args__completion_fish_print(const char *program_name) {
         "for args in (%s __complete fish 2>/dev/null)\n"
         "    eval \"complete -c %s $args\"\n"
         "end\n",
-        program_name, program_name, program_name);
+        program_name, program_name, program_name
+    );
 }
 
 static void args__completion_bash_complete(Args *a) {
     ARGS__ASSERT(a != NULL);
-    for (Args_option *i = a->head; i != NULL; i = i->next) {
+    for (Args__Option *i = a->head; i != NULL; i = i->next) {
         if (i->short_name != '\0') printf("-%c ", i->short_name);
         printf("--%s ", i->long_name);
     }
@@ -253,7 +265,7 @@ static void args__completion_zsh_complete(Args *a) {
     // Double the size in the extreme case that description consists entirely of escaped characters.
     char *buffer = malloc(a->max_descr_len * 2 + 1);
     if (buffer == NULL) ARGS__OUT_OF_MEMORY();
-    for (Args_option *i = a->head; i != NULL; i = i->next) {
+    for (Args__Option *i = a->head; i != NULL; i = i->next) {
         const char *description = "";
         if (i->description != NULL) {
             // Escape ']' and '\' in description, and wrap in square brackets as format requires.
@@ -288,7 +300,7 @@ static void args__completion_fish_complete(Args *a) {
     // Double the size in the extreme case that description consists entirely of escaped characters.
     char *buffer = malloc(a->max_descr_len * 2 + 1);
     if (buffer == NULL) ARGS__OUT_OF_MEMORY();
-    for (Args_option *i = a->head; i != NULL; i = i->next) {
+    for (Args__Option *i = a->head; i != NULL; i = i->next) {
         printf("-l %s -%c", i->long_name, i->type == ARGS__TYPE_PATH ? 'F' : 'f');
         if (i->short_name != '\0') printf(" -s %c -r", i->short_name);
         if (i->description != NULL) {
@@ -316,9 +328,9 @@ static void args__completion_fish_complete(Args *a) {
 static void free_args(Args *a) {
     if (a == NULL) return;
 
-    Args_option *current = a->head;
+    Args__Option *current = a->head;
     while (current != NULL) {
-        Args_option *next = current->next;
+        Args__Option *next = current->next;
         free(current->long_name);
         free(current->description);
         if (current->type == ARGS__TYPE_STR || current->type == ARGS__TYPE_PATH) free(current->value.str);
@@ -335,11 +347,16 @@ static void free_args(Args *a) {
 // Defines a long option, returns a pointer set by `parse_args`.
 // Use '\0' for no short name.
 // Exits if `a` or `long_name` is NULL, or out of memory.
-ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static long *option_long(Args *a, char short_name, const char *long_name,
-                                                                     const char *description, bool is_optional,
-                                                                     long default_value) {
+ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static long *option_long(
+    Args *a,
+    char short_name,
+    const char *long_name,
+    const char *description,
+    bool is_optional,
+    long default_value
+) {
     ARGS__ASSERT(a != NULL);
-    Args_option *option = args__new_option(a, short_name, long_name, description, is_optional);
+    Args__Option *option = args__new_option(a, short_name, long_name, description, is_optional);
     option->type = ARGS__TYPE_LONG;
     option->value.long_ = default_value;
     return &option->value.long_;
@@ -348,11 +365,16 @@ ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static long *option_long(Args *a, ch
 // Defines a float option, returns a pointer set by `parse_args`.
 // Use '\0' for no short name.
 // Exits if `a` or `long_name` is NULL, or out of memory.
-ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static float *option_float(Args *a, char short_name, const char *long_name,
-                                                                       const char *description, bool is_optional,
-                                                                       float default_value) {
+ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static float *option_float(
+    Args *a,
+    char short_name,
+    const char *long_name,
+    const char *description,
+    bool is_optional,
+    float default_value
+) {
     ARGS__ASSERT(a != NULL);
-    Args_option *option = args__new_option(a, short_name, long_name, description, is_optional);
+    Args__Option *option = args__new_option(a, short_name, long_name, description, is_optional);
     option->type = ARGS__TYPE_FLOAT;
     option->value.float_ = default_value;
     return &option->value.float_;
@@ -361,13 +383,18 @@ ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static float *option_float(Args *a, 
 // Defines a string option, returns a pointer set by `parse_args`.
 // String memory is owned by library, freed by `free_args`.
 // Use '\0' for no short name.
+// Result is NULL only if default value is NULL and option isn't set.
 // Exits if `a` or `long_name` is NULL, or out of memory.
-ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static const char **option_str(Args *a, char short_name,
-                                                                           const char *long_name,
-                                                                           const char *description, bool is_optional,
-                                                                           const char *default_value) {
+ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static const char **option_str(
+    Args *a,
+    char short_name,
+    const char *long_name,
+    const char *description,
+    bool is_optional,
+    const char *default_value
+) {
     ARGS__ASSERT(a != NULL);
-    Args_option *option = args__new_option(a, short_name, long_name, description, is_optional);
+    Args__Option *option = args__new_option(a, short_name, long_name, description, is_optional);
     option->type = ARGS__TYPE_STR;
     option->value.str = default_value == NULL ? NULL : args__strdup(default_value);
     return (const char **) &option->value.str;
@@ -375,12 +402,16 @@ ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static const char **option_str(Args 
 
 // Same as `option_str` except that shell completion will suggest paths.
 // Does NOT check that the value is a path.
-ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static const char **option_path(Args *a, char short_name,
-                                                                            const char *long_name,
-                                                                            const char *description, bool is_optional,
-                                                                            const char *default_value) {
+ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static const char **option_path(
+    Args *a,
+    char short_name,
+    const char *long_name,
+    const char *description,
+    bool is_optional,
+    const char *default_value
+) {
     ARGS__ASSERT(a != NULL);
-    Args_option *option = args__new_option(a, short_name, long_name, description, is_optional);
+    Args__Option *option = args__new_option(a, short_name, long_name, description, is_optional);
     option->type = ARGS__TYPE_PATH;
     option->value.str = default_value == NULL ? NULL : args__strdup(default_value);
     return (const char **) &option->value.str;
@@ -389,10 +420,14 @@ ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static const char **option_path(Args
 // Defines a boolean flag, returns a pointer set by `parse_args`.
 // Use '\0' for no short name.
 // Exits if `a` or `long_name` is NULL, or out of memory.
-ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static bool *option_flag(Args *a, char short_name, const char *long_name,
-                                                                     const char *description) {
+ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static bool *option_flag(
+    Args *a,
+    char short_name,
+    const char *long_name,
+    const char *description
+) {
     ARGS__ASSERT(a != NULL);
-    Args_option *option = args__new_option(a, short_name, long_name, description, true);
+    Args__Option *option = args__new_option(a, short_name, long_name, description, true);
     option->type = ARGS__TYPE_BOOL;
     option->value.bool_ = false;
     return &option->value.bool_;
@@ -413,11 +448,13 @@ static int parse_args(Args *a, int argc, char **argv, char ***pos_args) {
     argc--;
     argv++;
 
-    for (Args_option *i = a->head; i != NULL; i = i->next) {
-        for (Args_option *j = i->next; j != NULL; j = j->next) {
+    for (Args__Option *i = a->head; i != NULL; i = i->next) {
+        for (Args__Option *j = i->next; j != NULL; j = j->next) {
             if (i->short_name == j->short_name && i->short_name != '\0') {
-                ARGS__FATAL("Duplicate short name '%c' in options \"%s\" and \"%s\"",  //
-                            i->short_name, i->long_name, j->long_name);
+                ARGS__FATAL(
+                    "Duplicate short name '%c' in options \"%s\" and \"%s\"",  //
+                    i->short_name, i->long_name, j->long_name
+                );
             }
 
             if (strcmp(i->long_name, j->long_name) == 0) ARGS__FATAL("Duplicate option \"%s\"", i->long_name);
@@ -488,7 +525,7 @@ static int parse_args(Args *a, int argc, char **argv, char ***pos_args) {
             arg += 2;
             arg_len -= 2;
 
-            Args_option *option = a->head;
+            Args__Option *option = a->head;
             size_t option_len;
             while (option != NULL) {
                 option_len = strlen(option->long_name);
@@ -533,7 +570,7 @@ static int parse_args(Args *a, int argc, char **argv, char ***pos_args) {
             arg_len -= 1;
             char ch = *arg;
 
-            Args_option *option = a->head;
+            Args__Option *option = a->head;
             while (option != NULL && option->short_name != ch) option = option->next;
 
 #ifdef ARGS_SKIP_UNKNOWN
@@ -561,7 +598,7 @@ static int parse_args(Args *a, int argc, char **argv, char ***pos_args) {
         }
     }
 
-    for (Args_option *option = a->head; option != NULL; option = option->next) {
+    for (Args__Option *option = a->head; option != NULL; option = option->next) {
         if (!option->is_optional && !option->is_set) ARGS__FATAL("Missing a required option \"%s\"", option->long_name);
     }
 
@@ -574,13 +611,13 @@ ARGS__MAYBE_UNUSED static void print_options(Args *a, FILE *fp) {
     ARGS__ASSERT(a != NULL && fp != NULL);
 
     size_t longest_option = 0;
-    for (Args_option *option = a->head; option != NULL; option = option->next) {
+    for (Args__Option *option = a->head; option != NULL; option = option->next) {
         size_t length = strlen(option->long_name);
         if (length > longest_option) longest_option = length;
     }
 
     fprintf(fp, "Options:\n");
-    for (Args_option *option = a->head; option != NULL; option = option->next) {
+    for (Args__Option *option = a->head; option != NULL; option = option->next) {
         fprintf(fp, "  ");
 
         if (option->short_name != '\0') {
@@ -593,42 +630,43 @@ ARGS__MAYBE_UNUSED static void print_options(Args *a, FILE *fp) {
         int length_diff = longest_option - strlen(option->long_name);
         fprintf(fp, "%*c", length_diff + ARGS_PADDING, ' ');
 
+        ARGS__MAYBE_UNUSED bool is_multiline = false;
+        int offset = 8 + longest_option + ARGS_PADDING;
         // Print description and break into multiple lines if needed.
         if (option->description != NULL) {
-            int offset = 8 + longest_option + ARGS_PADDING;
             int line_length = ARGS_LINE_LENGTH - offset;
             if (line_length < ARGS_MIN_DESC_LENGTH) line_length = ARGS_MIN_DESC_LENGTH;
             int length = strlen(option->description);
-            bool is_multiline = length > line_length;
+            is_multiline = length > line_length;
             char *cur = option->description;
             while (length > line_length) {
                 // Find the closest space to break the line.
                 int chunk_length = line_length;
                 while (chunk_length > 0 && cur[chunk_length] != ' ') chunk_length--;
+
                 // If failed to find a space or it is too early, break mid-word.
                 if (chunk_length < line_length / 2) chunk_length = line_length;
 
                 fprintf(fp, "%.*s\n%*c", chunk_length, cur, offset, ' ');
 
-                // Advance by one more to skip the space.
-                cur += chunk_length + 1;
-                length -= chunk_length + 1;
+                if (cur[chunk_length] == ' ') {
+                    cur++;
+                    length--;
+                }
+                cur += chunk_length;
+                length -= chunk_length;
             }
             fprintf(fp, "%s", cur);
-
-            if (option->is_optional) {
-                if (is_multiline) {
-                    // Print description on the new line to avoid breaking it too.
-                    fprintf(fp, "\n%*c", offset, ' ');
-                } else {
-                    fprintf(fp, " ");
-                }
-            }
         }
 
 #ifndef ARGS_HIDE_DEFAULTS
-
         if (option->is_optional) {
+            if (is_multiline) {
+                // Print description on the new line to avoid breaking it too.
+                fprintf(fp, "\n%*c", offset, ' ');
+            } else {
+                fprintf(fp, " ");
+            }
             fprintf(fp, "(default: ");
             switch (option->type) {
                 case ARGS__TYPE_LONG:  fprintf(fp, "%ld", option->value.long_); break;
@@ -637,9 +675,25 @@ ARGS__MAYBE_UNUSED static void print_options(Args *a, FILE *fp) {
                 case ARGS__TYPE_PATH:
                     if (option->value.str == NULL) {
                         fprintf(fp, "none");
-                    } else {
-                        fprintf(fp, "%s", option->value.str);
+                        break;
                     }
+
+                    fprintf(fp, "\"");
+                    for (const char *c = option->value.str; *c != '\0'; c++) {
+                        switch (*c) {
+                            case '\n': fprintf(fp, "\\n"); break;
+                            case '\r': fprintf(fp, "\\r"); break;
+                            case '\t': fprintf(fp, "\\t"); break;
+                            default:
+                                if (isprint(*c)) {
+                                    fprintf(fp, "%c", *c);
+                                } else {
+                                    fprintf(fp, "\\x%02hhx", *c);
+                                }
+                                break;
+                        }
+                    }
+                    fprintf(fp, "\"");
                     break;
                 case ARGS__TYPE_BOOL: fprintf(fp, "%s", option->value.bool_ ? "true" : "false"); break;
             }

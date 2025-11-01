@@ -13,8 +13,8 @@
 #include "database.h"
 #include "enc.h"
 
-extern char *cruxpass_db_path;
-extern char *auth_db_path;
+char *cruxpass_db_path;
+char *auth_db_path;
 
 char *random_secret(int secret_len, secret_bank_options_t *bank_options) {
     if (secret_len < SECRET_MIN_LEN || secret_len > SECRET_MAX_LEN) {

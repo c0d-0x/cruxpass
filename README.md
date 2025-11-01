@@ -34,7 +34,7 @@
 | `-g`  | `--generate-rand <length>` | Generate a random password of given length                                       |
 | `-x`  | `--exclude-ambiguous`      | Exclude ambiguous characters when generating a random password (combine with -g) |
 | `-l`  | `--list`                   | List all stored passwords                                                        |
-| `-n`  | `--new-password`           | Create a new master password                                                     |
+| `-n`  | `--new-password`           | Change your Cruxpass master password                                             |
 | `-s`  | `--save`                   | Save a password with its metadata (prompts interactively)                        |
 | `-v`  | `--version`                | Show cruxPass version                                                            |
 
