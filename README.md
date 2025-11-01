@@ -1,4 +1,4 @@
-# cruxpass — Password Management CLI Tool
+# A CLI Password Management
 
 ![cruxpass Screenshot](https://raw.githubusercontent.com/c0d-0x/cruxpass/dev/resources/cruxpass.png)
 
@@ -6,19 +6,18 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Language](https://img.shields.io/badge/language-C-blue.svg)](https://github.com/c0d-0x/cruxpass)
 
-**cruxpass** is a secure, fast, and lightweight command-line password manager built in C. It enables secure storage and retrieval of credentials using encrypted SQLite database storage (via [SQLCipher](https://www.zetetic.net/sqlcipher/)).
+A secure, fast, and lightweight command-line password manager built in C. It enables secure storage and retrieval of credentials using encrypted SQLite database storage (via [SQLCipher](https://www.zetetic.net/sqlcipher/)).
 
 ---
 
 ## Features
 
 - Generate strong, random passwords
-- Store passwords securely using encryption
-- Retrieve passwords by username
-- List all saved credentials
+- Store passwords securely
+- Retrieve passwords
+- List all saved credentials in a TUI
 - Export and import passwords via CSV
 - Delete specific password entries
-- Generate throwaway random passwords (not stored)
 
 ---
 
@@ -120,7 +119,7 @@ Authentication: A master password is required to access or modify any stored dat
 
 ## Contributing
 
-Contributions are welcome! Please open issues or submit pull requests to help improve cruxpass.
+Contributions are welcome! You can open an issues or submit pull requests to help improve cruxpass.
 
 ## License
 
