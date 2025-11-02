@@ -24,14 +24,9 @@ unsigned char *key;
 extern char *cruxpass_db_path;
 extern char *auth_db_path;
 
-char *description
-    = "A lightweight, command-line password/secrets manager designed to securely store and\nretrieve encrypted "
-      "credentials. It uses an SQLCipher database to manage entries, with\nauthentication separated from password "
-      "storage. Access is controlled via a master password.\n";
-char *footer = "It emphasizes simplicity, security, and efficiency for developers and power users.";
-
 void cleanup_main(void);
 void sig_handler(int sig);
+void print_help(Args *cmd_args, char *program);
 
 int main(int argc, char **argv) {
     Args cmd_args = {0};
@@ -56,10 +51,7 @@ int main(int argc, char **argv) {
     bool check_gen_flags = *unambiguous_password && !*gen_secret_len;
 
     if (*help || pos_args_len != 0 || argc == 1 || check_gen_flags) {
-        fprintf(stdout, "usage: %s [options]\n\n", argv[0]);
-        fprintf(stdout, "%s\n", description);
-        print_options(&cmd_args, stdout);
-        fprintf(stdout, "\n%s\n", footer);
+        print_help(&cmd_args, argv[0]);
         free_args(&cmd_args);
         return EXIT_SUCCESS;
     }
@@ -227,4 +219,17 @@ void cleanup_main(void) {
         sodium_memzero(key, KEY_LEN);
         sodium_free(key);
     }
+}
+
+void print_help(Args *cmd_args, char *program) {
+    char *description
+        = "A lightweight, command-line password/secrets manager designed to securely store and\nretrieve encrypted "
+          "credentials. It uses an SQLCipher database to manage entries, with\nauthentication separated from password "
+          "storage. Access is controlled via a master password.\n";
+    char *footer = "It emphasizes simplicity, security, and efficiency for developers and power users.";
+
+    fprintf(stdout, "usage: %s [options]\n\n", program);
+    fprintf(stdout, "%s\n", description);
+    print_options(cmd_args, stdout);
+    fprintf(stdout, "\n%s\n", footer);
 }

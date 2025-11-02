@@ -12,8 +12,8 @@
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
 //
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -80,15 +80,23 @@ typedef struct {
     size_t max_descr_len;
 } Args;
 
-#if defined(__has_attribute) && __has_attribute(unused)
+#if defined(__has_attribute)
+#if __has_attribute(unused)
 #define ARGS__MAYBE_UNUSED __attribute__((unused))
-#else
+#endif
+#endif
+
+#ifndef ARGS__MAYBE_UNUSED
 #define ARGS__MAYBE_UNUSED
 #endif
 
-#if defined(__has_attribute) && __has_attribute(warn_unused_result)
+#if defined(__has_attribute)
+#if __has_attribute(warn_unused_result)
 #define ARGS__WARN_UNUSED_RESULT __attribute__((warn_unused_result))
-#else
+#endif
+#endif
+
+#ifndef ARGS__WARN_UNUSED_RESULT
 #define ARGS__WARN_UNUSED_RESULT
 #endif
 
@@ -132,13 +140,8 @@ static const char *args__basename(const char *path) {
     return filename == NULL ? path : filename + 1;
 }
 
-static Args__Option *args__new_option(
-    Args *a,
-    char short_name,
-    const char *long_name,
-    const char *description,
-    bool is_optional
-) {
+static Args__Option *args__new_option(Args *a, char short_name, const char *long_name, const char *description,
+                                      bool is_optional) {
     ARGS__ASSERT(a != NULL);
 
     if (short_name != '\0' && !isalnum(short_name)) {
@@ -150,15 +153,17 @@ static Args__Option *args__new_option(
         if (isalnum(*c) || *c == '_' || *c == '+') continue;
         if (*c == '-' && c != long_name) continue;
         ARGS__FATAL(
-            "Invalid long name \"%s\". It must consist of alphanumerics and \"-_+\", and cannot start with '-'",
-            long_name
-        );
+            "Invalid long name \"%s\". It must consist of alphanumerics "
+            "and \"-_+\", and cannot start with '-'",
+            long_name);
     }
 
     if (description != NULL) {
         for (const char *c = description; *c != '\0'; c++) {
             if (*c == '\n' || *c == '\r') {
-                ARGS__FATAL("Description must not contain newlines. It will be split automatically");
+                ARGS__FATAL(
+                    "Description must not contain newlines. It will be split "
+                    "automatically");
             }
             if (*c == '\t') ARGS__FATAL("Description must not contain tabs to maintain proper length");
             if (!isprint(*c)) ARGS__FATAL("Description of \"%s\" contains an invalid character 0x%x", long_name, *c);
@@ -214,13 +219,13 @@ static void args__completion_bash_print(const char *program_name) {
         "    _init_completion || return\n"
         "\n"
         "    if [[ $cur == -* ]]; then\n"
-        "        COMPREPLY=($(compgen -W \"$(%s __complete bash 2>/dev/null)\" -- \"$cur\"))\n"
+        "        COMPREPLY=($(compgen -W \"$(%s __complete bash "
+        "2>/dev/null)\" -- \"$cur\"))\n"
         "    fi\n"
         "}\n"
         "\n"
         "complete -o default -F _%s %s\n",
-        program_name, program_name, program_name, program_name
-    );
+        program_name, program_name, program_name, program_name);
 }
 
 static void args__completion_zsh_print(const char *program_name) {
@@ -234,8 +239,7 @@ static void args__completion_zsh_print(const char *program_name) {
         "}\n"
         "\n"
         "_%s\n",
-        program_name, program_name, program_name, program_name
-    );
+        program_name, program_name, program_name, program_name);
 }
 
 static void args__completion_fish_print(const char *program_name) {
@@ -246,8 +250,7 @@ static void args__completion_fish_print(const char *program_name) {
         "for args in (%s __complete fish 2>/dev/null)\n"
         "    eval \"complete -c %s $args\"\n"
         "end\n",
-        program_name, program_name, program_name
-    );
+        program_name, program_name, program_name);
 }
 
 static void args__completion_bash_complete(Args *a) {
@@ -262,13 +265,15 @@ static void args__completion_bash_complete(Args *a) {
 static void args__completion_zsh_complete(Args *a) {
     ARGS__ASSERT(a != NULL);
 
-    // Double the size in the extreme case that description consists entirely of escaped characters.
+    // Double the size in the extreme case that description consists entirely of
+    // escaped characters.
     char *buffer = malloc(a->max_descr_len * 2 + 1);
     if (buffer == NULL) ARGS__OUT_OF_MEMORY();
     for (Args__Option *i = a->head; i != NULL; i = i->next) {
         const char *description = "";
         if (i->description != NULL) {
-            // Escape ']' and '\' in description, and wrap in square brackets as format requires.
+            // Escape ']' and '\' in description, and wrap in square brackets as
+            // format requires.
             char *c = buffer;
             *c++ = '[';
             for (char *j = i->description; *j != '\0'; j++) {
@@ -297,7 +302,8 @@ static void args__completion_zsh_complete(Args *a) {
 static void args__completion_fish_complete(Args *a) {
     ARGS__ASSERT(a != NULL);
 
-    // Double the size in the extreme case that description consists entirely of escaped characters.
+    // Double the size in the extreme case that description consists entirely of
+    // escaped characters.
     char *buffer = malloc(a->max_descr_len * 2 + 1);
     if (buffer == NULL) ARGS__OUT_OF_MEMORY();
     for (Args__Option *i = a->head; i != NULL; i = i->next) {
@@ -324,7 +330,8 @@ static void args__completion_fish_complete(Args *a) {
 //                                                    PUBLIC API
 // ====================================================================================================================
 
-// Frees all the memory, including option values and array of positional arguments.
+// Frees all the memory, including option values and array of positional
+// arguments.
 static void free_args(Args *a) {
     if (a == NULL) return;
 
@@ -347,14 +354,9 @@ static void free_args(Args *a) {
 // Defines a long option, returns a pointer set by `parse_args`.
 // Use '\0' for no short name.
 // Exits if `a` or `long_name` is NULL, or out of memory.
-ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static long *option_long(
-    Args *a,
-    char short_name,
-    const char *long_name,
-    const char *description,
-    bool is_optional,
-    long default_value
-) {
+ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static long *option_long(Args *a, char short_name, const char *long_name,
+                                                                     const char *description, bool is_optional,
+                                                                     long default_value) {
     ARGS__ASSERT(a != NULL);
     Args__Option *option = args__new_option(a, short_name, long_name, description, is_optional);
     option->type = ARGS__TYPE_LONG;
@@ -365,14 +367,9 @@ ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static long *option_long(
 // Defines a float option, returns a pointer set by `parse_args`.
 // Use '\0' for no short name.
 // Exits if `a` or `long_name` is NULL, or out of memory.
-ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static float *option_float(
-    Args *a,
-    char short_name,
-    const char *long_name,
-    const char *description,
-    bool is_optional,
-    float default_value
-) {
+ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static float *option_float(Args *a, char short_name, const char *long_name,
+                                                                       const char *description, bool is_optional,
+                                                                       float default_value) {
     ARGS__ASSERT(a != NULL);
     Args__Option *option = args__new_option(a, short_name, long_name, description, is_optional);
     option->type = ARGS__TYPE_FLOAT;
@@ -385,14 +382,10 @@ ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static float *option_float(
 // Use '\0' for no short name.
 // Result is NULL only if default value is NULL and option isn't set.
 // Exits if `a` or `long_name` is NULL, or out of memory.
-ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static const char **option_str(
-    Args *a,
-    char short_name,
-    const char *long_name,
-    const char *description,
-    bool is_optional,
-    const char *default_value
-) {
+ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static const char **option_str(Args *a, char short_name,
+                                                                           const char *long_name,
+                                                                           const char *description, bool is_optional,
+                                                                           const char *default_value) {
     ARGS__ASSERT(a != NULL);
     Args__Option *option = args__new_option(a, short_name, long_name, description, is_optional);
     option->type = ARGS__TYPE_STR;
@@ -402,14 +395,10 @@ ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static const char **option_str(
 
 // Same as `option_str` except that shell completion will suggest paths.
 // Does NOT check that the value is a path.
-ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static const char **option_path(
-    Args *a,
-    char short_name,
-    const char *long_name,
-    const char *description,
-    bool is_optional,
-    const char *default_value
-) {
+ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static const char **option_path(Args *a, char short_name,
+                                                                            const char *long_name,
+                                                                            const char *description, bool is_optional,
+                                                                            const char *default_value) {
     ARGS__ASSERT(a != NULL);
     Args__Option *option = args__new_option(a, short_name, long_name, description, is_optional);
     option->type = ARGS__TYPE_PATH;
@@ -420,12 +409,8 @@ ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static const char **option_path(
 // Defines a boolean flag, returns a pointer set by `parse_args`.
 // Use '\0' for no short name.
 // Exits if `a` or `long_name` is NULL, or out of memory.
-ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static bool *option_flag(
-    Args *a,
-    char short_name,
-    const char *long_name,
-    const char *description
-) {
+ARGS__MAYBE_UNUSED ARGS__WARN_UNUSED_RESULT static bool *option_flag(Args *a, char short_name, const char *long_name,
+                                                                     const char *description) {
     ARGS__ASSERT(a != NULL);
     Args__Option *option = args__new_option(a, short_name, long_name, description, true);
     option->type = ARGS__TYPE_BOOL;
@@ -451,10 +436,8 @@ static int parse_args(Args *a, int argc, char **argv, char ***pos_args) {
     for (Args__Option *i = a->head; i != NULL; i = i->next) {
         for (Args__Option *j = i->next; j != NULL; j = j->next) {
             if (i->short_name == j->short_name && i->short_name != '\0') {
-                ARGS__FATAL(
-                    "Duplicate short name '%c' in options \"%s\" and \"%s\"",  //
-                    i->short_name, i->long_name, j->long_name
-                );
+                ARGS__FATAL("Duplicate short name '%c' in options \"%s\" and \"%s\"",  //
+                            i->short_name, i->long_name, j->long_name);
             }
 
             if (strcmp(i->long_name, j->long_name) == 0) ARGS__FATAL("Duplicate option \"%s\"", i->long_name);
