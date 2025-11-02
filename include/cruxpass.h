@@ -38,6 +38,16 @@
 #define CRUXPASS_RUNDIR ".local/share/cruxpass"  // default ~/.local/share/cruxpass/
 #endif
 
+#if defined(__has_attribute)
+#if __has_attribute(unused)
+#define MAYBE_UNUSED __attribute__((unused))
+#endif
+#endif
+
+#ifndef MAYBE_UNUSED
+#define MAYBE_UNUSED
+#endif
+
 typedef struct {
     ssize_t id;
     char username[USERNAME_MAX_LEN + 1];
