@@ -120,7 +120,3 @@ Authentication: A master password is required to access or modify any stored dat
 ## Contributing
 
 Contributions are welcome! You can open an issues or submit pull requests to help improve cruxpass.
-
-## License
-
-cruxpass is licensed under the MIT License.
