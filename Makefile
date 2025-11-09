@@ -2,6 +2,8 @@ CC             := gcc
 
 CFLAGS         := -Wall -Wextra -Wformat-security -Wformat-overflow=2
 
+STRIP_BIN			 := -s
+
 INCLUDE        := -Iinclude
 
 LDLIBS         := -lsodium -lm -lsqlcipher -ldl -lpthread
@@ -28,14 +30,14 @@ all: $(BIN)
 
 $(BIN): $(OBJ)
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) $(OBJ) -o $@ $(LDLIBS)
+	$(CC) $(CFLAGS) $(STRIP_BIN) $(OBJ) -o $@ $(LDLIBS)
 
 build/%.o: src/%.c
 	@mkdir -p $(dir $@)
 	$(CC) $(INCLUDE) $(CFLAGS) -c $< -o $@
 
 install: clean
-	$(MAKE) $(INCLUDE) $(BIN)
+	$(MAKE)  $(INCLUDE) $(BIN)
 	-$(BIN) completion bash > $(BASH_COMPLETION_PATH)
 	-$(BIN) completion zsh > $(ZSH_COMPLETION_PATH)
 	-$(BIN) completion fish > $(FISH_COMPLETION_PATH) 
@@ -43,6 +45,7 @@ install: clean
 	@install -m 0755 $(BIN) $(PREFIX)/bin
 
 # migrating from /usr/local/bin/ to /usr/bin/
+# Because bin used to be installed: /usr/local/bin/ 
 	@echo "Checking for $(OLD_PREFIX_BIN)"
 	@if [ -f "$(OLD_PREFIX_BIN)" ]; then \
 		echo "Removing system-local copy: $(OLD_PREFIX_BIN)"; \
