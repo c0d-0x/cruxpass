@@ -1,6 +1,6 @@
 CC             := gcc
 
-CFLAGS         := -Wall -Wextra -Wformat-security -Wformat-overflow=2
+CFLAGS         := -Wall -Wextra -Wformat-security -Wformat-overflow=2 -O3
 
 STRIP_BIN			 := -s
 

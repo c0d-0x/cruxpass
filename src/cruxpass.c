@@ -275,8 +275,8 @@ char *init_secret_bank(const secret_bank_options_t *options) {
         if (options->symbols) bank_len += strlen(all_symbols);
     }
 
-    if (bank_len == 0) return NULL;  // User didn't use any of the available banks.
-    bank_len += 1;                   // Add 1 for NULL termination character.
+    if (bank_len == 0) return NULL;
+    bank_len += 1;
     char *bank = NULL;
     if ((bank = calloc(bank_len, sizeof(char))) == NULL) {
         fprintf(stderr, "Error: Failed to allocate Memory\n");
@@ -284,15 +284,15 @@ char *init_secret_bank(const secret_bank_options_t *options) {
     }
 
     if (options->exclude_ambiguous) {
-        if (options->uppercase) strncat(bank, unambiguous_upper, strlen(unambiguous_upper));
-        if (options->lowercase) strncat(bank, unambiguous_lower, strlen(unambiguous_lower));
-        if (options->numbers) strncat(bank, unambiguous_numbers, strlen(unambiguous_numbers));
-        if (options->symbols) strncat(bank, unambiguous_symbols, strlen(unambiguous_symbols));
+        if (options->uppercase) strcat(bank, unambiguous_upper);
+        if (options->lowercase) strcat(bank, unambiguous_lower);
+        if (options->numbers) strcat(bank, unambiguous_numbers);
+        if (options->symbols) strcat(bank, unambiguous_symbols);
     } else {
-        if (options->uppercase) strncat(bank, all_upper, strlen(all_upper));
-        if (options->lowercase) strncat(bank, all_lower, strlen(all_lower));
-        if (options->numbers) strncat(bank, all_numbers, strlen(all_numbers));
-        if (options->symbols) strncat(bank, all_symbols, strlen(all_symbols));
+        if (options->uppercase) strcat(bank, all_upper);
+        if (options->lowercase) strcat(bank, all_lower);
+        if (options->numbers) strcat(bank, all_numbers);
+        if (options->symbols) strcat(bank, all_symbols);
     }
 
     return bank;
