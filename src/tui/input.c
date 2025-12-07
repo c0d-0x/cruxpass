@@ -73,7 +73,7 @@ char *get_secret(const char *prompt) {
     int term_w = tb_width();
     int term_h = tb_height();
     if ((secret = (char *) sodium_malloc(MASTER_MAX_LEN + 1)) == NULL) {
-        display_notifctn("Error: Failed to allocate memory\n");
+        display_notifctn("Error: Memory Allocate");
         return NULL;
     }
 
@@ -88,7 +88,7 @@ char *get_secret(const char *prompt) {
     tb_present();
 
     int i = 0;
-    struct tb_event ev;
+    struct tb_event ev = {0};
     while (1) {
         tb_poll_event(&ev);
         if (ev.type == TB_EVENT_KEY) {

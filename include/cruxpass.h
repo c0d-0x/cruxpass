@@ -20,7 +20,7 @@
 
 #define DESC_MAX_LEN 255
 #define FILE_PATH_LEN 32
-#define MASTER_MAX_LEN 63
+#define MASTER_MAX_LEN 48
 #define MAX_PATH_LEN 255
 #define SECRET_MAX_LEN 128
 #define SECRET_MIN_LEN 8

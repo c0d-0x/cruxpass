@@ -1,4 +1,3 @@
-#include <unistd.h>
 #define TB_IMPL
 #include "tui.h"
 
@@ -30,7 +29,7 @@ void cleanup_tui(void) {
 
 static bool notify_deleted(int64_t id) {
     if (id == DELETED) {
-        display_notifctn("Note: this secret has been deleted");
+        display_notifctn("Note: Record Already Deleted");
         return true;
     }
     return false;
@@ -107,14 +106,14 @@ int main_tui(sqlite3 *db) {
                     int64_t index = dequeue(&search_queue);
 
                     if (index == QUEUE_ERR) {
-                        display_notifctn("Error: Failed to dequeue");
+                        display_notifctn("Error: Dequeue Failed");
                         continue;
                     }
 
                     current_position = index;
                     continue;
                 } else {
-                    display_notifctn("Note: Record not found");
+                    display_notifctn("Note: Record Not Found");
                 }
             } else if (ev.ch == '?') {
                 display_help();
@@ -124,11 +123,11 @@ int main_tui(sqlite3 *db) {
             } else if (ev.ch == 'd') {
                 if (notify_deleted(records.data[current_position].id)) continue;
                 if (!delete_record(db, records.data[current_position].id)) {
-                    display_notifctn("Error: Failed to delete secret");
+                    display_notifctn("Error: Deletion Failed");
                     continue;
                 }
 
-                display_notifctn("Note: secret deleted");
+                display_notifctn("Note: Record Deleted");
                 records.data[current_position].id = DELETED;
 
             } else if (ev.ch == 'u') {
@@ -138,7 +137,7 @@ int main_tui(sqlite3 *db) {
                     continue;
                 }
 
-                display_notifctn("Note: record updated");
+                display_notifctn("Note: Record Updated");
                 draw_table_border(start_x, start_y, table_h);
             } else if (ev.key == TB_KEY_ENTER) {
                 if (notify_deleted(records.data[current_position].id)) continue;

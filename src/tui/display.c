@@ -11,8 +11,12 @@ void display_notifctn(char *message) {
     int term_w = tb_width();
     int message_len = strlen(message) + 4;
     if (term_w <= message_len) {
-        tb_print(term_w / 2, term_h / 2, COLOR_STATUS, TB_DEFAULT, "Terminal width too small");
+        tb_clear();
+        tb_print(term_w / 2, term_h / 2, COLOR_STATUS, TB_DEFAULT, "Error: Terminal width too small");
         tb_present();
+
+        struct tb_event ev = {0};
+        tb_poll_event(&ev);
         return;
     }
 
@@ -48,7 +52,7 @@ void display_secret(sqlite3 *db, uint16_t id) {
     tb_clear();
 
     draw_border(start_x, start_y, secret_len + 4, 3, COLOR_PAGINATION, TB_DEFAULT);
-    tb_print(start_x + 2, start_y, COLOR_HEADER, TB_DEFAULT, " Secret ");
+    tb_print(start_x + 2, start_y, COLOR_HEADER, TB_DEFAULT, "| Secret |");
     tb_print(start_x + 2, start_y + 1, TB_DEFAULT | TB_BOLD, TB_DEFAULT, (char *) secret);
     tb_present();
 
@@ -70,7 +74,7 @@ void display_help(void) {
     int term_h = tb_height();
 
     if (term_w < 60 + 4 || term_h < 18 + 2) {
-        display_notifctn("Warning: Term width too small");
+        display_notifctn("Warning: Term width or height too small");
         return;
     }
 
@@ -79,7 +83,7 @@ void display_help(void) {
 
     tb_clear();
     draw_border(start_x, start_y, help_w + 4, help_h + 2, COLOR_PAGINATION, TB_DEFAULT);
-    tb_print(start_x + 2, start_y, COLOR_HEADER, TB_DEFAULT, " Help ");
+    tb_print(start_x + 2, start_y, COLOR_HEADER, TB_DEFAULT, "| Help |");
 
     int line = start_y + 2;
     tb_print(start_x + 2, line++, TB_DEFAULT | TB_BOLD, TB_DEFAULT, "Actions:");
