@@ -159,6 +159,7 @@ static bool create_run_dir(const char *path) {
     if (ret == 0) fprintf(stderr, "Note: Run directory created\n");
     else if (errno != EEXIST) {
         fprintf(stderr, "Error: Failed to create run directory: %s\n", strerror(errno));
+        fprintf(stderr, "Run Directory: %s\n", path);
         return false;
     }
 

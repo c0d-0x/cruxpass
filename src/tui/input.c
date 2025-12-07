@@ -153,7 +153,7 @@ char *get_search_parttern(void) {
     tb_clear();
 
     draw_border(start_x, start_y, SEARCH_TXT_MAX + 4, 3, TB_DEFAULT, TB_DEFAULT);
-    tb_print(start_x + 2, start_y, TB_DEFAULT | TB_BOLD, TB_DEFAULT, " Search ");
+    tb_print(start_x + 2, start_y, TB_DEFAULT | TB_BOLD, TB_DEFAULT, "| Search |");
     tb_present();
     search_parttern = get_input(NULL, NULL, SEARCH_TXT_MAX, start_x + 2, start_y + 1);
     tb_clear();
