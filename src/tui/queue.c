@@ -11,9 +11,6 @@ bool enqueue(queue_t *queue, int64_t index) {
         }
 
         queue->capacity = QUEUE_MAX;
-        queue->head = 0;
-        queue->tail = 0;
-        queue->size = 0;
     }
 
     if (queue_is_full(queue)) {

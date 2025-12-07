@@ -11,16 +11,17 @@ extern int total_pages;
  * Displays centered ASCII art (4 bytes wide char)
  */
 void draw_art(void) {
-    const wchar_t *ascii_art[] = {L" ▄████▄   █    ██ ▒██   ██▒ ██▓███   ▄▄▄        ██████   ██████    ",
-                                  L"▒██▀ ▀█   ██  ▓██▒▒▒ █ █ ▒░▓██░  ██▒▒████▄    ▒██    ▒ ▒██    ▒    ",
-                                  L"▒▓█    ▄ ▓██  ▒██░░░  █   ░▓██░ ██▓▒▒██  ▀█▄  ░ ▓██▄   ░ ▓██▄      ",
-                                  L"▒▓▓▄ ▄██▒▓▓█  ░██░ ░ █ █ ▒ ▒██▄█▓▒ ▒░██▄▄▄▄██   ▒   ██▒  ▒   ██▒   ",
-                                  L"▒ ▓███▀ ░▒▒█████▓ ▒██▒ ▒██▒▒██▒ ░  ░ ▓█   ▓██▒▒██████▒▒▒██████▒▒   ",
-                                  L"░ ░▒ ▒  ░░▒▓▒ ▒ ▒ ▒▒ ░ ░▓ ░▒▓▒░ ░  ░ ▒▒   ▓▒█░▒ ▒▓▒ ▒ ░▒ ▒▓▒ ▒ ░   ",
-                                  L"  ░  ▒   ░░▒░ ░ ░ ░░   ░▒ ░░▒ ░       ▒   ▒▒ ░░ ░▒  ░ ░░ ░▒  ░ ░   ",
-                                  L"░         ░░░ ░ ░  ░    ░  ░░         ░   ▒   ░  ░  ░  ░  ░  ░     ",
-                                  L"░ ░         ░      ░    ░                 ░  ░      ░        ░     ",
-                                  L"░                                                                  "};
+    // Font Type: Bloody
+    const wchar_t *ascii_art[] = {L" ▄████▄   ██▀███   █    ██ ▒██   ██▒ ██▓███   ▄▄▄        ██████   ██████ ",
+                                  L"▒██▀ ▀█  ▓██ ▒ ██▒ ██  ▓██▒▒▒ █ █ ▒░▓██░  ██▒▒████▄    ▒██    ▒ ▒██    ▒ ",
+                                  L"▒▓█    ▄ ▓██ ░▄█ ▒▓██  ▒██░░░  █   ░▓██░ ██▓▒▒██  ▀█▄  ░ ▓██▄   ░ ▓██▄   ",
+                                  L"▒▓▓▄ ▄██▒▒██▀▀█▄  ▓▓█  ░██░ ░ █ █ ▒ ▒██▄█▓▒ ▒░██▄▄▄▄██   ▒   ██▒  ▒   ██▒",
+                                  L"▒ ▓███▀ ░░██▓ ▒██▒▒▒█████▓ ▒██▒ ▒██▒▒██▒ ░  ░ ▓█   ▓██▒▒██████▒▒▒██████▒▒",
+                                  L"░ ░▒ ▒  ░░ ▒▓ ░▒▓░░▒▓▒ ▒ ▒ ▒▒ ░ ░▓ ░▒▓▒░ ░  ░ ▒▒   ▓▒█░▒ ▒▓▒ ▒ ░▒ ▒▓▒ ▒ ░",
+                                  L"  ░  ▒     ░▒ ░ ▒░░░▒░ ░ ░ ░░   ░▒ ░░▒ ░       ▒   ▒▒ ░░ ░▒  ░ ░░ ░▒  ░ ░",
+                                  L"░          ░░   ░  ░░░ ░ ░  ░    ░  ░░         ░   ▒   ░  ░  ░  ░  ░  ░  ",
+                                  L"░ ░         ░        ░      ░    ░                 ░  ░      ░        ░  ",
+                                  L"░                                                                         "};
     int term_w = tb_width();
     int term_h = tb_height();
 
@@ -47,44 +48,6 @@ void draw_art(void) {
     tb_present();
 }
 
-void draw_border(int start_x, int start_y, int width, int height, uintattr_t fg, uintattr_t bg) {
-    /* top and bottom borders */
-    for (int i = 1; i < width - 1; i++) {
-        tb_set_cell(start_x + i, start_y, BORDER_H, fg, bg);
-        tb_set_cell(start_x + i, start_y + height - 1, BORDER_H, fg, bg);
-    }
-
-    /* left and right borders */
-    for (int i = 1; i < height - 1; i++) {
-        tb_set_cell(start_x, start_y + i, BORDER_V, fg, bg);
-        tb_set_cell(start_x + width - 1, start_y + i, BORDER_V, fg, bg);
-    }
-
-    /* Rounded corners */
-    tb_set_cell(start_x, start_y, BORDER_TOP_LEFT, fg, bg);                               // ╭
-    tb_set_cell(start_x + width - 1, start_y, BORDER_TOP_RIGHT, fg, bg);                  // ╮
-    tb_set_cell(start_x, start_y + height - 1, BORDER_BOTTOM_LEFT, fg, bg);               // ╰
-    tb_set_cell(start_x + width - 1, start_y + height - 1, BORDER_BOTTOM_RIGHT, fg, bg);  // ╯
-    tb_present();
-}
-
-static void draw_status(int start_y, int cursor, int64_t total_records) {
-    int width = 40;
-    int start_x = (tb_width() - width) / 2;
-    int rec_number = (total_records == 0) ? 0 : cursor + 1;
-    for (int i = 1; i < width - 1; i++) {
-        tb_set_cell(start_x + i, start_y, BORDER_H, COLOR_PAGINATION, TB_DEFAULT);
-    }
-
-    tb_set_cell(start_x, start_y + 1, BORDER_V, COLOR_PAGINATION, TB_DEFAULT);
-    tb_set_cell(start_x + width - 1, start_y + 1, BORDER_V, COLOR_PAGINATION, TB_DEFAULT);
-
-    tb_set_cell(start_x, start_y, BORDER_TOP_LEFT, COLOR_PAGINATION, TB_DEFAULT);
-    tb_set_cell(start_x + width - 1, start_y, BORDER_TOP_RIGHT, COLOR_PAGINATION, TB_DEFAULT);
-    tb_printf(start_x + 4, start_y + 1, COLOR_HEADER, TB_DEFAULT, "Page %d of %02d │ Record %d of %d", current_page + 1,
-              total_pages + 1, rec_number, total_records);
-}
-
 void draw_update_menu(int option, int start_x, int start_y) {
     int option_w = 22;
     uintattr_t fg = (option == 0) ? COLOR_PAGINATION : TB_DEFAULT;
@@ -109,11 +72,49 @@ void draw_update_menu(int option, int start_x, int start_y) {
     tb_present();
 }
 
+void draw_border(int start_x, int start_y, int width, int height, uintattr_t fg, uintattr_t bg) {
+    /* top and bottom borders */
+    for (int i = 1; i < width - 1; i++) {
+        tb_set_cell(start_x + i, start_y, BORDER_H, fg, bg);
+        tb_set_cell(start_x + i, start_y + height - 1, BORDER_H, fg, bg);
+    }
+
+    /* left and right borders */
+    for (int i = 1; i < height - 1; i++) {
+        tb_set_cell(start_x, start_y + i, BORDER_V, fg, bg);
+        tb_set_cell(start_x + width - 1, start_y + i, BORDER_V, fg, bg);
+    }
+
+    /* Rounded corners */
+    tb_set_cell(start_x, start_y, BORDER_TOP_LEFT, fg, bg);
+    tb_set_cell(start_x + width - 1, start_y, BORDER_TOP_RIGHT, fg, bg);
+    tb_set_cell(start_x, start_y + height - 1, BORDER_BOTTOM_LEFT, fg, bg);
+    tb_set_cell(start_x + width - 1, start_y + height - 1, BORDER_BOTTOM_RIGHT, fg, bg);
+    tb_present();
+}
+
+static void draw_status(int start_y, int cursor, int64_t total_records) {
+    int width = 40;
+    int start_x = (tb_width() - width) / 2;
+    int rec_number = (total_records == 0) ? 0 : cursor + 1;
+    for (int i = 1; i < width - 1; i++) {
+        tb_set_cell(start_x + i, start_y, BORDER_H, COLOR_PAGINATION, TB_DEFAULT);
+    }
+
+    tb_set_cell(start_x, start_y + 1, BORDER_V, COLOR_PAGINATION, TB_DEFAULT);
+    tb_set_cell(start_x + width - 1, start_y + 1, BORDER_V, COLOR_PAGINATION, TB_DEFAULT);
+
+    tb_set_cell(start_x, start_y, BORDER_TOP_LEFT, COLOR_PAGINATION, TB_DEFAULT);
+    tb_set_cell(start_x + width - 1, start_y, BORDER_TOP_RIGHT, COLOR_PAGINATION, TB_DEFAULT);
+    tb_printf(start_x + 4, start_y + 1, COLOR_HEADER, TB_DEFAULT, "Page %d of %02d │ Record %d of %d", current_page + 1,
+              total_pages + 1, rec_number, total_records);
+}
+
 void draw_table_border(int start_x, int start_y, int table_h) {
     tb_clear();
     draw_border(start_x, start_y, TABLE_WIDTH + 2, table_h + 2, COLOR_PAGINATION, TB_DEFAULT);
-    tb_printf(start_x + 1, start_y + 1, COLOR_HEADER, TB_DEFAULT, "%-*s %-*s %-*s", ID_WIDTH, "ID", USERNAME_WIDTH,
-              "USERNAME", DESC_WIDTH, "DESCRIPTION");
+    tb_printf(start_x + 1, start_y + 1, COLOR_HEADER, TB_DEFAULT, " %-*s  %-*s %-*s", ID_WIDTH - 1, "ID",
+              USERNAME_WIDTH, "USERNAME/E-MAIL", DESC_WIDTH, "DESCRIPTION");
     for (int i = 0; i < TABLE_WIDTH; i++) {
         tb_set_cell(start_x + i + 1, start_y + 2, BORDER_H, COLOR_PAGINATION, TB_DEFAULT);
     }
@@ -132,6 +133,7 @@ void _draw_table(record_array_t *records, queue_t *search_queue, char *search_pa
 
     uintattr_t fg = TB_DEFAULT;
     uintattr_t bg = TB_DEFAULT;
+
     /* cleanup cells before redrawing rows */
     for (int i = 1; i < table.height - 1; i++) {
         for (int j = 0; j < TABLE_WIDTH; j++) {
@@ -155,8 +157,8 @@ void _draw_table(record_array_t *records, queue_t *search_queue, char *search_pa
         bg = TB_DEFAULT;
 
         if (rec->id == DELETED) {
-            tb_printf(start_x, row, COLOR_STATUS, TB_WHITE, "%-*s %-*s %-*.*s", ID_WIDTH, "DELETED", USERNAME_WIDTH,
-                      rec->username, DESC_WIDTH, DESC_WIDTH, rec->description);
+            tb_printf(start_x, row, COLOR_STATUS, TB_WHITE, " %-*s %-*s %-*.*s", ID_WIDTH, "DELETED", USERNAME_WIDTH,
+                      rec->username, DESC_WIDTH, DESC_WIDTH + 1, rec->description);
             continue;
         }
 
@@ -172,8 +174,8 @@ void _draw_table(record_array_t *records, queue_t *search_queue, char *search_pa
             bg = TB_WHITE;
         }
 
-        tb_printf(start_x, row, fg, bg, "%-*ld %-*s %-*.*s", ID_WIDTH, rec->id, USERNAME_WIDTH, rec->username,
-                  DESC_WIDTH, DESC_WIDTH, rec->description);
+        tb_printf(start_x, row, fg, bg, " %-*ld %-*s %-*.*s", ID_WIDTH, rec->id, USERNAME_WIDTH, rec->username,
+                  DESC_WIDTH, DESC_WIDTH + 1, rec->description);
     }
 
     draw_status(table.height, table.cursor, records->size);

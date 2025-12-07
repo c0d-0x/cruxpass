@@ -1,5 +1,6 @@
 #include "tui.h"
 
+#include <locale.h>
 #include <sodium/utils.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -55,6 +56,12 @@ char *get_input(const char *prompt, char *input, const int input_len, int start_
             continue;
         }
     }
+
+    if (input != NULL && strlen(input) == 0) {
+        free(input);
+        input = NULL;
+    }
+
     return input;
 }
 

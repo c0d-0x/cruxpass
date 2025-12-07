@@ -18,13 +18,13 @@
 #include <sqlcipher/sqlite3.h>
 #include <stdbool.h>
 
-#define DESC_MAX_LEN 100
+#define DESC_MAX_LEN 255
 #define FILE_PATH_LEN 32
-#define MASTER_MAX_LEN 45
+#define MASTER_MAX_LEN 63
 #define MAX_PATH_LEN 255
 #define SECRET_MAX_LEN 128
 #define SECRET_MIN_LEN 8
-#define USERNAME_MAX_LEN 30
+#define USERNAME_MAX_LEN 32
 
 #ifndef CRUXPASS_DB
 #define CRUXPASS_DB "cruxpass.db"
@@ -38,11 +38,13 @@
 #define CRUXPASS_RUNDIR ".local/share/cruxpass"  // default ~/.local/share/cruxpass/
 #endif
 
+// clang-format off
 #if defined(__has_attribute)
-#if __has_attribute(unused)
-#define MAYBE_UNUSED __attribute__((unused))
+    #if __has_attribute(unused)
+        #define MAYBE_UNUSED __attribute__((unused))
+    #endif
 #endif
-#endif
+// clang-format on
 
 #ifndef MAYBE_UNUSED
 #define MAYBE_UNUSED

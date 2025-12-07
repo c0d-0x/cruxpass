@@ -84,14 +84,15 @@ void display_help(void) {
     int line = start_y + 2;
     tb_print(start_x + 2, line++, TB_DEFAULT | TB_BOLD, TB_DEFAULT, "Actions:");
     tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " Enter - View secret      u - Update record");
-    tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " d - Delete record        ");
-    tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " / - Search               n - Next search result");
-    tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " ? - Show this help       q/Q - Quit");
+    tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " d - Delete record        n - Next search result");
+    tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " / - Search               q/Q - Quit");
+    tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " ? - Show this help");
 
     line++;
     tb_print(start_x + 2, line++, TB_DEFAULT | TB_BOLD, TB_DEFAULT, "Navigation:");
-    tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " j/k - Down/Up            h/l - Page left/right");
+    tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " j/k - Down/Up");
     tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " g/G - First/Last");
+    tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " h/l - Page left/right");
 
     line++;
     tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, "Press any key to close...");
@@ -100,3 +101,5 @@ void display_help(void) {
     struct tb_event ev;
     tb_poll_event(&ev);
 }
+// TODO: Description window (SHIFT+RETURN)
+// save and generate new secrets from TUI

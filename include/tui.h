@@ -8,11 +8,10 @@
 #include "cruxpass.h"
 #include "termbox2.h"
 
-#define MAX_FIELD_LEN 100
 #define ID_WIDTH 7
-#define USERNAME_WIDTH 30
-#define DESC_WIDTH 51
-#define TABLE_WIDTH (ID_WIDTH + USERNAME_WIDTH + DESC_WIDTH + 2)
+#define USERNAME_WIDTH USERNAME_MAX_LEN
+#define DESC_WIDTH 52
+#define TABLE_WIDTH (ID_WIDTH + USERNAME_WIDTH + DESC_WIDTH + 3)
 #define QUEUE_MAX 10
 #define DELETED (-1)
 
@@ -42,7 +41,7 @@
 typedef struct {
     int64_t id;
     char username[USERNAME_MAX_LEN + 1];
-    char description[MAX_FIELD_LEN + 1];
+    char description[DESC_WIDTH];
 } record_t;
 
 typedef struct {

@@ -4,7 +4,7 @@ CFLAGS         := -Wall -Wextra -Wformat-security -Wformat-overflow=2 -O3
 
 STRIP_BIN			 := -s
 
-INCLUDE        := -Iinclude
+INCLUDE        := -Iinclude -Ilib
 
 LDLIBS         := -lsodium -lm -lsqlcipher -ldl -lpthread
 
@@ -26,7 +26,7 @@ FISH_COMPLETION_PATH := /usr/share/fish/vendor_completions.d/$(BIN_NAME).fish
 
 
 all: $(BIN)
-	@echo 'Build complete (dev).'
+	@echo '[+] Build complete (dev).'
 
 $(BIN): $(OBJ)
 	@mkdir -p $(dir $@)
@@ -51,13 +51,13 @@ install: clean
 		echo "Removing system-local copy: $(OLD_PREFIX_BIN)"; \
 		 rm -f "$(OLD_PREFIX_BIN)"; \
 	fi
-	@echo 'Installation complete.'
+	@echo '[+] Installation complete.'
 
 .PHONY: all clean install uninstall
 
 clean:
 	@rm -rf build $(BIN)
-	@echo "Clean up complete..."
+	@echo "[+] Clean up complete."
 
 uninstall:
 	rm -f $(PREFIX)/bin/cruxpass $(BASH_COMPLETION_PATH) $(ZSH_COMPLETION_PATH) $(FISH_COMPLETION_PATH)

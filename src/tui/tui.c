@@ -8,9 +8,9 @@
 
 #include "database.h"
 
-int records_per_page = 30;
-int current_page;
 int total_pages;
+int current_page;
+int records_per_page = 30;
 
 bool init_tui(void) {
     if (tb_init() != TB_OK) {
@@ -37,12 +37,12 @@ static bool notify_deleted(int64_t id) {
 }
 
 int main_tui(sqlite3 *db) {
-    queue_t search_queue = {0};
-    record_array_t records = {0, 0, NULL};
-    char *search_pattern = NULL;
     struct tb_event ev = {0};
-
+    queue_t search_queue = {0};
+    char *search_pattern = NULL;
     int64_t current_position = 0;
+    record_array_t records = {0, 0, NULL};
+
     if (!load_records(db, &records)) {
         fprintf(stderr, "Error: Failed to load data from database\n");
         return 0;

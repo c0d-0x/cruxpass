@@ -1,3 +1,4 @@
+#include "cruxpass.h"
 #include "tui.h"
 
 #include <stdbool.h>
@@ -68,7 +69,7 @@ bool do_updates(sqlite3 *db, record_array_t *records, int64_t current_position) 
         get_input("> description: ", rec.description, DESC_MAX_LEN, start_x + 4, start_y);
         flags = UPDATE_DESCRIPTION;
         if (strlen(rec.description) == 0) return false;
-        memcpy(records->data[current_position].description, rec.description, DESC_MAX_LEN);
+        memcpy(records->data[current_position].description, rec.description, DESC_WIDTH);
     } else if (option == 2) {
         get_input("> secret: ", rec.secret, SECRET_MAX_LEN, start_x + 4, start_y);
         if (strlen(rec.secret) < 8) return false;
@@ -82,7 +83,7 @@ bool do_updates(sqlite3 *db, record_array_t *records, int64_t current_position) 
 
         if (strlen(rec.username) == 0 || strlen(rec.description) == 0 || strlen(rec.secret) < 8) return false;
         memcpy(records->data[current_position].username, rec.username, USERNAME_MAX_LEN);
-        memcpy(records->data[current_position].description, rec.description, DESC_MAX_LEN);
+        memcpy(records->data[current_position].description, rec.description, DESC_WIDTH);
     } else {
         return false;
     }

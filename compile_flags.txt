@@ -1,2 +1,3 @@
   -xc
   -Iinclude
+  -Ilib

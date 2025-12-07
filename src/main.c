@@ -21,34 +21,35 @@
 sqlite3 *db;
 unsigned char *key;
 
-extern char *cruxpass_db_path;
 extern char *auth_db_path;
+extern char *cruxpass_db_path;
 
 void cleanup_main(void);
 void sig_handler(int sig);
-void print_help(Args *cmd_args, char *program);
+void print_help(Args *cmd_args, const char *program);
 
 int main(int argc, char **argv) {
     Args cmd_args = {0};
-    bool *help = option_flag(&cmd_args, 'h', "help", "Show this help");
-    bool *save = option_flag(&cmd_args, 's', "save", "Save a given record");
-    bool *list = option_flag(&cmd_args, 'l', "list", "List all records");
-    bool *version = option_flag(&cmd_args, 'v', "version", "Display version");
-    bool *new_password = option_flag(&cmd_args, 'n', "new-password", "Change your master password");
-    long *record_id = option_long(&cmd_args, 'd', "delete", "Deletes a record by id", true, -1);
-    long *gen_secret_len
-        = option_long(&cmd_args, 'g', "generate-rand", "Generates a random secret of a given length", true, 0);
-    bool *unambiguous_password
-        = option_flag(&cmd_args, 'x', "exclude-ambiguous",
-                      "Exclude ambiguous characters when generating a random secret (combine with -g)");
-    const char **export_file = option_path(&cmd_args, 'e', "export", "Export all records to a csv format", true, NULL);
+    const bool *help = option_flag(&cmd_args, "help", "Show this help", .short_name = 'h', .early_exit = true);
+    option_version(&cmd_args, "cruxpass-" VERSION);
+    const bool *save = option_flag(&cmd_args, "save", "Save a given record", .short_name = 's');
+    const bool *list = option_flag(&cmd_args, "list", "List all records", .short_name = 'l');
+    const bool *new_password = option_flag(&cmd_args, "new-password", "Change your master password", .short_name = 'n');
+    const long *record_id = option_long(&cmd_args, "delete", "Deletes a record by id", .short_name = 'd');
+    const long *gen_secret_len
+        = option_long(&cmd_args, "generate-rand", "Generates a random secret of a given length", .short_name = 'g');
+    const bool *unambiguous = option_flag(
+        &cmd_args, "exclude-ambiguous",
+        "Exclude ambiguous characters when generating a random secret (combine with -g)", .short_name = 'x');
+    const char **export_file
+        = option_path(&cmd_args, "export", "Export all records to a csv format", .short_name = 'e');
     const char **cruxpass_run_dir = option_path(
-        &cmd_args, 'r', "run-directory", "Specify the directory path where the database will be stored.", true, NULL);
-    const char **import_file = option_path(&cmd_args, 'i', "import", "Import records from a csv file", true, NULL);
+        &cmd_args, "run-directory", "Specify the directory path where the database will be stored.", .short_name = 'r');
+    const char **import_file = option_path(&cmd_args, "import", "Import records from a csv file", .short_name = 'i');
 
     char **pos_args = NULL;
     int pos_args_len = parse_args(&cmd_args, argc, argv, &pos_args);
-    bool check_gen_flags = *unambiguous_password && !*gen_secret_len;
+    bool check_gen_flags = *unambiguous && !*gen_secret_len;
 
     if (*help || pos_args_len != 0 || argc == 1 || check_gen_flags) {
         print_help(&cmd_args, argv[0]);
@@ -56,19 +57,16 @@ int main(int argc, char **argv) {
         return EXIT_SUCCESS;
     }
 
-    if (*version) {
-        fprintf(stdout, "cruxpass-%s\n", VERSION);
-        free_args(&cmd_args);
-        return EXIT_SUCCESS;
-    }
-
     if (*gen_secret_len != 0) {
-        secret_bank_options_t bank_options = {0};
-        bank_options.uppercase = true;
-        bank_options.lowercase = true;
-        bank_options.numbers = true;
-        bank_options.symbols = true;
-        bank_options.exclude_ambiguous = (unambiguous_password != 0) ? true : false;
+        // clang-format off
+        secret_bank_options_t bank_options = {
+            .uppercase = true, 
+            .lowercase = true, 
+            .numbers = true,
+            .symbols = true, 
+            .exclude_ambiguous = unambiguous};
+        // clang-format on
+
         char *secret = NULL;
         if ((secret = random_secret(*gen_secret_len, &bank_options)) == NULL) {
             free_args(&cmd_args);
@@ -168,7 +166,7 @@ int main(int argc, char **argv) {
 
     if (*export_file != NULL) {
         if (strlen(*export_file) > FILE_PATH_LEN) {
-            fprintf(stderr, "Warning: Export file name too long: MAX_LEN =>15\n");
+            fprintf(stderr, "Warning: Export file path must not be more than: %d\n", FILE_PATH_LEN);
             cleanup_main();
             free_args(&cmd_args);
             return EXIT_FAILURE;
@@ -221,7 +219,7 @@ void cleanup_main(void) {
     }
 }
 
-void print_help(Args *cmd_args, char *program) {
+void print_help(Args *cmd_args, const char *program) {
     char *description
         = "A lightweight, command-line password/secrets manager designed to securely store and\nretrieve encrypted "
           "credentials. It uses an SQLCipher database to manage entries, with\nauthentication separated from password "

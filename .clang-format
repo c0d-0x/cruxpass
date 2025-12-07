@@ -14,4 +14,4 @@ AlignConsecutiveShortCaseStatements:
 AlignTrailingComments: true
 DerivePointerAlignment: false
 PointerAlignment: Right
-AlignArrayOfStructures: Left
+AlignArrayOfStructures: None
