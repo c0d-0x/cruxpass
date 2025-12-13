@@ -31,7 +31,7 @@ int pipeline(void *data, MAYBE_UNUSED int argc, char **argv, MAYBE_UNUSED char *
     if (argv[1] != NULL) strncpy(rec.username, argv[1], USERNAME_MAX_LEN);
     else strcpy(rec.username, "...");
 
-    if (argv[2] != NULL) strncpy(rec.description, argv[2], DESC_WIDTH - 1);
+    if (argv[2] != NULL) strncpy(rec.description, argv[2], DESC_MAX_LEN);
     else strcpy(rec.description, "...");
 
     if (!add_record(vec, rec)) return 1;

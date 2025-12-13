@@ -1,3 +1,4 @@
+#include "termbox2.h"
 #define TB_IMPL
 #include "tui.h"
 
@@ -143,6 +144,11 @@ int main_tui(sqlite3 *db) {
                 if (notify_deleted(records.data[current_position].id)) continue;
                 display_secret(db, records.data[current_position].id);
                 draw_table_border(start_x, start_y, table_h);
+            } else if (ev.ch == 'L') {
+                if (notify_deleted(records.data[current_position].id)) continue;
+                display_desc(records.data[current_position].description);
+                draw_table_border(start_x, start_y, table_h);
+                continue;
             }
         } else if (ev.type == TB_EVENT_RESIZE) {
             term_width = ev.w;

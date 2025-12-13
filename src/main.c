@@ -66,7 +66,6 @@ int main(int argc, char **argv) {
             .symbols = true, 
             .exclude_ambiguous = unambiguous};
         // clang-format on
-
         char *secret = NULL;
         if ((secret = random_secret(*gen_secret_len, &bank_options)) == NULL) {
             free_args(&cmd_args);

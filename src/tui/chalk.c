@@ -159,7 +159,7 @@ void _draw_table(record_array_t *records, queue_t *search_queue, char *search_pa
 
         if (rec->id == DELETED) {
             tb_printf(start_x, row, COLOR_STATUS, TB_WHITE, " %-*s %-*s %-*.*s", ID_WIDTH, "DELETED", USERNAME_WIDTH,
-                      rec->username, DESC_WIDTH, DESC_WIDTH + 1, rec->description);
+                      rec->username, DESC_WIDTH, DESC_WIDTH, rec->description);
             continue;
         }
 
@@ -176,7 +176,7 @@ void _draw_table(record_array_t *records, queue_t *search_queue, char *search_pa
         }
 
         tb_printf(start_x, row, fg, bg, " %-*ld %-*s %-*.*s", ID_WIDTH, rec->id, USERNAME_WIDTH, rec->username,
-                  DESC_WIDTH, DESC_WIDTH + 1, rec->description);
+                  DESC_WIDTH, DESC_WIDTH, rec->description);
     }
 
     draw_status(table.height, table.cursor, records->size);

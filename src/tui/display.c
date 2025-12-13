@@ -1,8 +1,10 @@
 #include "tui.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <wchar.h>
 
 #include "database.h"
 
@@ -67,8 +69,8 @@ void display_secret(sqlite3 *db, uint16_t id) {
 }
 
 void display_help(void) {
-    int help_w = 50;
-    int help_h = 15;
+    int help_win_w = 50;
+    int help_win_h = 15;
 
     int term_w = tb_width();
     int term_h = tb_height();
@@ -78,11 +80,11 @@ void display_help(void) {
         return;
     }
 
-    int start_x = (term_w - (help_w)) / 2;
-    int start_y = (term_h - help_h) / 2;
+    int start_x = (term_w - (help_win_w)) / 2;
+    int start_y = (term_h - help_win_h) / 2;
 
     tb_clear();
-    draw_border(start_x, start_y, help_w + 4, help_h + 2, COLOR_PAGINATION, TB_DEFAULT);
+    draw_border(start_x, start_y, help_win_w + 4, help_win_h + 2, COLOR_PAGINATION, TB_DEFAULT);
     tb_print(start_x + 2, start_y, COLOR_HEADER, TB_DEFAULT, "| Help |");
 
     int line = start_y + 2;
@@ -105,5 +107,55 @@ void display_help(void) {
     struct tb_event ev;
     tb_poll_event(&ev);
 }
-// TODO: Description window (SHIFT+RETURN)
-// save and generate new secrets from TUI
+
+// TODO: Description window (L)
+void display_desc(char *description) {
+    if (description == NULL) {
+        display_notifctn("Warning: Record has no desc");
+        return;
+    }
+
+    int desc_win_w = 64;
+    int desc_win_h = 8;
+    bool wrapped = false;
+
+    int term_w = tb_width();
+    int term_h = tb_height();
+    int desc_len = strlen(description);
+
+    if (desc_len <= DESC_WIDTH) {
+        display_notifctn("Info: Record fits on screen");
+        return;
+    }
+
+    if (desc_len > desc_win_w) wrapped = true;
+    if (term_w < 60 + 4 || term_h < 18 + 2) {
+        display_notifctn("Warning: Term width or height too small");
+        return;
+    }
+
+    int start_x = (term_w - (desc_win_w)) / 2;
+    int start_y = (term_h - desc_win_h) / 2;
+
+    tb_clear();
+    draw_border(start_x, start_y, desc_win_w + 4, desc_win_h + 2, COLOR_PAGINATION, TB_DEFAULT);
+    tb_print(start_x + 2, start_y, COLOR_HEADER, TB_DEFAULT, "| description |");
+
+    int line = start_y + 2;
+    char *tmp = description;
+
+    do {
+        tb_printf(start_x + 2, line++, TB_DEFAULT | TB_BOLD, TB_DEFAULT, "%-*.*s", desc_win_w, desc_win_w, tmp);
+        tmp += desc_win_w;
+        if (tmp - description >= desc_len) break;
+    } while (wrapped);
+
+    line++;
+    tb_print(start_x + 2, line, TB_DEFAULT, TB_DEFAULT, "Press any key to close...");
+
+    tb_present();
+    struct tb_event ev;
+    tb_poll_event(&ev);
+}
+
+// TODO: save and generate new secrets from TUI

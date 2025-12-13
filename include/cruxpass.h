@@ -24,7 +24,7 @@
 #define MAX_PATH_LEN 255
 #define SECRET_MAX_LEN 128
 #define SECRET_MIN_LEN 8
-#define USERNAME_MAX_LEN 32
+#define USERNAME_MAX_LEN 31
 
 #ifndef CRUXPASS_DB
 #define CRUXPASS_DB "cruxpass.db"

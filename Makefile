@@ -53,11 +53,14 @@ install: clean
 	fi
 	@echo '[+] Installation complete.'
 
-.PHONY: all clean install uninstall
+.PHONY: all clean install run uninstall
 
 clean:
 	@rm -rf build $(BIN)
 	@echo "[+] Clean up complete."
+
+run:
+	./bin/cruxpass -r .cruxpass -l
 
 uninstall:
 	rm -f $(PREFIX)/bin/cruxpass $(BASH_COMPLETION_PATH) $(ZSH_COMPLETION_PATH) $(FISH_COMPLETION_PATH)

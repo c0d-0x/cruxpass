@@ -41,7 +41,7 @@
 typedef struct {
     int64_t id;
     char username[USERNAME_MAX_LEN + 1];
-    char description[DESC_WIDTH];
+    char description[DESC_MAX_LEN + 1];
 } record_t;
 
 typedef struct {
@@ -81,6 +81,7 @@ void draw_table_border(int start_x, int start_y, int table_h);
 bool do_updates(sqlite3 *db, record_array_t *records, int64_t current_position);
 
 void display_help(void);
+void display_desc(char *description);
 void display_notifctn(char *message);
 void display_secret(sqlite3 *db, uint16_t id);
 

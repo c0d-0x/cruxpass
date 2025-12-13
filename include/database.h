@@ -20,7 +20,7 @@
 typedef enum {
     INSERT_REC_STMT,
     DELETE_REC_STMT,
-    FETCH_SEC_STMT
+    FETCH_SEC_STMT,
 } SQL_STMT;
 
 bool prepare_stmt(sqlite3 *db);

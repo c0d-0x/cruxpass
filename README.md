@@ -33,7 +33,7 @@ A secure, fast, and lightweight command-line password manager built in C. It ena
 | `-g`  | `--generate-rand <length>` | Generate a random password of given length                                       |
 | `-x`  | `--exclude-ambiguous`      | Exclude ambiguous characters when generating a random password (combine with -g) |
 | `-l`  | `--list`                   | List all stored passwords                                                        |
-| `-n`  | `--new-password`           | Change your master password                                             |
+| `-n`  | `--new-password`           | Change your master password                                                      |
 | `-s`  | `--save`                   | Save a password with its metadata (prompts interactively)                        |
 | `-v`  | `--version`                | Show cruxPass version                                                            |
 
@@ -47,15 +47,16 @@ A secure, fast, and lightweight command-line password manager built in C. It ena
 
 #### Actions
 
-| Key(s) | Description        |
-| ------ | ------------------ |
-| Enter  | View secret        |
-| u      | Update record      |
-| d      | Delete record      |
-| /      | Search             |
-| n      | Next search result |
-| ?      | Show this help     |
-| q / Q  | Quit               |
+| Key(s) | Description                                          |
+| ------ | ---------------------------------------------------- |
+| Enter  | View secret                                          |
+| u      | Update record                                        |
+| d      | Delete record                                        |
+| /      | Search                                               |
+| n      | Next search result                                   |
+| ?      | Show this help                                       |
+| L      | Open full description viewer for the selected record |
+| q / Q  | Quit                                                 |
 
 #### Navigation
 
