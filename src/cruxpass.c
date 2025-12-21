@@ -211,14 +211,14 @@ static bool validate_run_dir(char *path) {
     struct stat file_stat;
 
     if (stat(path, &file_stat) != 0) {
-        if (path_is_dynamic) free(path);
         fprintf(stderr, "Error: [ %s ] is either missing or not a valid directory\n", path);
+        if (path_is_dynamic) free(path);
         return false;
     }
 
     if (!S_ISDIR(file_stat.st_mode)) {
-        if (path_is_dynamic) free(path);
         fprintf(stderr, "Error: [ %s ] is not a valid directory\n", path);
+        if (path_is_dynamic) free(path);
         return false;
     }
 

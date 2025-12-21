@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <wchar.h>
 
 #ifndef VERSION
 #define VERSION "v1.0.0"
@@ -64,7 +65,7 @@ int main(int argc, char **argv) {
             .lower= true, 
             .digit = true,
             .symbols = true, 
-            .ex_ambiguous = unambiguous};
+            .ex_ambiguous = (unambiguous != NULL)? *unambiguous: false};
         // clang-format on
         char *secret = NULL;
         if ((secret = random_secret(*gen_secret_len, &bank_options)) == NULL) {
