@@ -59,12 +59,12 @@ int main(int argc, char **argv) {
 
     if (*gen_secret_len != 0) {
         // clang-format off
-        secret_bank_options_t bank_options = {
-            .uppercase = true, 
-            .lowercase = true, 
-            .numbers = true,
+        bank_options_t bank_options = {
+            .upper= true, 
+            .lower= true, 
+            .digit = true,
             .symbols = true, 
-            .exclude_ambiguous = unambiguous};
+            .ex_ambiguous = unambiguous};
         // clang-format on
         char *secret = NULL;
         if ((secret = random_secret(*gen_secret_len, &bank_options)) == NULL) {
@@ -190,7 +190,7 @@ int main(int argc, char **argv) {
     }
 
     if (*list) {
-        main_tui(db);
+        tui_main(db);
     }
 
     free_args(&cmd_args);

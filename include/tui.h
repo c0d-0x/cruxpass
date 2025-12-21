@@ -22,8 +22,10 @@
 #define COLOR_SEARCH (TB_YELLOW | TB_BOLD)
 
 #define SEARCH_TXT_MAX 32
+#define MIN_WIN_WIDTH 32
 #define EMPTY_QUEUE (-2)
 #define QUEUE_ERR (-2)
+#define DIGIT_COUNT_MAX 8
 #define HELP_WIN_WIDTH (TABLE_WIDTH / 2)
 
 #define BORDER_H 0x2500             // ─
@@ -66,11 +68,14 @@ typedef struct {
     int64_t *data;
 } queue_t;
 
-char *get_input(const char *prompt, char *input, const int text_len, int cod_y, int cod_x);
-char *get_secret(const char *prompt);
-
+int tui_main(sqlite3 *db);
 int pipeline(void *data, int argc, char **argv, char **column_name);
-int main_tui(sqlite3 *db);
+
+int get_ulong(char *prompt);
+char *get_search_parttern(void);
+char *get_secret(const char *prompt);
+void get_random_secret(sqlite3 *db, bank_options_t opt);
+char *get_input(const char *prompt, char *input, const int text_len, int cod_y, int cod_x);
 
 void draw_art(void);
 void draw_border(int start_x, int start_y, int width, int height, uintattr_t fg, uintattr_t bg);
@@ -83,9 +88,9 @@ bool do_updates(sqlite3 *db, record_array_t *records, int64_t current_position);
 void display_help(void);
 void display_desc(char *description);
 void display_notifctn(char *message);
+void display_ran_secret(sqlite3 *db, const char *secret);
 void display_secret(sqlite3 *db, uint16_t id);
 
-char *get_search_parttern(void);
 bool select_next(queue_t *queue);
 
 int64_t dequeue(queue_t *queue);

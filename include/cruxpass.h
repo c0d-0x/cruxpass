@@ -23,6 +23,7 @@
 #define MASTER_MAX_LEN 48
 #define MAX_PATH_LEN 255
 #define SECRET_MAX_LEN 128
+#define RAND_SECRET_MAX_LEN 256
 #define SECRET_MIN_LEN 8
 #define USERNAME_MAX_LEN 31
 
@@ -64,17 +65,17 @@ typedef enum {
 } ERROR_T;
 
 typedef struct {
-    bool uppercase;
-    bool lowercase;
-    bool numbers;
+    bool upper;
+    bool lower;
+    bool digit;
     bool symbols;
-    bool exclude_ambiguous;
-} secret_bank_options_t;
+    bool ex_ambiguous;
+} bank_options_t;
 
 sqlite3 *initcrux(char *run_dir);
-char *init_secret_bank(const secret_bank_options_t *options);
+char *init_secret_bank(const bank_options_t *options);
 
-char *random_secret(int secret_len, secret_bank_options_t *bank_options);
+char *random_secret(int secret_len, bank_options_t *bank_options);
 int export_secrets(sqlite3 *db, const char *export_file);
 int import_secrets(sqlite3 *db, char *import_file);
 

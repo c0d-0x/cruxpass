@@ -45,7 +45,7 @@ install: clean
 	@install -m 0755 $(BIN) $(PREFIX)/bin
 
 # migrating from /usr/local/bin/ to /usr/bin/
-# Because bin used to be installed: /usr/local/bin/ 
+# Because bin used to be installed in: /usr/local/bin/ 
 	@echo "Checking for $(OLD_PREFIX_BIN)"
 	@if [ -f "$(OLD_PREFIX_BIN)" ]; then \
 		echo "Removing system-local copy: $(OLD_PREFIX_BIN)"; \
@@ -63,5 +63,6 @@ run:
 	./bin/cruxpass -r .cruxpass -l
 
 uninstall:
+	#NOTE: databases have to be remove manually: "~/.local/share/cruxpass/*"
 	rm -f $(PREFIX)/bin/cruxpass $(BASH_COMPLETION_PATH) $(ZSH_COMPLETION_PATH) $(FISH_COMPLETION_PATH)
 

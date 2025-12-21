@@ -68,7 +68,6 @@ void draw_update_menu(int option, int start_x, int start_y) {
     fg = (option == 3) ? COLOR_PAGINATION : TB_DEFAULT;
     draw_border(start_x, start_y, option_w, 3, fg, TB_DEFAULT);
     tb_print(start_x + 2, start_y + 1, fg, TB_DEFAULT, "Update All Fields");
-    start_y += 4;
     tb_present();
 }
 
@@ -114,7 +113,7 @@ void draw_table_border(int start_x, int start_y, int table_h) {
     tb_clear();
     draw_border(start_x, start_y, TABLE_WIDTH + 2, table_h + 2, COLOR_PAGINATION, TB_DEFAULT);
     tb_printf(start_x + 1, start_y + 1, COLOR_HEADER, TB_DEFAULT, " %-*s  %-*s %-*s", ID_WIDTH - 1, "ID",
-              USERNAME_WIDTH, "USERNAME/E-MAIL", DESC_WIDTH, "DESCRIPTION");
+              USERNAME_WIDTH, "E-MAIL/USERNAME", DESC_WIDTH, "DESCRIPTION");
     for (int i = 0; i < TABLE_WIDTH; i++) {
         tb_set_cell(start_x + i + 1, start_y + 2, BORDER_H, COLOR_PAGINATION, TB_DEFAULT);
     }

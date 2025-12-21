@@ -16,9 +16,10 @@
 char *cruxpass_db_path;
 char *auth_db_path;
 
-char *random_secret(int secret_len, secret_bank_options_t *bank_options) {
-    if (secret_len < SECRET_MIN_LEN || secret_len > SECRET_MAX_LEN) {
-        printf("Warning: Secret must be at least %d or %d characters long\n", SECRET_MIN_LEN, SECRET_MAX_LEN);
+char *random_secret(int secret_len, bank_options_t *bank_options) {
+    if (secret_len < SECRET_MIN_LEN || secret_len > RAND_SECRET_MAX_LEN) {
+        printf("Warning: Secret must be at least %d or %d characters long: %d\n", SECRET_MIN_LEN, RAND_SECRET_MAX_LEN,
+               secret_len);
         return NULL;
     }
 
@@ -156,7 +157,7 @@ int import_secrets(sqlite3 *db, char *import_file) {
 
 static bool create_run_dir(const char *path) {
     int ret = mkdir(path, 0776);
-    if (ret == 0) fprintf(stderr, "Note: Run directory created\n");
+    if (ret == 0) fprintf(stderr, "Info: Run directory created\n");
     else if (errno != EEXIST) {
         fprintf(stderr, "Error: Failed to create run directory: %s\n", strerror(errno));
         fprintf(stderr, "Run Directory: %s\n", path);
@@ -250,7 +251,7 @@ sqlite3 *initcrux(char *run_dir) {
     return db;
 }
 
-char *init_secret_bank(const secret_bank_options_t *options) {
+char *init_secret_bank(const bank_options_t *options) {
     char all_upper[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     char all_lower[] = "abcdefghijklmnopqrstuvwxyz";
     char all_numbers[] = "0123456789";
@@ -264,15 +265,15 @@ char *init_secret_bank(const secret_bank_options_t *options) {
     if (options == NULL) return NULL;
     size_t bank_len = 0;
 
-    if (options->exclude_ambiguous) {
-        if (options->uppercase) bank_len += strlen(unambiguous_upper);
-        if (options->lowercase) bank_len += strlen(unambiguous_lower);
-        if (options->numbers) bank_len += strlen(unambiguous_numbers);
+    if (options->ex_ambiguous) {
+        if (options->upper) bank_len += strlen(unambiguous_upper);
+        if (options->lower) bank_len += strlen(unambiguous_lower);
+        if (options->digit) bank_len += strlen(unambiguous_numbers);
         if (options->symbols) bank_len += strlen(unambiguous_symbols);
     } else {
-        if (options->uppercase) bank_len += strlen(all_upper);
-        if (options->lowercase) bank_len += strlen(all_lower);
-        if (options->numbers) bank_len += strlen(all_numbers);
+        if (options->upper) bank_len += strlen(all_upper);
+        if (options->lower) bank_len += strlen(all_lower);
+        if (options->digit) bank_len += strlen(all_numbers);
         if (options->symbols) bank_len += strlen(all_symbols);
     }
 
@@ -284,15 +285,15 @@ char *init_secret_bank(const secret_bank_options_t *options) {
         return NULL;
     }
 
-    if (options->exclude_ambiguous) {
-        if (options->uppercase) strcat(bank, unambiguous_upper);
-        if (options->lowercase) strcat(bank, unambiguous_lower);
-        if (options->numbers) strcat(bank, unambiguous_numbers);
+    if (options->ex_ambiguous) {
+        if (options->upper) strcat(bank, unambiguous_upper);
+        if (options->lower) strcat(bank, unambiguous_lower);
+        if (options->digit) strcat(bank, unambiguous_numbers);
         if (options->symbols) strcat(bank, unambiguous_symbols);
     } else {
-        if (options->uppercase) strcat(bank, all_upper);
-        if (options->lowercase) strcat(bank, all_lower);
-        if (options->numbers) strcat(bank, all_numbers);
+        if (options->upper) strcat(bank, all_upper);
+        if (options->lower) strcat(bank, all_lower);
+        if (options->digit) strcat(bank, all_numbers);
         if (options->symbols) strcat(bank, all_symbols);
     }
 

@@ -1,3 +1,5 @@
+#include <stdbool.h>
+#include "cruxpass.h"
 #include "termbox2.h"
 #define TB_IMPL
 #include "tui.h"
@@ -36,7 +38,7 @@ static bool notify_deleted(int64_t id) {
     return false;
 }
 
-int main_tui(sqlite3 *db) {
+int tui_main(sqlite3 *db) {
     struct tb_event ev = {0};
     queue_t search_queue = {0};
     char *search_pattern = NULL;
@@ -149,7 +151,40 @@ int main_tui(sqlite3 *db) {
                 display_desc(records.data[current_position].description);
                 draw_table_border(start_x, start_y, table_h);
                 continue;
+            } else if (ev.ch == 'r') {
+                if (notify_deleted(records.data[current_position].id)) continue;
+
+                ev.ch = 0;
+                bank_options_t opt = {0};
+                if (tb_poll_event(&ev) != TB_OK) continue;
+                if (ev.type != TB_EVENT_KEY) continue;
+                char cc = ev.ch;
+                switch (cc) {
+                    case 'a': opt = (bank_options_t) {.lower = true}; break;
+                    case 'A': opt = (bank_options_t) {.upper = true}; break;
+                    case 'p': opt = (bank_options_t) {.digit = true}; break;
+                    case 'r':
+                        opt = (bank_options_t) {.lower = true, .upper = true, .digit = true, .symbols = true};
+                        break;
+                    case 'x':
+                        opt = (bank_options_t) {
+                            .lower = true, .upper = true, .digit = true, .symbols = true, .ex_ambiguous = true};
+                        break;
+                    default: continue;
+                }
+
+                tb_clear();
+                get_random_secret(db, opt);
+                draw_table_border(start_x, start_y, table_h);
+                continue;
+            } else if (ev.key == TB_KEY_CTRL_R) {
+                free_records(&records);
+                if (load_records(db, &records) == 0) {
+                    display_notifctn("Error: Failed to reload TUI");
+                    break;
+                }
             }
+
         } else if (ev.type == TB_EVENT_RESIZE) {
             term_width = ev.w;
             term_height = ev.h;
