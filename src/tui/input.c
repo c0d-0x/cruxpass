@@ -217,7 +217,7 @@ int get_ulong(char *prompt) {
 
     errno = 0;
     long result = strtol(input, NULL, 10);
-    if ((result == LONG_MIN || result == LONG_MAX) && errno == ERANGE) return (-1);
+    if (errno == ERANGE) return (-1);
     return result;
 }
 

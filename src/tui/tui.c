@@ -183,6 +183,7 @@ int tui_main(sqlite3 *db) {
                     display_notifctn("Error: Failed to reload TUI");
                     break;
                 }
+                display_notifctn("Info: TUI reloaded");
             }
 
         } else if (ev.type == TB_EVENT_RESIZE) {

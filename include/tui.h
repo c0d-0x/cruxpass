@@ -8,7 +8,7 @@
 #include "cruxpass.h"
 #include "termbox2.h"
 
-#define ID_WIDTH 7
+#define ID_WIDTH 8
 #define USERNAME_WIDTH USERNAME_MAX_LEN
 #define DESC_WIDTH 52
 #define TABLE_WIDTH (ID_WIDTH + USERNAME_WIDTH + DESC_WIDTH + 3)
@@ -23,7 +23,6 @@
 
 #define SEARCH_TXT_MAX 32
 #define MIN_WIN_WIDTH 32
-#define EMPTY_QUEUE (-2)
 #define QUEUE_ERR (-2)
 #define DIGIT_COUNT_MAX 8
 #define HELP_WIN_WIDTH (TABLE_WIDTH / 2)
