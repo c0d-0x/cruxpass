@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#include <wchar.h>
 
 #ifndef VERSION
 #define VERSION "v1.0.0"
