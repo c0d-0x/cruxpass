@@ -18,7 +18,7 @@ char *get_input(const char *prompt, char *input, const int input_len, int start_
     bool input_is_dynamic = false;
     if (input == NULL) {
         if ((input = calloc(1, input_len)) == NULL) {
-            display_notifctn("Error: Failed to allocate Memory");
+            display_notifctn("Error: Memory Allocate");
             return NULL;
         }
         input_is_dynamic = true;

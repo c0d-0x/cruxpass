@@ -30,7 +30,7 @@ all: $(BIN)
 
 $(BIN): $(OBJ)
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) $(STRIP_BIN) $(OBJ) -o $@ $(LDLIBS)
+	$(CC) $(CFLAGS)  $(OBJ) -o $@ $(LDLIBS)
 
 build/%.o: src/%.c
 	@mkdir -p $(dir $@)

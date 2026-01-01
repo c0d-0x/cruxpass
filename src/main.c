@@ -5,7 +5,7 @@
 #include <sys/types.h>
 
 #ifndef VERSION
-#define VERSION "v1.0.0"
+#define VERSION "v2.0.0"
 #endif
 
 #define ARGS_HIDE_DEFAULTS
@@ -14,14 +14,14 @@
 
 #include "args.h"
 #include "cruxpass.h"
+#include "crypt.h"
 #include "database.h"
-#include "enc.h"
 #include "tui.h"
 
-sqlite3 *db;
 unsigned char *key;
+vault_ctx_t *ctx;
 
-extern char *auth_db_path;
+extern char *meta_db_path;
 extern char *cruxpass_db_path;
 
 void cleanup_main(void);
@@ -97,19 +97,19 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    if ((db = initcrux((char *) *cruxpass_run_dir)) == NULL) {
+    if ((ctx = initcrux((char *) *cruxpass_run_dir)) == NULL) {
         free_args(&cmd_args);
         return EXIT_FAILURE;
     }
 
-    if ((key = decryption_helper(db)) == NULL) {
+    if ((key = authenticate(ctx)) == NULL) {
         cleanup_main();
         free_args(&cmd_args);
         return EXIT_FAILURE;
     }
 
     if (*new_password) {
-        if (!create_new_master_secret(db)) {
+        if (!create_new_master_secret(ctx->secret_db)) {
             fprintf(stderr, "Error: Failed to creat a new master password\n");
             cleanup_main();
             free_args(&cmd_args);
@@ -135,7 +135,7 @@ int main(int argc, char **argv) {
         }
 
         cleanup_tui();
-        if (!insert_record(db, &record)) {
+        if (!insert_record(ctx->secret_db, &record)) {
             cleanup_main();
 
             free_args(&cmd_args);
@@ -153,7 +153,7 @@ int main(int argc, char **argv) {
             return EXIT_FAILURE;
         }
 
-        if (!import_secrets(db, (char *) *import_file)) {
+        if (!import_secrets(ctx->secret_db, (char *) *import_file)) {
             fprintf(stderr, "Error: Failed to import secrets from: %s", *import_file);
             cleanup_main();
             free_args(&cmd_args);
@@ -171,8 +171,8 @@ int main(int argc, char **argv) {
             return EXIT_FAILURE;
         }
 
-        if (!export_secrets(db, *export_file)) {
-            fprintf(stdout, "Error: Failed to export secrets to: %s\n", *export_file);
+        if (!export_secrets(ctx->secret_db, *export_file)) {
+            fprintf(stderr, "Error: Failed to export secrets to: %s\n", *export_file);
             cleanup_main();
             free_args(&cmd_args);
             return EXIT_FAILURE;
@@ -182,7 +182,7 @@ int main(int argc, char **argv) {
     }
 
     if (*record_id != -1) {
-        if (!delete_record(db, *record_id)) {
+        if (!delete_record(ctx->secret_db, *record_id)) {
             cleanup_main();
             free_args(&cmd_args);
             return EXIT_FAILURE;
@@ -190,7 +190,7 @@ int main(int argc, char **argv) {
     }
 
     if (*list) {
-        tui_main(db);
+        tui_main(ctx->secret_db);
     }
 
     free_args(&cmd_args);
@@ -207,10 +207,10 @@ void sig_handler(int sig) {
 }
 
 void cleanup_main(void) {
-    sqlite3_close(db);
+    sqlite3_close(ctx->secret_db);
     cleanup_stmts();
     if (cruxpass_db_path != NULL) free(cruxpass_db_path);
-    if (auth_db_path != NULL) free(auth_db_path);
+    if (meta_db_path != NULL) free(meta_db_path);
 
     if (key != NULL) {
         sodium_memzero(key, KEY_LEN);

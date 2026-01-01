@@ -10,11 +10,11 @@
 #include <unistd.h>
 #include <wchar.h>
 
+#include "crypt.h"
 #include "database.h"
-#include "enc.h"
 
 char *cruxpass_db_path;
-char *auth_db_path;
+char *meta_db_path;
 
 char *random_secret(int secret_len, bank_options_t *bank_options) {
     if (secret_len < SECRET_MIN_LEN || secret_len > RAND_SECRET_MAX_LEN) {
@@ -31,11 +31,7 @@ char *random_secret(int secret_len, bank_options_t *bank_options) {
     }
 
     const int bank_len = strlen(secret_bank);
-    if ((secret = calloc(1, secret_len)) == NULL) {
-        fprintf(stderr, "Error: Failed to allocate Memory\n");
-        free(secret_bank);
-        return NULL;
-    }
+    if ((secret = calloc(1, secret_len)) == NULL) CRXP__OUT_OF_MEMORY();
 
     if (sodium_init() == -1) {
         free(secret_bank);
@@ -117,11 +113,7 @@ int import_secrets(sqlite3 *db, char *import_file) {
         return 0;
     }
 
-    if ((secret_record = malloc(sizeof(secret_t))) == NULL) {
-        fprintf(stderr, "Error: Memory Allocation Failed");
-        fclose(fp);
-        return 0;
-    }
+    if ((secret_record = malloc(sizeof(secret_t))) == NULL) CRXP__OUT_OF_MEMORY();
 
     while (fgets(buffer, BUFFMAX, fp) != NULL) {
         buffer[strcspn(buffer, "\n")] = '\0';
@@ -171,11 +163,7 @@ static char *set_path(char *path, char *file_name) {
     char *full_path = NULL;
 
     if (path == NULL || file_name == NULL) return NULL;
-    if ((full_path = calloc(MAX_PATH_LEN + 1, sizeof(char))) == NULL) {
-        fprintf(stderr, "Error: Failed to allocate Memory\n");
-        return NULL;
-    }
-
+    if ((full_path = calloc(MAX_PATH_LEN + 1, sizeof(char))) == NULL) CRXP__OUT_OF_MEMORY();
     if (snprintf(full_path, MAX_PATH_LEN, "%s/%s", path, file_name) <= 0) return NULL;
 
     return full_path;
@@ -187,11 +175,7 @@ static bool validate_run_dir(char *path) {
         char *home = NULL;
         if ((home = getenv("HOME")) == NULL) return false;
 
-        if ((path = calloc(MAX_PATH_LEN + 1, sizeof(char))) == NULL) {
-            fprintf(stderr, "Error: Failed to allocate Memory\n");
-            return false;
-        }
-
+        if ((path = calloc(MAX_PATH_LEN + 1, sizeof(char))) == NULL) CRXP__OUT_OF_MEMORY();
         if (snprintf(path, MAX_PATH_LEN, "%s/%s", home, CRUXPASS_RUNDIR) <= 0) {
             free(path);
             return false;
@@ -223,15 +207,17 @@ static bool validate_run_dir(char *path) {
     }
 
     cruxpass_db_path = set_path(path, CRUXPASS_DB);
-    auth_db_path = set_path(path, AUTH_DB);
+    meta_db_path = set_path(path, META_DB);
 
     if (path_is_dynamic) free(path);
-    if (cruxpass_db_path == NULL || auth_db_path == NULL) return false;
+    if (cruxpass_db_path == NULL || meta_db_path == NULL) return false;
 
     return true;
 }
 
-sqlite3 *initcrux(char *run_dir) {
+vault_ctx_t *initcrux(char *run_dir) {
+    vault_ctx_t *ctx = NULL;
+    if ((ctx = malloc(sizeof(vault_ctx_t))) == NULL) CRXP__OUT_OF_MEMORY();
     if (!validate_run_dir(run_dir)) return NULL;
 
     if (sodium_init() == -1) {
@@ -245,10 +231,9 @@ sqlite3 *initcrux(char *run_dir) {
         return NULL;
     }
 
-    sqlite3 *db = NULL;
-    if (inited != C_ERR) db = open_db(cruxpass_db_path, SQLITE_OPEN_READWRITE);
+    if (inited != C_ERR) ctx->secret_db = open_db(cruxpass_db_path, SQLITE_OPEN_READWRITE);
 
-    return db;
+    return ctx;
 }
 
 char *init_secret_bank(const bank_options_t *options) {
@@ -280,10 +265,7 @@ char *init_secret_bank(const bank_options_t *options) {
     if (bank_len == 0) return NULL;
     bank_len += 1;
     char *bank = NULL;
-    if ((bank = calloc(bank_len, sizeof(char))) == NULL) {
-        fprintf(stderr, "Error: Failed to allocate Memory\n");
-        return NULL;
-    }
+    if ((bank = calloc(bank_len, sizeof(char))) == NULL) CRXP__OUT_OF_MEMORY();
 
     if (options->ex_ambiguous) {
         if (options->upper) strcat(bank, unambiguous_upper);

@@ -70,7 +70,7 @@ typedef struct {
 int tui_main(sqlite3 *db);
 int pipeline(void *data, int argc, char **argv, char **column_name);
 
-int get_ulong(char *prompt);
+int get_long(char *prompt);
 char *get_search_parttern(void);
 char *get_secret(const char *prompt);
 void get_random_secret(sqlite3 *db, bank_options_t opt);
