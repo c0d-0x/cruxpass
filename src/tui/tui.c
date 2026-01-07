@@ -32,7 +32,7 @@ void cleanup_tui(void) {
 
 static bool notify_deleted(int64_t id) {
     if (id == DELETED) {
-        display_notifctn("Note: Record Already Deleted");
+        display_notifctn("Note: Record not found");
         return true;
     }
     return false;
@@ -109,14 +109,14 @@ int tui_main(sqlite3 *db) {
                     int64_t index = dequeue(&search_queue);
 
                     if (index == QUEUE_ERR) {
-                        display_notifctn("Error: Dequeue Failed");
+                        display_notifctn("Error: Dequeue failed");
                         continue;
                     }
 
                     current_position = index;
                     continue;
                 } else {
-                    display_notifctn("Note: Record Not Found");
+                    display_notifctn("Note: Record not found");
                 }
             } else if (ev.ch == '?') {
                 display_help();
@@ -126,11 +126,11 @@ int tui_main(sqlite3 *db) {
             } else if (ev.ch == 'd') {
                 if (notify_deleted(records.data[current_position].id)) continue;
                 if (!delete_record(db, records.data[current_position].id)) {
-                    display_notifctn("Error: Deletion Failed");
+                    display_notifctn("Error: Deletion failed");
                     continue;
                 }
 
-                display_notifctn("Note: Record Deleted");
+                display_notifctn("Note: Record deleted");
                 records.data[current_position].id = DELETED;
 
             } else if (ev.ch == 'u') {
@@ -140,7 +140,7 @@ int tui_main(sqlite3 *db) {
                     continue;
                 }
 
-                display_notifctn("Note: Record Updated");
+                display_notifctn("Note: Record updated");
                 draw_table_border(start_x, start_y, table_h);
             } else if (ev.key == TB_KEY_ENTER) {
                 if (notify_deleted(records.data[current_position].id)) continue;
@@ -180,7 +180,7 @@ int tui_main(sqlite3 *db) {
             } else if (ev.key == TB_KEY_CTRL_R) {
                 free_records(&records);
                 if (load_records(db, &records) == 0) {
-                    display_notifctn("Error: Failed to reload TUI");
+                    display_notifctn("Error: TUI Reload failed");
                     break;
                 }
                 display_notifctn("Info: TUI reloaded");

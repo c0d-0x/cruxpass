@@ -74,9 +74,9 @@ typedef struct {
 } vault_ctx_t;
 
 typedef enum {
-    C_ERR,     // C_ERR:     Error
-    C_RET_OK,  // C_RET_0K:  Custom OK 1
-    C_RET_OKK  // C_RET_OKK: Custom OK 2
+    CRXP_ERR,
+    CRXP_OK,
+    CRXP_OKK
 } ERROR_T;
 
 typedef struct {
@@ -87,6 +87,7 @@ typedef struct {
     bool ex_ambiguous;
 } bank_options_t;
 
+char *sec_strdup(const char *str);
 vault_ctx_t *initcrux(char *run_dir);
 char *init_secret_bank(const bank_options_t *options);
 

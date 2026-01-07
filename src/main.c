@@ -30,26 +30,27 @@ void print_help(Args *cmd_args, const char *program);
 
 int main(int argc, char **argv) {
     Args cmd_args = {0};
-    const bool *help = option_flag(&cmd_args, "help", "Show this help", .short_name = 'h', .early_exit = true);
     option_version(&cmd_args, "cruxpass-" VERSION);
-    const bool *save = option_flag(&cmd_args, "save", "Save a given record", .short_name = 's');
+    const bool *help = option_flag(&cmd_args, "help", "Show this help", .short_name = 'h', .early_exit = true);
     const bool *list = option_flag(&cmd_args, "list", "List all records", .short_name = 'l');
+    const bool *save = option_flag(&cmd_args, "save", "Save a given record", .short_name = 's');
+    const char **import_file = option_path(&cmd_args, "import", "Import records from a csv file", .short_name = 'i');
+    const char **export_file
+        = option_path(&cmd_args, "export", "Export all records to a csv format", .short_name = 'e');
     const bool *new_password = option_flag(&cmd_args, "new-password", "Change your master password", .short_name = 'n');
-    const long *record_id = option_long(&cmd_args, "delete", "Deletes a record by id", .short_name = 'd');
+    const long *record_id
+        = option_long(&cmd_args, "delete", "Deletes a record by id", .short_name = 'd', .default_value = -1);
     const long *gen_secret_len
         = option_long(&cmd_args, "generate-rand", "Generates a random secret of a given length", .short_name = 'g');
     const bool *unambiguous = option_flag(
         &cmd_args, "exclude-ambiguous",
         "Exclude ambiguous characters when generating a random secret (combine with -g)", .short_name = 'x');
-    const char **export_file
-        = option_path(&cmd_args, "export", "Export all records to a csv format", .short_name = 'e');
     const char **cruxpass_run_dir = option_path(
         &cmd_args, "run-directory", "Specify the directory path where the database will be stored.", .short_name = 'r');
-    const char **import_file = option_path(&cmd_args, "import", "Import records from a csv file", .short_name = 'i');
 
     char **pos_args = NULL;
     int pos_args_len = parse_args(&cmd_args, argc, argv, &pos_args);
-    bool check_gen_flags = *unambiguous && !*gen_secret_len;
+    bool check_gen_flags = *unambiguous && *gen_secret_len == 0;
 
     if (*help || pos_args_len != 0 || argc == 1 || check_gen_flags) {
         print_help(&cmd_args, argv[0]);

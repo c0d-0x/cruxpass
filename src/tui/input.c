@@ -18,7 +18,7 @@ char *get_input(const char *prompt, char *input, const int input_len, int start_
     bool input_is_dynamic = false;
     if (input == NULL) {
         if ((input = calloc(1, input_len)) == NULL) {
-            display_notifctn("Error: Memory Allocate");
+            display_notifctn("Error: Memory allocate");
             return NULL;
         }
         input_is_dynamic = true;
@@ -39,6 +39,7 @@ char *get_input(const char *prompt, char *input, const int input_len, int start_
         if (ev.type == TB_EVENT_KEY) {
             if (ev.key == TB_KEY_ESC) {
                 if (input_is_dynamic) free(input);
+                tb_hide_cursor();
                 return NULL;
             } else if (ev.key == TB_KEY_ENTER) {
                 break;
@@ -47,12 +48,14 @@ char *get_input(const char *prompt, char *input, const int input_len, int start_
                     position--;
                     input[position] = '\0';
                     tb_set_cell(start_x + prompt_len + position, start_y, ' ', TB_DEFAULT, TB_DEFAULT);
+                    tb_set_cursor(start_x + prompt_len + position, start_y);
                     tb_present();
                 }
             } else if (IS_VALID(ev.ch)) {
                 input[position] = (char) ev.ch;
                 tb_set_cell(start_x + prompt_len + position, start_y, ev.ch, TB_DEFAULT, TB_DEFAULT);
                 position++;
+                tb_set_cursor(start_x + prompt_len + position, start_y);
                 tb_present();
             }
         } else if (ev.type == TB_EVENT_RESIZE) {
@@ -65,6 +68,7 @@ char *get_input(const char *prompt, char *input, const int input_len, int start_
         input = NULL;
     }
 
+    tb_hide_cursor();
     return input;
 }
 
@@ -76,7 +80,7 @@ char *get_secret(const char *prompt) {
     int term_w = tb_width();
     int term_h = tb_height();
     if ((secret = (char *) sodium_malloc(MASTER_MAX_LEN + 1)) == NULL) {
-        display_notifctn("Error: Memory Allocate");
+        display_notifctn("Error: Memory allocate");
         return NULL;
     }
 
@@ -90,9 +94,9 @@ char *get_secret(const char *prompt) {
     tb_print(start_x, start_y, TB_DEFAULT | TB_BOLD, TB_DEFAULT, prompt);
     tb_present();
 
-    int i = 0;
+    int position = 0;
     struct tb_event ev = {0};
-    while (i < MASTER_MAX_LEN) {
+    while (position < MASTER_MAX_LEN) {
         tb_poll_event(&ev);
         if (ev.type == TB_EVENT_KEY) {
             if (ev.key == TB_KEY_ENTER) {
@@ -102,24 +106,27 @@ char *get_secret(const char *prompt) {
             if (ev.key == TB_KEY_ESC) {
                 sodium_memzero((void *const) secret, MASTER_MAX_LEN + 1);
                 sodium_free(secret);
+                tb_hide_cursor();
                 return NULL;
             }
 
             if (ev.key == TB_KEY_BACKSPACE2 || ev.key == TB_KEY_BACKSPACE) {
-                if (i > 0) {
-                    secret[--i] = '\0';
-                    tb_set_cell(start_x + prompt_len + i, start_y, ' ', TB_DEFAULT, TB_DEFAULT);
+                if (position > 0) {
+                    secret[--position] = '\0';
+                    tb_set_cell(start_x + prompt_len + position, start_y, ' ', TB_DEFAULT, TB_DEFAULT);
+                    tb_set_cursor(start_x + prompt_len + position, start_y);
                     tb_present();
                     continue;
                 }
             }
 
             if (!IS_VALID(ev.ch)) continue;
+            secret[position] = (char) ev.ch;
+            tb_set_cell(start_x + prompt_len + position, start_y, '*', TB_DEFAULT, TB_DEFAULT);
 
-            secret[i] = (char) ev.ch;
-            tb_set_cell(start_x + prompt_len + i, start_y, '*', TB_DEFAULT, TB_DEFAULT);
+            position++;
+            tb_set_cursor(start_x + prompt_len + position, start_y);
             tb_present();
-            i++;
         } else if (ev.type == TB_EVENT_RESIZE) {
             tb_clear();
             draw_art();
@@ -138,6 +145,7 @@ char *get_secret(const char *prompt) {
         }
     }
 
+    tb_hide_cursor();
     return secret;
 }
 
@@ -194,6 +202,7 @@ int get_ulong(char *prompt) {
 
         if (ev.type == TB_EVENT_KEY) {
             if (ev.key == TB_KEY_ESC) {
+                tb_hide_cursor();
                 return (-1);
             } else if (ev.key == TB_KEY_ENTER) {
                 break;
@@ -202,12 +211,14 @@ int get_ulong(char *prompt) {
                     position--;
                     input[position] = '\0';
                     tb_set_cell(start_x + position, start_y, ' ', TB_DEFAULT, TB_DEFAULT);
+                    tb_set_cursor(start_x + position, start_y);
                     tb_present();
                 }
             } else if (IS_DIGIT(ev.ch)) {
                 input[position] = (char) ev.ch;
                 tb_set_cell(start_x + position, start_y, ev.ch, TB_DEFAULT, TB_DEFAULT);
                 position++;
+                tb_set_cursor(start_x + position, start_y);
                 tb_present();
             }
         } else if (ev.type == TB_EVENT_RESIZE) {
@@ -215,9 +226,10 @@ int get_ulong(char *prompt) {
         }
     }
 
-    errno = 0;
     long result = strtol(input, NULL, 10);
     if (errno == ERANGE) return (-1);
+    tb_hide_cursor();
+
     return result;
 }
 

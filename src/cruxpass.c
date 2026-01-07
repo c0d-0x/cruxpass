@@ -1,6 +1,7 @@
 #include "cruxpass.h"
 
 #include <errno.h>
+#include <sodium/utils.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,7 +9,6 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
-#include <wchar.h>
 
 #include "crypt.h"
 #include "database.h"
@@ -18,8 +18,7 @@ char *meta_db_path;
 
 char *random_secret(int secret_len, bank_options_t *bank_options) {
     if (secret_len < SECRET_MIN_LEN || secret_len > RAND_SECRET_MAX_LEN) {
-        printf("Warning: Secret must be at least %d or %d characters long: %d\n", SECRET_MIN_LEN, RAND_SECRET_MAX_LEN,
-               secret_len);
+        printf("Warning: Secret must be at least %d or %d characters long\n", SECRET_MIN_LEN, RAND_SECRET_MAX_LEN);
         return NULL;
     }
 
@@ -226,12 +225,12 @@ vault_ctx_t *initcrux(char *run_dir) {
     }
 
     int inited = init_sqlite();
-    if (inited == C_RET_OKK) {
+    if (inited == CRXP_OKK) {
         fprintf(stderr, "Note: New password created\nWarning: Retry your opetation\n");
         return NULL;
     }
 
-    if (inited != C_ERR) ctx->secret_db = open_db(cruxpass_db_path, SQLITE_OPEN_READWRITE);
+    if (inited != CRXP_ERR) ctx->secret_db = open_db(cruxpass_db_path, SQLITE_OPEN_READWRITE);
 
     return ctx;
 }

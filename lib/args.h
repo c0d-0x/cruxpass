@@ -390,7 +390,7 @@ struct Args {
 
 #define ARGS__FATAL(...)              \
     do {                              \
-        fprintf(stderr, "ERROR: ");   \
+        fprintf(stderr, "Error: ");   \
         fprintf(stderr, __VA_ARGS__); \
         fprintf(stderr, ".\n");       \
         exit(EXIT_FAILURE);           \

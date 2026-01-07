@@ -1,3 +1,4 @@
+#include "termbox2.h"
 #include "tui.h"
 
 #include <stdint.h>
@@ -145,7 +146,7 @@ void _draw_table(record_array_t *records, queue_t *search_queue, char *search_pa
             if (records->data[i].id != DELETED
                 && (strstr(records->data[i].username, search_parttern) != NULL
                     || strstr(records->data[i].description, search_parttern) != NULL)) {
-                if (!enqueue(search_queue, i)) display_notifctn("Error: Failed to enqueue record index");
+                if (!enqueue(search_queue, i)) display_notifctn("Error: Failed to enqueue record");
             }
         }
     }

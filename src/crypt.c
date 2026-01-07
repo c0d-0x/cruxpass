@@ -4,6 +4,7 @@
 #include <sodium/crypto_pwhash.h>
 #include <sodium/utils.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,9 +19,9 @@ bool key_gen(unsigned char *key, const char *const passd_str, unsigned char *sal
     if (key == NULL) return 0;
     sodium_memzero(key, sizeof(unsigned char) * KEY_LEN);
     if (crypto_pwhash(key, sizeof(unsigned char) * KEY_LEN, passd_str, strlen(passd_str), salt,
-                      crypto_pwhash_OPSLIMIT_INTERACTIVE, crypto_pwhash_MEMLIMIT_INTERACTIVE, crypto_pwhash_ALG_DEFAULT)
+                      crypto_pwhash_OPSLIMIT_INTERACTIVE, crypto_pwhash_MEMLIMIT_INTERACTIVE,
+                      crypto_pwhash_ALG_ARGON2ID13)
         != 0) {
-        /* out of memory */
         fprintf(stderr, "Error: Failed not Generate key\n");
         return false;
     }
@@ -30,17 +31,13 @@ bool key_gen(unsigned char *key, const char *const passd_str, unsigned char *sal
 
 bool decrypt(sqlite3 *db, unsigned char *key) {
     if (sqlite3_key(db, key, KEY_LEN) != SQLITE_OK) {
-        fprintf(stderr, "Error: %s\n", sqlite3_errmsg(db));
+        fprintf(stderr, "Error: Failed to decrypt DB: %s\n", sqlite3_errmsg(db));
         sqlite3_close(db);
         return false;
     }
 
-    if (sqlite3_exec(db, "PRAGMA cipher_log = NONE;", NULL, NULL, NULL) != SQLITE_OK) {
-        fprintf(stderr, "Error: Failed to disable logging\n");
-    }
-
     if (sqlite3_exec(db, "SELECT count(*) FROM sqlite_master;", NULL, NULL, NULL) != SQLITE_OK) {
-        fprintf(stderr, "Warning: Wrong password\n");
+        fprintf(stderr, "Warning: Wrong password or decryption key\n");
         return false;
     }
 
@@ -64,6 +61,9 @@ bool create_new_master_secret(sqlite3 *db) {
     cleanup_tui();
     if (strncmp(new_secret, temp_secret, MASTER_MAX_LEN) != 0) {
         fprintf(stderr, "Error: Passwords do not match\n");
+        sodium_memzero(new_secret, sizeof(new_secret));
+        sodium_memzero(temp_secret, sizeof(temp_secret));
+
         sodium_free(new_secret);
         sodium_free(temp_secret);
         return !ok;
@@ -90,9 +90,12 @@ bool create_new_master_secret(sqlite3 *db) {
     ok = false;
 defer:
     free(meta);
+    sodium_memzero(new_secret, sizeof(new_secret));
+    sodium_memzero(temp_secret, sizeof(temp_secret));
+    sodium_memzero(new_key, KEY_LEN);
+
     sodium_free(new_secret);
     sodium_free(temp_secret);
-    sodium_memzero(new_key, KEY_LEN);
     sodium_free(new_key);
     return !ok;
 }
@@ -121,6 +124,9 @@ unsigned char *authenticate(vault_ctx_t *ctx) {
     if ((key = (unsigned char *) sodium_malloc(sizeof(unsigned char) * KEY_LEN)) == NULL) CRXP__OUT_OF_MEMORY();
     if (!key_gen(key, master_passd, meta->salt)) {
         fprintf(stderr, "Error: Failed to generate description key\n");
+        sodium_memzero(master_passd, sizeof(master_passd));
+        sodium_memzero(key, KEY_LEN);
+
         sodium_free(master_passd);
         sodium_free(key);
         free(meta);
@@ -128,15 +134,17 @@ unsigned char *authenticate(vault_ctx_t *ctx) {
     }
 
     free(meta);
-    // NOTE: db handler is mutated after a successful decryption
+    sodium_memzero(master_passd, sizeof(master_passd));
+    sodium_free(master_passd);
+
     if (!decrypt(ctx->secret_db, key)) {
-        sodium_free(master_passd);
+        sodium_memzero(key, KEY_LEN);
         sodium_free(key);
         return NULL;
     }
 
     if (!prepare_stmt(ctx)) {
-        sodium_free(master_passd);
+        sodium_memzero(key, KEY_LEN);
         sodium_free(key);
         return NULL;
     }

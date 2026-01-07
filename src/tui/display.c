@@ -34,7 +34,7 @@ void display_notifctn(char *message) {
 void display_secret(sqlite3 *db, uint16_t id) {
     const unsigned char *secret = fetch_secret(db, id);
     if (secret == NULL) {
-        display_notifctn("Error: failed to fetch secret");
+        display_notifctn("Error: Failed to fetch secret");
         return;
     }
 

@@ -1,8 +1,7 @@
 CC             := gcc
 
-CFLAGS         := -Wall -Wextra -Wformat-security -Wformat-overflow=2 -O3
+CFLAGS         := -Wall -Wextra -Wformat-security -Wformat-overflow=2 -O3 #-ggdb
 
-STRIP_BIN			 := -s
 
 INCLUDE        := -Iinclude -Ilib
 
