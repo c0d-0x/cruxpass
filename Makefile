@@ -52,7 +52,7 @@ install: clean
 	fi
 	@echo '[+] Installation complete.'
 
-.PHONY: all clean install run uninstall
+.PHONY: all clean install run seed uninstall
 
 clean:
 	@rm -rf build $(BIN)
@@ -60,6 +60,9 @@ clean:
 
 run:
 	./bin/cruxpass -r .cruxpass -l
+
+seed:
+	./bin/cruxpass -r .cruxpass -i moc.csv
 
 uninstall:
 	#NOTE: databases have to be remove manually: "~/.local/share/cruxpass/*"

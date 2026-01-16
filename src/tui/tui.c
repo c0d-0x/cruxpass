@@ -78,7 +78,7 @@ int tui_main(sqlite3 *db) {
         if (tb_poll_event(&ev) != TB_OK) continue;
 
         if (ev.type == TB_EVENT_KEY) {
-            if (ev.key == TB_KEY_ESC || ev.ch == 'q' || ev.ch == 'Q') {
+            if (ev.key == TB_KEY_ESC || ev.key == TB_KEY_CTRL_C || ev.ch == 'q' || ev.ch == 'Q') {
                 break;
             } else if (ev.ch == 'k' || ev.key == TB_KEY_ARROW_UP) {
                 if (current_position > 0) current_position--;

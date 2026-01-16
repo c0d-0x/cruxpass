@@ -17,27 +17,29 @@
 char *get_input(const char *prompt, char *input, const int input_len, int start_x, int start_y) {
     bool input_is_dynamic = false;
     if (input == NULL) {
-        if ((input = calloc(1, input_len)) == NULL) {
-            display_notifctn("Error: Memory allocate");
-            return NULL;
-        }
         input_is_dynamic = true;
+        if ((input = calloc(1, input_len)) == NULL) {
+            cleanup_tui();
+            CRXP__OUT_OF_MEMORY();
+        }
     }
 
     int prompt_len = 0;
     if (prompt != NULL) {
         prompt_len = strlen(prompt);
         tb_print(start_x, start_y, TB_DEFAULT | TB_BOLD, TB_DEFAULT, prompt);
-        tb_present();
     }
 
     int position = 0;
     struct tb_event ev;
+    tb_set_cursor(start_x + prompt_len, start_y);
+    tb_present();
+
     while (position < input_len) {
         if (tb_poll_event(&ev) != TB_OK) continue;
 
         if (ev.type == TB_EVENT_KEY) {
-            if (ev.key == TB_KEY_ESC) {
+            if (ev.key == TB_KEY_ESC || ev.key == TB_KEY_CTRL_C) {
                 if (input_is_dynamic) free(input);
                 tb_hide_cursor();
                 return NULL;
@@ -84,14 +86,15 @@ char *get_secret(const char *prompt) {
         CRXP__OUT_OF_MEMORY();
     }
 
-    int start_y = (term_h / 2) + 4;
-    int start_x = (term_w - prompt_len - MASTER_MAX_LEN) / 2;
+    int start_y = (term_h / 2) + 3;
+    int start_x = (term_w - prompt_len - MASTER_MAX_LEN) / 2 - 1;
     sodium_memzero((void *const) secret, MASTER_MAX_LEN + 1);
 
     if (start_x < 0) start_x = 0;
     if (start_y >= term_h - 1) start_y = term_h - 2;
 
     tb_print(start_x, start_y, TB_DEFAULT | TB_BOLD, TB_DEFAULT, prompt);
+    tb_set_cursor(start_x + prompt_len, start_y);
     tb_present();
 
     int position = 0;
@@ -103,7 +106,7 @@ char *get_secret(const char *prompt) {
                 break;
             }
 
-            if (ev.key == TB_KEY_ESC) {
+            if (ev.key == TB_KEY_ESC || ev.key == TB_KEY_CTRL_C) {
                 sodium_memzero((void *const) secret, MASTER_MAX_LEN + 1);
                 sodium_free(secret);
                 tb_hide_cursor();
@@ -139,6 +142,10 @@ char *get_secret(const char *prompt) {
             if (start_y >= term_h - 1) start_y = term_h - 2;
 
             tb_print(start_x, start_y, TB_DEFAULT | TB_BOLD, TB_DEFAULT, prompt);
+            for (int i = 0; i < position; i++)
+                tb_set_cell(start_x + prompt_len + i, start_y, '*', TB_DEFAULT, TB_DEFAULT);
+
+            tb_set_cursor(start_x + prompt_len + position, start_y);
             tb_present();
 
             continue;
@@ -197,11 +204,13 @@ int get_long(char *prompt) {
     start_x += 2;
     start_y++;
 
+    tb_set_cursor(start_x + position, start_y);
+    tb_present();
     while (position < DIGIT_COUNT_MAX) {
         if (tb_poll_event(&ev) != TB_OK) continue;
 
         if (ev.type == TB_EVENT_KEY) {
-            if (ev.key == TB_KEY_ESC) {
+            if (ev.key == TB_KEY_ESC || ev.key == TB_KEY_CTRL_C) {
                 tb_hide_cursor();
                 return (-1);
             } else if (ev.key == TB_KEY_ENTER) {
@@ -226,9 +235,9 @@ int get_long(char *prompt) {
         }
     }
 
+    tb_hide_cursor();
     long result = strtol(input, NULL, 10);
     if (errno == ERANGE) return (-1);
-    tb_hide_cursor();
 
     return result;
 }
