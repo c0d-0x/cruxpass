@@ -1,19 +1,30 @@
 # A CLI Password Management
 
 ![cruxpass Screenshot](https://raw.githubusercontent.com/c0d-0x/cruxpass/dev/resources/cruxpass.png)
-
-A secure, fast, and lightweight command-line password manager built in C. It enables secure storage and retrieval of credentials using encrypted SQLite database storage (via [SQLCipher](https://www.zetetic.net/sqlcipher/)).
+A minimal command-line password manager written in C, using SQLCipher-encrypted for secure local credential storage.
 
 ---
 
 ## Features
 
-- Generate strong, random passwords
-- Store passwords securely
+- Generate strong random passwords
+- Securely store credentials
+  - AES-256 encrypted database
+  - 256-bit Argon2id key, derived from the user’s password
+  - Key derivation strengthened with a 128-bit salt
 - Retrieve passwords
-- List all saved credentials in a TUI
-- Export and import passwords via CSV
-- Delete specific password entries
+  - Database decrypted in memory
+- List saved credentials in a TUI
+- Import and export credentials via CSV
+- Delete individual entries
+
+---
+
+> **Breaking Change**
+>
+> Before upgrading, export your credentials/records with `cruxpass --export backup.csv` and remove existing databases (`rm ~/.local/share/cruxpass/*`).
+>
+> Skipping these steps may cause data corruption. Reff [changelog](CHANGELOG.md).
 
 ---
 
@@ -75,40 +86,52 @@ A secure, fast, and lightweight command-line password manager built in C. It ena
 
 > [!IMPORTANT]
 >
-> ### This project requires:
+> ### Requirements
 >
-> - libsqlchipher
+> - libsqlcipher
 > - libsodium
 >
-> This Project is built in a linux envronment and haven't been tested on Windows or Mac.
+> This project is built and tested on Linux only.  
+> Windows and macOS are not currently supported.
 
 ```bash
+### Debian / Ubuntu
+sudo apt install libsqlcipher-dev libsodium-dev
+
+### Arch Linux
+sudo pacman -S sqlcipher libsodium
+
+### RHEL / Fedora / Rocky / Alma
+sudo dnf install sqlcipher-devel libsodium-devel
+
 # Clone the repository
 git clone https://github.com/c0d-0x/cruxpass
-
 cd cruxpass
-## build and test out cruxpass
-mkdir bin # cruxpass binary is built here
-mkdir .cruxpass # only if you're testing: you can import moc.csv for testing
-make
-./bin/cruxpass -i moc.csv -r ./cruxpass
 
-# Install the cruxpass
+# Build and test cruxpass
+mkdir -p bin
+mkdir -p .cruxpass  # only for testing; you can import moc.csv
+make
+
+./bin/cruxpass -i moc.csv -r .cruxpass
+./bin/cruxpass -l -r .cruxpass # list all records
+
+# Install cruxpass
 make install
 
 # Run the program
 cruxpass <option> <argument>
 
-# To uninstall
+# Uninstall
 make uninstall
 ```
 
 ## Defaults
 
-Encrypted Storage: All secrets are securely stored using an encrypted SQLite database (SQLCipher) at ~/.local/share/cruxpass/.
+Encrypted vault: ~/.local/share/cruxpass/
 
-- secret database: `~/.local/share/cruxpass/cruxpass.db`
-- Authentication hash db: `~/.local/share/cruxpass/auth.db`
+- records' database: `~/.local/share/cruxpass/cruxpass.db`
+- metadata(salt is stored here): `~/.local/share/cruxpass/meta.db`
 - The `-r` option lets you specify a directory where cruxpass will store its databases. Make sure the directory already exists before using it..
 
 Authentication: A master password is required to access or modify any stored data.
