@@ -31,33 +31,33 @@ static int sql_exec_n_err(sqlite3 *db, char *sql_fmt_str, char *sql_err_msg,
         fprintf(stderr, "Error: Failed execute sql statement: %s\n", sql_err_msg);
         sqlite3_close(db);
         sqlite3_free(sql_err_msg);
-        return 0;
+        return CRXP_ERR;
     }
 
-    return 1;
+    return CRXP_OK;
 }
 
 static int sql_prep_n_exec(sqlite3 *db, char *sql_fmt_str, sqlite3_stmt *sql_stmt, const char *field, int id) {
     if (sqlite3_prepare_v2(db, sql_fmt_str, -1, &sql_stmt, NULL) != SQLITE_OK) {
         fprintf(stderr, "Error: Failed to prepare statement: %s\n", sqlite3_errmsg(db));
-        return 0;
+        return CRXP_ERR;
     }
 
     if (sqlite3_bind_text(sql_stmt, 1, field, -1, SQLITE_STATIC) != SQLITE_OK
         || sqlite3_bind_int(sql_stmt, 2, id) != SQLITE_OK) {
         fprintf(stderr, "Error: Failed to bind sql statement: %s", sqlite3_errmsg(db));
         sqlite3_finalize(sql_stmt);
-        return 0;
+        return CRXP_ERR;
     }
 
     if (sqlite3_step(sql_stmt) != SQLITE_DONE) {
         fprintf(stderr, "Error: Failed to execute statement: %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(sql_stmt);
-        return 0;
+        return CRXP_ERR;
     }
 
     sqlite3_finalize(sql_stmt);
-    return 1;
+    return CRXP_OK;
 }
 
 static int create_databases(vault_ctx_t *ctx) {
@@ -168,14 +168,6 @@ int init_sqlite(void) {
         return CRXP_ERR;
     }
 
-    if (sqlite3_exec(ctx.secret_db, "PRAGMA cipher_log_level = NONE;", NULL, NULL, NULL) != SQLITE_OK) {
-        fprintf(stderr, "Error: Failed to disable logging to STDERR\n");
-    }
-
-    if (sqlite3_exec(ctx.secret_db, "PRAGMA cipher_memory_security = ON ;", NULL, NULL, NULL) != SQLITE_OK) {
-        fprintf(stderr, "Error: Failed to enable memory security\n");
-    }
-
     if ((meta = fetch_meta()) != NULL) {
         free(meta);
         sqlite3_close(ctx.meta_db);
@@ -198,7 +190,7 @@ int init_sqlite(void) {
 int insert_record(sqlite3 *db, secret_t *record) {
     if (record == NULL) {
         fprintf(stderr, "Error: Empty record\n");
-        return 0;
+        return CRXP_ERR;
     }
 
     if (sqlite3_bind_text(sql_stmts[INSERT_REC_STMT], 1, record->username, -1, SQLITE_STATIC) != SQLITE_OK
@@ -207,19 +199,19 @@ int insert_record(sqlite3 *db, secret_t *record) {
         fprintf(stderr, "Error: Failed to bind sql statement: %s\n", sqlite3_errmsg(db));
         sqlite3_reset(sql_stmts[INSERT_REC_STMT]);
         sqlite3_clear_bindings(sql_stmts[INSERT_REC_STMT]);
-        return 0;
+        return CRXP_ERR;
     }
 
     if (sqlite3_step(sql_stmts[INSERT_REC_STMT]) != SQLITE_DONE) {
         fprintf(stderr, "Error: Failed to execute statement: %s\n", sqlite3_errmsg(db));
         sqlite3_reset(sql_stmts[INSERT_REC_STMT]);
         sqlite3_clear_bindings(sql_stmts[INSERT_REC_STMT]);
-        return 0;
+        return CRXP_ERR;
     }
 
     sqlite3_reset(sql_stmts[INSERT_REC_STMT]);
     sqlite3_clear_bindings(sql_stmts[INSERT_REC_STMT]);
-    return 1;
+    return CRXP_OK;
 }
 
 int delete_record(sqlite3 *db, int record_id) {
@@ -227,19 +219,19 @@ int delete_record(sqlite3 *db, int record_id) {
         fprintf(stderr, "Error: Failed to bind sql statement: %s", sqlite3_errmsg(db));
         sqlite3_reset(sql_stmts[DELETE_REC_STMT]);
         sqlite3_clear_bindings(sql_stmts[DELETE_REC_STMT]);
-        return 0;
+        return CRXP_ERR;
     }
 
     if (sqlite3_step(sql_stmts[DELETE_REC_STMT]) != SQLITE_DONE) {
         fprintf(stderr, "Error: Failed to execute statement\n");
         sqlite3_reset(sql_stmts[DELETE_REC_STMT]);
         sqlite3_clear_bindings(sql_stmts[DELETE_REC_STMT]);
-        return 0;
+        return CRXP_ERR;
     }
 
     sqlite3_reset(sql_stmts[DELETE_REC_STMT]);
     sqlite3_clear_bindings(sql_stmts[DELETE_REC_STMT]);
-    return 1;
+    return CRXP_OK;
 }
 
 int update_record(sqlite3 *db, secret_t *secret_record, int record_id, uint8_t flags) {
@@ -249,12 +241,12 @@ int update_record(sqlite3 *db, secret_t *secret_record, int record_id, uint8_t f
     if (flags & UPDATE_DESCRIPTION) {
         if (secret_record->description[0] == '\0') {
             fprintf(stderr, "Error: Empty description\n");
-            return 0;
+            return CRXP_ERR;
         }
 
         sql_fmt_str = "UPDATE secrets SET description = ? WHERE id = ?;";
         if (!sql_prep_n_exec(db, sql_fmt_str, sql_stmt, secret_record->description, record_id)) {
-            return 0;
+            return CRXP_ERR;
         }
 
         sqlite3_reset(sql_stmt);
@@ -264,12 +256,12 @@ int update_record(sqlite3 *db, secret_t *secret_record, int record_id, uint8_t f
     if (flags & UPDATE_SECRET) {
         if (secret_record->secret[0] == '\0') {
             fprintf(stderr, "Error: Empty secret\n");
-            return 0;
+            return CRXP_ERR;
         }
 
         sql_fmt_str = "UPDATE secrets SET secret = ? WHERE id = ?;";
         if (!sql_prep_n_exec(db, sql_fmt_str, sql_stmt, secret_record->secret, record_id)) {
-            return 0;
+            return CRXP_ERR;
         }
 
         sqlite3_reset(sql_stmt);
@@ -279,31 +271,29 @@ int update_record(sqlite3 *db, secret_t *secret_record, int record_id, uint8_t f
     if (flags & UPDATE_USERNAME) {
         if (secret_record->username[0] == '\0') {
             fprintf(stderr, "Error: Empty username\n");
-            return 0;
+            return CRXP_ERR;
         }
 
         sql_fmt_str = "UPDATE secrets SET username = ? WHERE id = ?;";
         if (!sql_prep_n_exec(db, sql_fmt_str, sql_stmt, secret_record->username, record_id)) {
-            return 0;
+            return CRXP_ERR;
         }
 
         sqlite3_reset(sql_stmt);
         sqlite3_finalize(sql_stmt);
     }
 
-    return 1;
+    return CRXP_OK;
 }
 
 int load_records(sqlite3 *db, record_array_t *records) {
-    const char *sql
-        = "SELECT id, username, description FROM secrets "
-          "ORDER BY id;";
-    if (sqlite3_exec(db, sql, pipeline, records, NULL) != SQLITE_OK) {
+    const char *sql = "SELECT id, username, description FROM secrets ORDER BY id;";
+    if (sqlite3_exec(db, sql, tui_pipeline, records, NULL) != SQLITE_OK) {
         fprintf(stderr, "Error: SQL error: %s\n", sqlite3_errmsg(db));
-        return 0;
+        return CRXP_ERR;
     }
 
-    return 1;
+    return CRXP_OK;
 }
 
 meta_t *fetch_meta(void) {

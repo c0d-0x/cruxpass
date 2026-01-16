@@ -32,7 +32,7 @@ static int updates_menu(void) {
         if (start_y < 0) start_y = 0;
 
         if (ev.type == TB_EVENT_KEY) {
-            if (ev.key == TB_KEY_ENTER) {
+            if (ev.key == TB_KEY_ENTER || ev.ch == 'q' || ev.ch == 'Q') {
                 break;
             } else if (ev.ch == 'k' || ev.key == TB_KEY_ARROW_UP) {
                 if (option > 0) option--;

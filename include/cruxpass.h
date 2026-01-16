@@ -87,12 +87,11 @@ typedef struct {
     bool ex_ambiguous;
 } bank_options_t;
 
-char *sec_strdup(const char *str);
 vault_ctx_t *initcrux(char *run_dir);
 char *init_secret_bank(const bank_options_t *options);
 
 char *random_secret(int secret_len, bank_options_t *bank_options);
 int export_secrets(sqlite3 *db, const char *export_file);
-int import_secrets(sqlite3 *db, char *import_file);
+int import_secrets(sqlite3 *db, const char *import_file);
 
 #endif  // !CRUXPASS_H

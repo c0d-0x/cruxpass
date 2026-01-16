@@ -80,13 +80,13 @@ char *get_secret(const char *prompt) {
     int term_w = tb_width();
     int term_h = tb_height();
     if ((secret = (char *) sodium_malloc(MASTER_MAX_LEN + 1)) == NULL) {
-        display_notifctn("Error: Memory allocate");
-        return NULL;
+        cleanup_tui();
+        CRXP__OUT_OF_MEMORY();
     }
 
-    sodium_memzero((void *const) secret, MASTER_MAX_LEN + 1);
     int start_y = (term_h / 2) + 4;
     int start_x = (term_w - prompt_len - MASTER_MAX_LEN) / 2;
+    sodium_memzero((void *const) secret, MASTER_MAX_LEN + 1);
 
     if (start_x < 0) start_x = 0;
     if (start_y >= term_h - 1) start_y = term_h - 2;
@@ -171,7 +171,7 @@ char *get_search_parttern(void) {
     return search_parttern;
 }
 
-int get_ulong(char *prompt) {
+int get_long(char *prompt) {
     int sec_win_h = 3;
     int sec_win_w = MIN_WIN_WIDTH;
 
@@ -234,7 +234,7 @@ int get_ulong(char *prompt) {
 }
 
 void get_random_secret(sqlite3 *db, bank_options_t opt) {
-    long ran_len = get_ulong("Secret length");
+    long ran_len = get_long("Secret length");
     if (ran_len > SECRET_MAX_LEN || ran_len < SECRET_MIN_LEN) {
         display_notifctn("Warning: Invalid secret len");
         return;

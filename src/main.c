@@ -93,7 +93,7 @@ int main(int argc, char **argv) {
     sigact.sa_flags = SA_RESTART;
 
     if (sigaction(SIGTERM, &sigact, NULL) != 0 || sigaction(SIGINT, &sigact, NULL) != 0) {
-        fprintf(stderr, "Fail to make reception for signals");
+        fprintf(stderr, "Error: Fail to make reception for signals");
         free_args(&cmd_args);
         return EXIT_FAILURE;
     }
@@ -143,7 +143,7 @@ int main(int argc, char **argv) {
             return EXIT_FAILURE;
         }
 
-        fprintf(stderr, "Note: Password saved successfully.\n");
+        fprintf(stderr, "Note: Password saved successfully\n");
     }
 
     if (*import_file != NULL) {

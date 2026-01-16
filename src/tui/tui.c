@@ -47,12 +47,12 @@ int tui_main(sqlite3 *db) {
 
     if (!load_records(db, &records)) {
         fprintf(stderr, "Error: Failed to load data from database\n");
-        return 0;
+        return CRXP_ERR;
     }
 
     if (records.size == 0) {
         fprintf(stderr, "Warning: No records found\n");
-        return 0;
+        return CRXP_ERR;
     }
 
     init_tui();
@@ -116,7 +116,7 @@ int tui_main(sqlite3 *db) {
                     current_position = index;
                     continue;
                 } else {
-                    display_notifctn("Note: Record not found");
+                    display_notifctn("Note: Match not found");
                 }
             } else if (ev.ch == '?') {
                 display_help();
@@ -181,7 +181,7 @@ int tui_main(sqlite3 *db) {
                 free_records(&records);
                 if (load_records(db, &records) == 0) {
                     display_notifctn("Error: TUI Reload failed");
-                    break;
+                    continue;
                 }
                 display_notifctn("Info: TUI reloaded");
             }
@@ -205,5 +205,5 @@ int tui_main(sqlite3 *db) {
     free_records(&records);
     free_queue(&search_queue);
     if (search_pattern != NULL) free(search_pattern);
-    return 1;
+    return CRXP_OK;
 }

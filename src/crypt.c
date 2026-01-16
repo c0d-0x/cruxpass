@@ -1,6 +1,5 @@
 #include "crypt.h"
 
-#include <locale.h>
 #include <sodium/crypto_pwhash.h>
 #include <sodium/utils.h>
 #include <stdbool.h>
@@ -16,10 +15,10 @@
 #include "tui.h"
 
 bool key_gen(unsigned char *key, const char *const passd_str, unsigned char *salt) {
-    if (key == NULL) return 0;
+    if (key == NULL) return false;
     sodium_memzero(key, sizeof(unsigned char) * KEY_LEN);
     if (crypto_pwhash(key, sizeof(unsigned char) * KEY_LEN, passd_str, strlen(passd_str), salt,
-                      crypto_pwhash_OPSLIMIT_INTERACTIVE, crypto_pwhash_MEMLIMIT_INTERACTIVE,
+                      crypto_pwhash_OPSLIMIT_INTERACTIVE, crypto_pwhash_MEMLIMIT_SENSITIVE,
                       crypto_pwhash_ALG_ARGON2ID13)
         != 0) {
         fprintf(stderr, "Error: Failed not Generate key\n");
@@ -32,8 +31,15 @@ bool key_gen(unsigned char *key, const char *const passd_str, unsigned char *sal
 bool decrypt(sqlite3 *db, unsigned char *key) {
     if (sqlite3_key(db, key, KEY_LEN) != SQLITE_OK) {
         fprintf(stderr, "Error: Failed to decrypt DB: %s\n", sqlite3_errmsg(db));
-        sqlite3_close(db);
         return false;
+    }
+
+    if (sqlite3_exec(db, "PRAGMA cipher_log_level = NONE;", NULL, NULL, NULL) != SQLITE_OK) {
+        fprintf(stderr, "Error: Failed to disable logging to STDERR: %s\n", sqlite3_errmsg(db));
+    }
+
+    if (sqlite3_exec(db, "PRAGMA cipher_memory_security = ON;", NULL, NULL, NULL) != SQLITE_OK) {
+        fprintf(stderr, "Error: Failed to enable memory security: %s\n", sqlite3_errmsg(db));
     }
 
     if (sqlite3_exec(db, "SELECT count(*) FROM sqlite_master;", NULL, NULL, NULL) != SQLITE_OK) {
@@ -94,8 +100,8 @@ defer:
     sodium_memzero(temp_secret, sizeof(temp_secret));
     sodium_memzero(new_key, KEY_LEN);
 
-    sodium_free(new_secret);
     sodium_free(temp_secret);
+    sodium_free(new_secret);
     sodium_free(new_key);
     return !ok;
 }
@@ -103,7 +109,6 @@ defer:
 /**
  * Decrypts the db and returns an encryption key.
  */
-
 unsigned char *authenticate(vault_ctx_t *ctx) {
     meta_t *meta = NULL;
     char *master_passd = NULL;

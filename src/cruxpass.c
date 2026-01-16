@@ -56,7 +56,7 @@ int export_secrets(sqlite3 *db, const char *export_file) {
 
     if ((fp = fopen(export_file, "wb")) == NULL) {
         fprintf(stderr, "Error: Failed to open %s: %s", export_file, strerror(errno));
-        return 0;
+        return CRXP_ERR;
     }
 
     char *sql_str = "SELECT username, secret, description FROM secrets;";
@@ -64,7 +64,7 @@ int export_secrets(sqlite3 *db, const char *export_file) {
         fprintf(stderr, "Error: Failed to prepare statement: %s\n", sqlite3_errmsg(db));
         sqlite3_close(db);
         fclose(fp);
-        return 0;
+        return CRXP_ERR;
     }
 
     fputs("Username,Secret,Description\n", fp);
@@ -78,7 +78,7 @@ int export_secrets(sqlite3 *db, const char *export_file) {
 
     fclose(fp);
     sqlite3_finalize(sql_stmt);
-    return 1;
+    return CRXP_OK;
 }
 
 /**
@@ -90,17 +90,17 @@ int export_secrets(sqlite3 *db, const char *export_file) {
 static int process_field(char *field, const int max_length, char *token, const char *field_name, size_t line_number) {
     if (token == NULL) {
         fprintf(stderr, "Error: Missing %s at line %ld\n", field_name, line_number);
-        return 0;
+        return CRXP_ERR;
     }
     if ((const int) strlen(token) > max_length) {
         fprintf(stderr, "Error: %s at line %ld is more than %d characters\n", field_name, line_number, max_length);
-        return 0;
+        return CRXP_ERR;
     }
     strncpy(field, token, max_length);
-    return 1;
+    return CRXP_OK;
 }
 
-int import_secrets(sqlite3 *db, char *import_file) {
+int import_secrets(sqlite3 *db, const char *import_file) {
     FILE *fp;
     size_t line_number = 1;
     char *saveptr;
@@ -109,7 +109,7 @@ int import_secrets(sqlite3 *db, char *import_file) {
 
     if ((fp = fopen(import_file, "r")) == NULL) {
         fprintf(stderr, "Error: Failed to open %s FILE: %s", import_file, strerror(errno));
-        return 0;
+        return CRXP_ERR;
     }
 
     if ((secret_record = malloc(sizeof(secret_t))) == NULL) CRXP__OUT_OF_MEMORY();
@@ -143,7 +143,7 @@ int import_secrets(sqlite3 *db, char *import_file) {
 
     fclose(fp);
     free(secret_record);
-    return 1;
+    return CRXP_OK;
 }
 
 static bool create_run_dir(const char *path) {
@@ -226,7 +226,7 @@ vault_ctx_t *initcrux(char *run_dir) {
 
     int inited = init_sqlite();
     if (inited == CRXP_OKK) {
-        fprintf(stderr, "Note: New password created\nWarning: Retry your opetation\n");
+        fprintf(stderr, "Info: New password created\nWarning: Retry your opetation\n");
         return NULL;
     }
 

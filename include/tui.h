@@ -68,7 +68,7 @@ typedef struct {
 } queue_t;
 
 int tui_main(sqlite3 *db);
-int pipeline(void *data, int argc, char **argv, char **column_name);
+int tui_pipeline(void *data, int argc, char **argv, char **column_name);
 
 int get_long(char *prompt);
 char *get_search_parttern(void);
