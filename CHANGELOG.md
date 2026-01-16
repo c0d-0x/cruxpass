@@ -1,4 +1,31 @@
-# Changelog
+# CHANGELOG
+## [Unreleased] - 2026-01-16
+
+### BREAKING
+- Replaced password-hash storage with salt-only metadata. `auth.db` is replaced with `meta.db` and only a `128 bit` salt and DB version are stored in the meta table.
+- This is a database layout migration and is breaking.
+#### Why salt-only storage?
+- Earlier versions of cruxpass authenticated users by comparing a hashed master password with a value stored in `auth.db`.  
+- Storing the password hash and the salt in `auth.db`  increased the attack surface and hence the new approach.
+- This was unnecessary, as SQLCipher already handles authentication through database encryption.
+
+
+### Security
+- Use explicit ARGON2ID13 for key derivation and improve related crypto handling. (commit: 089bde8)
+- Zero sensitive memory before deallocation to reduce memory exposure of secrets. (commit: 089bde8)
+- Improve SQLite cipher memory security and logging configuration. (commit: 089bde8)
+- Fail early on allocation errors and disable direct DB stderr output where appropriate. (commit: 3a67e74)
+- Merged latest main into dev to incorporate recent fixes. (commit: 30c6dec)
+
+### Changed
+- Introduce namespaced error codes (CRXP_*).
+- Introduced `vault_ctx_t` to manage DB contexts.
+- Fix database column references (secret_id → id).
+- Remove redundant sqlite3_close calls to respect ownership.
+- TUI improvements: cursor visibility.
+- General cleanup: proper return values, and tightened validation.
+
+
 ## [v1.2.1](https://github.com/c0d-0x/cruxpass/releases/tag/v1.2.1)
 
 - Public header and API revisions:
