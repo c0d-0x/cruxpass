@@ -11,11 +11,11 @@
 
 
 ### Security
-- Use explicit ARGON2ID13 for key derivation and improve related crypto handling. (commit: 089bde8)
-- Zero sensitive memory before deallocation to reduce memory exposure of secrets. (commit: 089bde8)
-- Improve SQLite cipher memory security and logging configuration. (commit: 089bde8)
-- Fail early on allocation errors and disable direct DB stderr output where appropriate. (commit: 3a67e74)
-- Merged latest main into dev to incorporate recent fixes. (commit: 30c6dec)
+- Use explicit ARGON2ID13 for key derivation and improve related crypto handling.
+- Zero sensitive memory before deallocation to reduce memory exposure of secrets.
+- Improve SQLite cipher memory security and logging configuration.
+- Fail early on allocation errors and disable direct DB stderr output where appropriate.
+- Merged latest main into dev to incorporate recent fixes.
 
 ### Changed
 - Introduce namespaced error codes (CRXP_*).
