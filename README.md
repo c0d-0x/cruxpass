@@ -1,7 +1,16 @@
 # A CLI Password Management
+A minimal command-line password manager written in C, using SQLCipher-encrypted for secure local credential storage.
 
 ![cruxpass Screenshot](https://raw.githubusercontent.com/c0d-0x/cruxpass/dev/resources/cruxpass.png)
-A minimal command-line password manager written in C, using SQLCipher-encrypted for secure local credential storage.
+
+---
+
+>[!WARNING]
+>  **Breaking Changes**
+>
+> - Before upgrading, export your credentials/records with `cruxpass --export backup.csv` and remove existing databases (`rm ~/.local/share/cruxpass/*`).
+>
+> - Skipping these steps **WILL** cause data corruption. Reff [changelog](CHANGELOG.md).
 
 ---
 
@@ -9,23 +18,14 @@ A minimal command-line password manager written in C, using SQLCipher-encrypted 
 
 - Generate strong random passwords
 - Securely store credentials
-  - AES-256 encrypted database
-  - 256-bit Argon2id key, derived from the user’s password
-  - Key derivation strengthened with a 128-bit salt
-- Retrieve passwords
+  - **AES-256** encrypted database
+  - **256-bit Argon2id key**, derived from the user’s password
+  - Key derivation strengthened with a **128-bit** salt
+- Retrieve passwords securely
   - Database decrypted in memory
 - List saved credentials in a TUI
 - Import and export credentials via CSV
 - Delete individual entries
-
----
-
-> > [!WARNING]
-> > **Breaking Change**
->
-> Before upgrading, export your credentials/records with `cruxpass --export backup.csv` and remove existing databases (`rm ~/.local/share/cruxpass/*`).
->
-> Skipping these steps may cause data corruption. Reff [changelog](CHANGELOG.md).
 
 ---
 
@@ -49,7 +49,7 @@ A minimal command-line password manager written in C, using SQLCipher-encrypted 
 
 | username      | secret     | Description      |
 | ------------- | ---------- | ---------------- |
-| test@test.com | rdj(:p6Y{p | This is a secret |
+| test@test.com | `rdj(:p6Y{p` | This is a secret |
 
 ### Options in the TUI mode (--list)
 
@@ -73,7 +73,7 @@ A minimal command-line password manager written in C, using SQLCipher-encrypted 
 | Ctrl + r | Reload TUI (useful after saving a secret from the TUI) |
 
 > [!NOTE]
-> All `r/*` actions will prompt you to enter the desired length of the secret, which can then be saved directly
+> All `r/*` actions will prompt you to enter the desired length of the secret(`8 MIN and 128 MAX`), which can then be saved directly
 
 #### Navigation
 
@@ -96,10 +96,10 @@ A minimal command-line password manager written in C, using SQLCipher-encrypted 
 > Windows and macOS are not currently supported.
 
 ```bash
-### Debian / Ubuntu
+### Debian / Ubuntu / Kali
 sudo apt install libsqlcipher-dev libsodium-dev
 
-### Arch Linux
+### Arch Linux, BTW ;)
 sudo pacman -S sqlcipher libsodium
 
 ### RHEL / Fedora / Rocky / Alma
@@ -132,15 +132,15 @@ make uninstall
 Encrypted vault: ~/.local/share/cruxpass/
 
 - records' database: `~/.local/share/cruxpass/cruxpass.db`
-- metadata(salt is stored here): `~/.local/share/cruxpass/meta.db`
-- The `-r` option lets you specify a directory where cruxpass will store its databases. Make sure the directory already exists before using it..
+- meta database (salt is stored here): `~/.local/share/cruxpass/meta.db`
+- The `-r` option lets you specify a directory where cruxpass will store its databases. Make sure the directory already exists before using it.
 
 Authentication: A master password is required to access or modify any stored data.
 
 > [!NOTE]
 > cruxpass enforces internal limits on the size of various fields to ensure performance and security. Here are the default constraints:
 >
-> - Minimum Master Password Length: Passwords must be at least 8 characters long to ensure basic security and maximum of 48 characters.
+> - Minimum Auth Password Length: Passwords must be at least 8 characters long to ensure basic security and maximum of 48 characters.
 > - Stored Passwords/secrets Length: Each saved password can be up to 128 characters long. This accommodates strong, randomly generated credentials.
 > - Username Length: Usernames are limited to 32 characters. This is sufficient for most standard account identifiers.
 > - Description Length: Each password entry can include a label or description up to 256 characters, helping users recognize the purpose of stored credentials.
