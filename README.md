@@ -20,7 +20,8 @@ A minimal command-line password manager written in C, using SQLCipher-encrypted 
 
 ---
 
-> **Breaking Change**
+> > [!WARNING]
+> > **Breaking Change**
 >
 > Before upgrading, export your credentials/records with `cruxpass --export backup.csv` and remove existing databases (`rm ~/.local/share/cruxpass/*`).
 >
