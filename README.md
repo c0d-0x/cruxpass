@@ -1,16 +1,18 @@
-# A CLI Password Management
-A minimal command-line password manager written in C, using SQLCipher-encrypted for secure local credential storage.
+A minimal CLI password manager in C with encrypted storage, password generation, and terminal UI.
 
 ![cruxpass Screenshot](https://raw.githubusercontent.com/c0d-0x/cruxpass/dev/resources/cruxpass.png)
 
 ---
 
->[!WARNING]
->  **Breaking Changes**
+> [!WARNING]
+> **Breaking Changes in Latest Version**
 >
-> - Before upgrading, export your credentials/records with `cruxpass --export backup.csv` and remove existing databases (`rm ~/.local/share/cruxpass/*`).
+> Before upgrading:
 >
-> - Skipping these steps **WILL** cause data corruption. Reff [changelog](CHANGELOG.md).
+> - Export your credentials: `cruxpass --export backup.csv`
+> - Remove existing databases: `rm ~/.local/share/cruxpass/*`
+>
+> Skipping these steps will cause data corruption. See the [changelog](CHANGELOG.md).
 
 ---
 
@@ -19,7 +21,7 @@ A minimal command-line password manager written in C, using SQLCipher-encrypted 
 - Generate strong random passwords
 - Securely store credentials
   - **AES-256** encrypted database
-  - **256-bit Argon2id key**, derived from the user’s password
+  - **256-bit Argon2id key** derived from the user's password
   - Key derivation strengthened with a **128-bit** salt
 - Retrieve passwords securely
   - Database decrypted in memory
@@ -29,124 +31,206 @@ A minimal command-line password manager written in C, using SQLCipher-encrypted 
 
 ---
 
-## Available Options
-
-| Short | Long                       | Description                                                                      |
-| ----- | -------------------------- | -------------------------------------------------------------------------------- |
-| `-h`  | `--help`                   | Show help message                                                                |
-| `-r`  | `--run-directory`          | Specify the directory path where the database will be stored.                    |
-| `-d`  | `--delete <id>`            | Delete a password by its ID                                                      |
-| `-e`  | `--export <file>`          | Export all saved passwords to a CSV file (32 characters long)                    |
-| `-i`  | `--import <file>`          | Import passwords from a CSV file (32 characters long)                            |
-| `-g`  | `--generate-rand <length>` | Generate a random password of given length (256 max)                             |
-| `-x`  | `--exclude-ambiguous`      | Exclude ambiguous characters when generating a random password (combine with -g) |
-| `-l`  | `--list`                   | List all stored passwords                                                        |
-| `-n`  | `--new-password`           | Change your master password                                                      |
-| `-s`  | `--save`                   | Save a password with its metadata (prompts interactively)                        |
-| `-v`  | `--version`                | Show cruxPass version                                                            |
-
-### CSV file format for imports
-
-| username      | secret     | Description      |
-| ------------- | ---------- | ---------------- |
-| test@test.com | `rdj(:p6Y{p` | This is a secret |
-
-### Options in the TUI mode (--list)
-
-#### Actions
-
-| Key(s)   | Description                                            |
-| -------- | ------------------------------------------------------ |
-| Enter    | View secret                                            |
-| u        | Update record                                          |
-| d        | Delete record                                          |
-| /        | Search                                                 |
-| n        | Next search result                                     |
-| ?        | Show this help                                         |
-| L        | Open full description viewer for the selected record   |
-| ra       | Generate Lowercase letters                             |
-| rA       | Generate Uppercase letters                             |
-| rp       | Generate Digits (pin)                                  |
-| rr       | Generate Lowercase, uppercase, digits, and symbols     |
-| rx       | Generate All characters, excluding ambiguous ones      |
-| q / Q    | Quit                                                   |
-| Ctrl + r | Reload TUI (useful after saving a secret from the TUI) |
-
-> [!NOTE]
-> All `r/*` actions will prompt you to enter the desired length of the secret(`8 MIN and 128 MAX`), which can then be saved directly
-
-#### Navigation
-
-| Key(s)         | Description       |
-| -------------- | ----------------- |
-| j / k or ↓ / ↑ | Down / Up         |
-| h / l or ← / → | Page left / right |
-| g / G          | First / Last      |
-
 ## Installation
 
-> [!IMPORTANT]
->
-> ### Requirements
->
-> - libsqlcipher
-> - libsodium
->
-> This project is built and tested on Linux only.  
-> Windows and macOS are not currently supported.
+### Requirements
+
+This project runs on **Linux only**. Windows and macOS are not currently supported.
+
+**Dependencies:**
+
+- `libsqlcipher` - Database encryption
+- `libsodium` - Cryptographic operations
+
+#### Install Dependencies
+
+<details>
+<summary>Debian / Ubuntu / Kali</summary>
 
 ```bash
-### Debian / Ubuntu / Kali
 sudo apt install libsqlcipher-dev libsodium-dev
+```
 
-### Arch Linux, BTW ;)
+</details>
+
+<details>
+<summary>##Arch Linux</summary>
+
+```bash
 sudo pacman -S sqlcipher libsodium
+```
 
-### RHEL / Fedora / Rocky / Alma
+</details>
+
+<details>
+<summary>Fedora</summary>
+
+```bash
 sudo dnf install sqlcipher-devel libsodium-devel
+```
 
+</details>
+
+<details>
+<summary>RHEL / Rocky / Alma</summary>
+
+```bash
+sudo dnf install sqlcipher-devel libsodium-devel
+```
+
+</details>
+
+### Build and Install
+
+```bash
 # Clone the repository
 git clone https://github.com/c0d-0x/cruxpass
 cd cruxpass
 
-# Build and test cruxpass
+# Build
 mkdir -p bin
-mkdir -p .cruxpass  # only for testing; you can import moc.csv
 make
 
+# Optional: Test before installing
+mkdir -p .cruxpass
 ./bin/cruxpass -i moc.csv -r .cruxpass
-./bin/cruxpass -l -r .cruxpass # list all records
+./bin/cruxpass -l -r .cruxpass
 
-# Install cruxpass
-make install
-
-# Run the program
-cruxpass <option> <argument>
+# Install system-wide
+sudo make install
 
 # Uninstall
-make uninstall
+sudo make uninstall
 ```
 
-## Defaults
+---
 
-Encrypted vault: ~/.local/share/cruxpass/
+## Usage
 
-- records' database: `~/.local/share/cruxpass/cruxpass.db`
-- meta database (salt is stored here): `~/.local/share/cruxpass/meta.db`
-- The `-r` option lets you specify a directory where cruxpass will store its databases. Make sure the directory already exists before using it.
+### Command-Line Options
 
-Authentication: A master password is required to access or modify any stored data.
+| Short | Long                       | Description                                  |
+| ----- | -------------------------- | -------------------------------------------- |
+| `-h`  | `--help`                   | Show help message                            |
+| `-v`  | `--version`                | Show version                                 |
+| `-s`  | `--save`                   | Save a new password (interactive)            |
+| `-l`  | `--list`                   | Open TUI to browse all passwords             |
+| `-d`  | `--delete <id>`            | Delete password by ID                        |
+| `-g`  | `--generate-rand <length>` | Generate random password (max 256 chars)     |
+| `-x`  | `--exclude-ambiguous`      | Exclude ambiguous characters (use with `-g`) |
+| `-e`  | `--export <file>`          | Export all passwords to CSV                  |
+| `-i`  | `--import <file>`          | Import passwords from CSV                    |
+| `-n`  | `--new-password`           | Change master password                       |
+| `-r`  | `--run-directory`          | Specify custom database directory            |
+
+### Examples
+
+```bash
+# Generate a 20-character password
+cruxpass -g 20
+
+# Generate password excluding ambiguous characters (0, O, l, 1, etc.)
+cruxpass -g 20 -x
+
+# Save a new credential
+cruxpass -s
+
+# List all credentials in TUI
+cruxpass -l
+
+# Export to backup
+cruxpass -e backup.csv
+
+# Import from backup
+cruxpass -i backup.csv
+
+# Use custom database location
+cruxpass -l -r /path/to/custom/directory
+```
+
+---
+
+## TUI Mode
+
+Launch with `cruxpass -l` or `cruxpass --list`.
+
+### Navigation
+
+| Key                    | Action             |
+| ---------------------- | ------------------ |
+| `j` / `k` or `↓` / `↑` | Move down/up       |
+| `h` / `l` or `←` / `→` | Page left/right    |
+| `g` / `G`              | Jump to first/last |
+
+### Actions
+
+| Key       | Action                | Key  | Generates                             |
+| --------- | --------------------- | ---- | ------------------------------------- |
+| `Enter`   | View secret           | `ra` | Lowercase letters only                |
+| `u`       | Update record         | `rA` | Uppercase letters only                |
+| `d`       | Delete record         | `rp` | Digits only (PIN)                     |
+| `/`       | Search                | `rr` | Lowercase, uppercase, digits, symbols |
+| `n`       | Next search result    | `rx` | All characters except ambiguous ones  |
+| `L`       | View full description |      |                                       |
+| `?`       | Show help             |      |                                       |
+| `Ctrl+r`  | Reload TUI            |      |                                       |
+| `q` / `Q` | Quit                  |      |                                       |
 
 > [!NOTE]
-> cruxpass enforces internal limits on the size of various fields to ensure performance and security. Here are the default constraints:
->
-> - Minimum Auth Password Length: Passwords must be at least 8 characters long to ensure basic security and maximum of 48 characters.
-> - Stored Passwords/secrets Length: Each saved password can be up to 128 characters long. This accommodates strong, randomly generated credentials.
-> - Username Length: Usernames are limited to 32 characters. This is sufficient for most standard account identifiers.
-> - Description Length: Each password entry can include a label or description up to 256 characters, helping users recognize the purpose of stored credentials.
+> All r/\* actions prompt for length (8-128 characters) and can be saved directly.
 
-> These limits are designed to balance usability with memory safety and can be adjusted in the source code if needed
+---
+
+## CSV Import Format
+
+Your CSV file should have three columns:
+
+| username         | secret      | Description      |
+| ---------------- | ----------- | ---------------- |
+| test@test.com    | rdj(:p6Y{p  | This is a secret |
+| user@example.com | P@ssw0rd123 | Work email       |
+
+---
+
+## Data Storage
+
+**Default location:** `~/.local/share/cruxpass/`
+
+- `cruxpass.db` - Encrypted password records
+- `meta.db` - Salt storage for key derivation
+
+**Custom location:** Use `-r <directory>` to specify an alternative path (directory must exist).
+
+**Authentication:** All operations require your master password.
+
+---
+
+## Security Details
+
+- **Encryption:** AES-256 in CBC mode
+- **Key derivation:** Argon2id with 256-bit output
+- **Salt:** 128-bit random salt per database
+- **Memory safety:** Database decrypted only in memory, never written to disk unencrypted
+
+### Field Limits
+
+| Field           | Minimum | Maximum   |
+| --------------- | ------- | --------- |
+| Master password | 8 chars | 48 chars  |
+| Stored secrets  | 8 chars | 128 chars |
+| Username        | 8 chars | 32 chars  |
+| Description     | 8 chars | 256 chars |
+
+These limits balance security with usability and can be modified in the source code.
+
+---
 
 ## Contributing
 
-Contributions are welcome! You can open an issues or submit pull requests to help improve cruxpass.
+Contributions are welcome! Please:
+
+- Open an issue for bugs or feature requests
+- Submit pull requests with clear descriptions
+- Follow the existing code style
+
+---
