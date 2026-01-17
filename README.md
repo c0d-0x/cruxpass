@@ -54,7 +54,7 @@ sudo apt install libsqlcipher-dev libsodium-dev
 </details>
 
 <details>
-<summary>##Arch Linux</summary>
+<summary>Arch Linux ;)</summary>
 
 ```bash
 sudo pacman -S sqlcipher libsodium
