@@ -21,7 +21,7 @@ A minimal CLI password manager written in C and designed to be simple, dependenc
 - Generate strong random passwords
 - Securely store encrypted records locally
 - Retrieve secrets on demand with explicit user intent
-- List and manage stored credentials through a fast, keyboard-driven TUI
+- List and manage stored credentials through a fast, vim keybind driven TUI
 - Delete or update individual entries
 - Import and export credentials via CSV
 
