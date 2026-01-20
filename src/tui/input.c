@@ -19,7 +19,7 @@ char *get_input(const char *prompt, char *input, const int input_len, int start_
     if (input == NULL) {
         input_is_dynamic = true;
         if ((input = calloc(1, input_len)) == NULL) {
-            cleanup_tui();
+            tui_cleanup();
             CRXP__OUT_OF_MEMORY();
         }
     }
@@ -82,7 +82,7 @@ char *get_secret(const char *prompt) {
     int term_w = tb_width();
     int term_h = tb_height();
     if ((secret = (char *) sodium_malloc(MASTER_MAX_LEN + 1)) == NULL) {
-        cleanup_tui();
+        tui_cleanup();
         CRXP__OUT_OF_MEMORY();
     }
 

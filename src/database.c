@@ -66,12 +66,12 @@ static int create_databases(vault_ctx_t *ctx) {
     unsigned char *key = NULL;
     meta_t *meta = NULL;
 
-    init_tui();
+    tui_init();
     tb_clear();
     tb_print(0, 2, TB_DEFAULT, TB_DEFAULT, "Create a new master password for cruxpass.");
     tb_present();
     char *master_psswd = get_input("> Enter password: ", NULL, MASTER_MAX_LEN, 0, 3);
-    cleanup_tui();
+    tui_cleanup();
 
     if (master_psswd == NULL || strlen(master_psswd) < SECRET_MIN_LEN) {
         fprintf(stderr, "Error: password invalid\n");

@@ -14,7 +14,7 @@ int total_pages;
 int current_page;
 int records_per_page = 30;
 
-bool init_tui(void) {
+bool tui_init(void) {
     if (tb_init() != TB_OK) {
         fprintf(stderr, "Error: Failed to initialize TUS\n");
         return false;
@@ -25,7 +25,7 @@ bool init_tui(void) {
     return true;
 }
 
-void cleanup_tui(void) {
+void tui_cleanup(void) {
     tb_clear();
     tb_shutdown();
 }
@@ -55,7 +55,7 @@ int tui_main(sqlite3 *db) {
         return CRXP_ERR;
     }
 
-    init_tui();
+    tui_init();
     int term_width = tb_width();
     int term_height = tb_height();
 
@@ -201,7 +201,7 @@ int tui_main(sqlite3 *db) {
         }
     }
 
-    cleanup_tui();
+    tui_cleanup();
     free_records(&records);
     free_queue(&search_queue);
     if (search_pattern != NULL) free(search_pattern);

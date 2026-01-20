@@ -1,4 +1,4 @@
-A minimal CLI password manager in C with encrypted storage, password generation, and terminal UI.
+A minimal CLI password manager written in C and designed to be simple, dependency-light, and transparent
 
 ![cruxpass Screenshot](https://raw.githubusercontent.com/c0d-0x/cruxpass/dev/resources/cruxpass.png)
 
@@ -19,17 +19,11 @@ A minimal CLI password manager in C with encrypted storage, password generation,
 ## Features
 
 - Generate strong random passwords
-- Securely store credentials
-  - **AES-256** encrypted database
-  - **256-bit Argon2id key** derived from the user's password
-  - Key derivation strengthened with a **128-bit** salt
-- Retrieve passwords securely
-  - Database decrypted in memory
-- List saved credentials in a TUI
+- Securely store encrypted records locally
+- Retrieve secrets on demand with explicit user intent
+- List and manage stored credentials through a fast, keyboard-driven TUI
+- Delete or update individual entries
 - Import and export credentials via CSV
-- Delete individual entries
-
----
 
 ## Installation
 
@@ -130,7 +124,7 @@ sudo make uninstall
 cruxpass -g 20
 
 # Generate password excluding ambiguous characters (0, O, l, 1, etc.)
-cruxpass -g 20 -x
+cruxpass -xg 20
 
 # Save a new credential
 cruxpass -s

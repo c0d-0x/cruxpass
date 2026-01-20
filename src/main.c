@@ -121,13 +121,13 @@ int main(int argc, char **argv) {
     }
 
     if (*save) {
-        init_tui();
+        tui_init();
         tb_clear();
         secret_t record = {0};
         if (get_input("> username: ", record.username, USERNAME_MAX_LEN, 0, 2) == NULL
             || get_input("> secret: ", record.secret, SECRET_MAX_LEN, 0, 3) == NULL
             || get_input("> description: ", record.description, DESC_MAX_LEN, 0, 4) == NULL) {
-            cleanup_tui();
+            tui_cleanup();
             cleanup_main();
             free_args(&cmd_args);
 
@@ -135,7 +135,7 @@ int main(int argc, char **argv) {
             return EXIT_FAILURE;
         }
 
-        cleanup_tui();
+        tui_cleanup();
         if (!insert_record(ctx->secret_db, &record)) {
             cleanup_main();
 
@@ -201,7 +201,7 @@ int main(int argc, char **argv) {
 
 void sig_handler(int sig) {
     cleanup_main();
-    cleanup_tui();
+    tui_cleanup();
     fprintf(stdout, "Warning: Signal %d Received\n", sig);
     fprintf(stdout, "Warning: Terminating cruxpass\n");
     exit(EXIT_FAILURE);

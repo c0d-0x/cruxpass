@@ -63,9 +63,9 @@
 
 typedef struct {
     ssize_t id;
-    char username[USERNAME_MAX_LEN + 1];
-    char secret[SECRET_MAX_LEN + 1];
-    char description[DESC_MAX_LEN + 1];
+    char username[USERNAME_MAX_LEN];
+    char secret[SECRET_MAX_LEN];
+    char description[DESC_MAX_LEN];
 } secret_t;
 
 typedef struct {

@@ -57,14 +57,14 @@ bool create_new_master_secret(sqlite3 *db) {
     unsigned char *new_key = NULL;
     meta_t *meta = NULL;
 
-    init_tui();
+    tui_init();
     if ((new_secret = get_secret("New Password: ")) == NULL
         || (temp_secret = get_secret("Confirm New Password: ")) == NULL) {
-        cleanup_tui();
+        tui_cleanup();
         return !ok;
     }
 
-    cleanup_tui();
+    tui_cleanup();
     if (strncmp(new_secret, temp_secret, MASTER_MAX_LEN) != 0) {
         fprintf(stderr, "Error: Passwords do not match\n");
         sodium_memzero(new_secret, sizeof(new_secret));
@@ -118,13 +118,13 @@ unsigned char *authenticate(vault_ctx_t *ctx) {
         return NULL;
     }
 
-    init_tui();
+    tui_init();
     if ((master_passd = get_secret("Master Password: ")) == NULL) {
-        cleanup_tui();
+        tui_cleanup();
         free(meta);
         return NULL;
     }
-    cleanup_tui();
+    tui_cleanup();
 
     if ((key = (unsigned char *) sodium_malloc(sizeof(unsigned char) * KEY_LEN)) == NULL) CRXP__OUT_OF_MEMORY();
     if (!key_gen(key, master_passd, meta->salt)) {

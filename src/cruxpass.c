@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+#include <wchar.h>
 
 #include "crypt.h"
 #include "database.h"
@@ -138,7 +139,6 @@ int import_secrets(sqlite3 *db, const char *import_file) {
         if (!insert_record(db, secret_record))
             fprintf(stderr, "Error: Failed to insert record at line: %ld", line_number);
         line_number++;
-        memset(secret_record, 0, sizeof(secret_t));
     }
 
     fclose(fp);
@@ -169,9 +169,10 @@ static char *set_path(char *path, char *file_name) {
 }
 
 static bool validate_run_dir(char *path) {
-    bool path_is_dynamic = false;
+    bool allocated = false;
     if (path == NULL) {
         char *home = NULL;
+        allocated = true;
         if ((home = getenv("HOME")) == NULL) return false;
 
         if ((path = calloc(MAX_PATH_LEN + 1, sizeof(char))) == NULL) CRXP__OUT_OF_MEMORY();
@@ -185,30 +186,28 @@ static bool validate_run_dir(char *path) {
             return false;
         }
 
-        path_is_dynamic = true;
     } else if (strlen(path) > MAX_PATH_LEN - 16) {
         fprintf(stderr, "Error: Run directory path too long (max: %d characters)\n", MAX_PATH_LEN);
         return false;
     }
 
     struct stat file_stat;
-
     if (stat(path, &file_stat) != 0) {
         fprintf(stderr, "Error: [ %s ] is either missing or not a valid directory\n", path);
-        if (path_is_dynamic) free(path);
+        if (allocated) free(path);
         return false;
     }
 
     if (!S_ISDIR(file_stat.st_mode)) {
         fprintf(stderr, "Error: [ %s ] is not a valid directory\n", path);
-        if (path_is_dynamic) free(path);
+        if (allocated) free(path);
         return false;
     }
 
     cruxpass_db_path = set_path(path, CRUXPASS_DB);
     meta_db_path = set_path(path, META_DB);
 
-    if (path_is_dynamic) free(path);
+    if (allocated) free(path);
     if (cruxpass_db_path == NULL || meta_db_path == NULL) return false;
 
     return true;
@@ -216,7 +215,6 @@ static bool validate_run_dir(char *path) {
 
 vault_ctx_t *initcrux(char *run_dir) {
     vault_ctx_t *ctx = NULL;
-    if ((ctx = malloc(sizeof(vault_ctx_t))) == NULL) CRXP__OUT_OF_MEMORY();
     if (!validate_run_dir(run_dir)) return NULL;
 
     if (sodium_init() == -1) {
@@ -225,14 +223,14 @@ vault_ctx_t *initcrux(char *run_dir) {
     }
 
     int inited = init_sqlite();
-    if (inited == CRXP_OKK) {
-        fprintf(stderr, "Info: New password created\nWarning: Retry your opetation\n");
-        return NULL;
+    switch (inited) {
+        case CRXP_OKK: fprintf(stderr, "Info: New password created\nWarning: Retry your opetation\n"); return NULL;
+        case CRXP_OK:
+            if ((ctx = malloc(sizeof(vault_ctx_t))) == NULL) CRXP__OUT_OF_MEMORY();
+            ctx->secret_db = open_db(cruxpass_db_path, SQLITE_OPEN_READWRITE);
+            return ctx;
+        default: return NULL;
     }
-
-    if (inited != CRXP_ERR) ctx->secret_db = open_db(cruxpass_db_path, SQLITE_OPEN_READWRITE);
-
-    return ctx;
 }
 
 char *init_secret_bank(const bank_options_t *options) {

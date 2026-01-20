@@ -41,8 +41,8 @@
 
 typedef struct {
     int64_t id;
-    char username[USERNAME_MAX_LEN + 1];
-    char description[DESC_MAX_LEN + 1];
+    char username[USERNAME_MAX_LEN];
+    char description[DESC_MAX_LEN];
 } record_t;
 
 typedef struct {
@@ -67,6 +67,8 @@ typedef struct {
     int64_t *data;
 } queue_t;
 
+bool tui_init(void);
+void tui_cleanup(void);
 int tui_main(sqlite3 *db);
 int tui_pipeline(void *data, int argc, char **argv, char **column_name);
 
@@ -100,8 +102,5 @@ void free_queue(queue_t *queue);
 
 bool add_record(record_array_t *arr, record_t rec);
 void free_records(record_array_t *arr);
-
-bool init_tui(void);
-void cleanup_tui(void);
 
 #endif  // !TUI_H
