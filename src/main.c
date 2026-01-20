@@ -219,12 +219,13 @@ void cleanup_main(void) {
     }
 }
 
+// A minimal CLI password manager written in C and designed to be simple, dependency-light, and transparent
 void print_help(Args *cmd_args, const char *program) {
     char *description
-        = "A lightweight, command-line password/secrets manager designed to securely store and\nretrieve encrypted "
-          "credentials. It uses an SQLCipher database to manage entries, with\nauthentication separated from password "
-          "storage. Access is controlled via a master password.\n";
-    char *footer = "It emphasizes simplicity, security, and efficiency for developers and power users.";
+        = "A lightweight, command-line password/secrets manager designed to be simple, dependency-light,\nand "
+          "transparent. "
+          "It uses an SQLCipher database to manage entries storage, accessed via a master password.\n";
+    char *footer = "It emphasizes simplicity, security, and efficiency for devs and terminal wizards.";
 
     fprintf(stdout, "usage: %s [options]\n\n", program);
     fprintf(stdout, "%s\n", description);

@@ -186,7 +186,7 @@ static bool validate_run_dir(char *path) {
             return false;
         }
 
-    } else if (strlen(path) > MAX_PATH_LEN - 16) {
+    } else if (strlen(path) > MAX_PATH_LEN - 32) {
         fprintf(stderr, "Error: Run directory path too long (max: %d characters)\n", MAX_PATH_LEN);
         return false;
     }
@@ -224,10 +224,13 @@ vault_ctx_t *initcrux(char *run_dir) {
 
     int inited = init_sqlite();
     switch (inited) {
-        case CRXP_OKK: fprintf(stderr, "Info: New password created\nWarning: Retry your opetation\n"); return NULL;
+        case CRXP_OKK: fprintf(stderr, "Info: New password created\nWarning: Retry your operation\n"); return NULL;
         case CRXP_OK:
             if ((ctx = malloc(sizeof(vault_ctx_t))) == NULL) CRXP__OUT_OF_MEMORY();
-            ctx->secret_db = open_db(cruxpass_db_path, SQLITE_OPEN_READWRITE);
+            if ((ctx->secret_db = open_db(cruxpass_db_path, SQLITE_OPEN_READWRITE)) == NULL) {
+                free(ctx);
+                return NULL;
+            }
             return ctx;
         default: return NULL;
     }
