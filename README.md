@@ -1,6 +1,6 @@
-A minimal CLI password manager written in C and designed to be simple, dependency-light, and transparent
+A minimal CLI password manager written in C and designed to be simple, dependency-light, and transparent.
 
-![cruxpass Screenshot](https://raw.githubusercontent.com/c0d-0x/cruxpass/dev/resources/cruxpass.gif)
+![cruxpass](https://raw.githubusercontent.com/c0d-0x/cruxpass/main/resources/cruxpass.gif)
 
 ---
 
