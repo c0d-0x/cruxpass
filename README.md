@@ -1,6 +1,6 @@
 A minimal CLI password manager designed to be simple, dependency-light, and transparent
 
-![cruxpass Screenshot](https://raw.githubusercontent.com/c0d-0x/cruxpass/dev/resources/cruxpass.gif)
+![cruxpass](https://raw.githubusercontent.com/c0d-0x/cruxpass/main/resources/cruxpass.gif)
 
 ---
 
@@ -21,7 +21,7 @@ A minimal CLI password manager designed to be simple, dependency-light, and tran
 - Generate strong random passwords
 - Securely store encrypted records locally
 - Retrieve secrets on demand with explicit user intent
-- List and manage stored credentials through a fast, keyboard-driven TUI
+- List and manage stored credentials through a fast, vim keybind driven TUI
 - Delete or update individual entries
 - Import and export credentials via CSV
 
