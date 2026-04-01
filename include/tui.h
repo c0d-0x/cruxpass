@@ -96,8 +96,8 @@ bool select_next(queue_t *queue);
 
 int64_t dequeue(queue_t *queue);
 bool enqueue(queue_t *queue, int64_t id);
-bool queue_is_full(queue_t *queue);
-bool queue_is_empty(queue_t *queue);
+bool queue_full(queue_t *queue);
+bool queue_empty(queue_t *queue);
 void free_queue(queue_t *queue);
 
 bool add_record(record_array_t *arr, record_t rec);

@@ -93,10 +93,20 @@ static int process_field(char *field, const int max_length, char *token, const c
         fprintf(stderr, "Error: Missing %s at line %ld\n", field_name, line_number);
         return CRXP_ERR;
     }
+
     if ((const int) strlen(token) > max_length) {
         fprintf(stderr, "Error: %s at line %ld is more than %d characters\n", field_name, line_number, max_length);
         return CRXP_ERR;
     }
+
+    if (strlen(token) < FIELD_MIN && (max_length != SECRET_MAX_LEN)) {
+        fprintf(stderr, "Error: %s at line %ld is less than %d characters\n", field_name, line_number, FIELD_MIN);
+        return CRXP_ERR;
+    } else if (strlen(token) < SECRET_MIN_LEN && (max_length == SECRET_MAX_LEN)) {
+        fprintf(stderr, "Error: %s at line %ld is less than %d characters\n", field_name, line_number, SECRET_MIN_LEN);
+        return CRXP_ERR;
+    }
+
     strncpy(field, token, max_length);
     return CRXP_OK;
 }
@@ -105,44 +115,40 @@ int import_secrets(sqlite3 *db, const char *import_file) {
     FILE *fp;
     size_t line_number = 1;
     char *saveptr;
-    char buffer[BUFFMAX + 1];
-    secret_t *secret_record = NULL;
+    char buf[BUFFMAX + 1];
+    secret_t *rec = NULL;
 
     if ((fp = fopen(import_file, "r")) == NULL) {
-        fprintf(stderr, "Error: Failed to open %s FILE: %s", import_file, strerror(errno));
+        fprintf(stderr, "Error: Failed to open %s: %s", import_file, strerror(errno));
         return CRXP_ERR;
     }
 
-    if ((secret_record = malloc(sizeof(secret_t))) == NULL) CRXP__OUT_OF_MEMORY();
+    if ((rec = malloc(sizeof(secret_t))) == NULL) CRXP__OUT_OF_MEMORY();
 
-    while (fgets(buffer, BUFFMAX, fp) != NULL) {
-        buffer[strcspn(buffer, "\n")] = '\0';
+    while (fgets(buf, BUFFMAX, fp) != NULL) {
+        buf[strcspn(buf, "\n")] = '\0';
 
-        if (!process_field(secret_record->username, USERNAME_MAX_LEN, strtok_r(buffer, ",", &saveptr), "Username",
-                           line_number)) {
+        if (!process_field(rec->username, USERNAME_MAX_LEN, strtok_r(buf, ",", &saveptr), "Username", line_number)) {
             line_number++;
             continue;
         }
 
-        if (!process_field(secret_record->secret, SECRET_MAX_LEN, strtok_r(NULL, ",", &saveptr), "Password",
-                           line_number)) {
+        if (!process_field(rec->secret, SECRET_MAX_LEN, strtok_r(NULL, ",", &saveptr), "Password", line_number)) {
             line_number++;
             continue;
         }
 
-        if (!process_field(secret_record->description, DESC_MAX_LEN, strtok_r(NULL, ",", &saveptr), "Description",
-                           line_number)) {
+        if (!process_field(rec->description, DESC_MAX_LEN, strtok_r(NULL, ",", &saveptr), "Description", line_number)) {
             line_number++;
             continue;
         }
 
-        if (!insert_record(db, secret_record))
-            fprintf(stderr, "Error: Failed to insert record at line: %ld", line_number);
+        if (!insert_record(db, rec)) fprintf(stderr, "Error: Failed to insert record at line: %ld", line_number);
         line_number++;
     }
 
     fclose(fp);
-    free(secret_record);
+    free(rec);
     return CRXP_OK;
 }
 
@@ -162,7 +168,7 @@ static char *set_path(char *path, char *file_name) {
     char *full_path = NULL;
 
     if (path == NULL || file_name == NULL) return NULL;
-    if ((full_path = calloc(MAX_PATH_LEN + 1, sizeof(char))) == NULL) CRXP__OUT_OF_MEMORY();
+    if ((full_path = calloc(MAX_PATH_LEN, sizeof(char))) == NULL) CRXP__OUT_OF_MEMORY();
     if (snprintf(full_path, MAX_PATH_LEN, "%s/%s", path, file_name) <= 0) return NULL;
 
     return full_path;

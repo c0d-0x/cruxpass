@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 
 #ifndef VERSION
@@ -50,9 +51,9 @@ int main(int argc, char **argv) {
 
     char **pos_args = NULL;
     int pos_args_len = parse_args(&cmd_args, argc, argv, &pos_args);
-    bool check_gen_flags = *unambiguous && *gen_secret_len == 0;
+    bool wrong_gen_flags = *unambiguous && *gen_secret_len == 0;
 
-    if (*help || pos_args_len != 0 || argc == 1 || check_gen_flags) {
+    if (*help || pos_args_len != 0 || argc == 1 || wrong_gen_flags) {
         print_help(&cmd_args, argv[0]);
         free_args(&cmd_args);
         return EXIT_SUCCESS;
@@ -65,7 +66,8 @@ int main(int argc, char **argv) {
             .lower= true, 
             .digit = true,
             .symbols = true, 
-            .ex_ambiguous = (unambiguous != NULL)? *unambiguous: false};
+            .ex_ambiguous = (unambiguous != NULL)? *unambiguous: false
+        };
         // clang-format on
         char *secret = NULL;
         if ((secret = random_secret(*gen_secret_len, &bank_options)) == NULL) {
@@ -111,7 +113,7 @@ int main(int argc, char **argv) {
 
     if (*new_password) {
         if (!create_new_master_secret(ctx->secret_db)) {
-            fprintf(stderr, "Error: Failed to creat a new master password\n");
+            fprintf(stderr, "Error: Failed to create a new master password\n");
             cleanup_main();
             free_args(&cmd_args);
             return EXIT_FAILURE;
@@ -123,10 +125,10 @@ int main(int argc, char **argv) {
     if (*save) {
         tui_init();
         tb_clear();
-        secret_t record = {0};
-        if (get_input("> username: ", record.username, USERNAME_MAX_LEN, 0, 2) == NULL
-            || get_input("> secret: ", record.secret, SECRET_MAX_LEN, 0, 3) == NULL
-            || get_input("> description: ", record.description, DESC_MAX_LEN, 0, 4) == NULL) {
+        secret_t rec = {0};
+        if (get_input("> username: ", rec.username, USERNAME_MAX_LEN, 0, 2) == NULL
+            || get_input("> secret: ", rec.secret, SECRET_MAX_LEN, 0, 3) == NULL
+            || get_input("> description: ", rec.description, DESC_MAX_LEN, 0, 4) == NULL) {
             tui_cleanup();
             cleanup_main();
             free_args(&cmd_args);
@@ -136,9 +138,15 @@ int main(int argc, char **argv) {
         }
 
         tui_cleanup();
-        if (!insert_record(ctx->secret_db, &record)) {
+        if (strlen(rec.description) < FIELD_MIN || strlen(rec.secret) < FIELD_MIN || strlen(rec.username) < FIELD_MIN) {
             cleanup_main();
+            free_args(&cmd_args);
+            fprintf(stderr, "Error: Failed to retrieve record\n");
+            return EXIT_FAILURE;
+        }
 
+        if (!insert_record(ctx->secret_db, &rec)) {
+            cleanup_main();
             free_args(&cmd_args);
             return EXIT_FAILURE;
         }
@@ -148,16 +156,16 @@ int main(int argc, char **argv) {
 
     if (*import_file != NULL) {
         if (strlen(*import_file) > FILE_PATH_LEN) {
-            fprintf(stderr, "Warning: Import file name too long [MAX: %d character long]\n", FILE_PATH_LEN);
             cleanup_main();
             free_args(&cmd_args);
+            fprintf(stderr, "Warning: Import file name too long [MAX: %d character long]\n", FILE_PATH_LEN);
             return EXIT_FAILURE;
         }
 
         if (!import_secrets(ctx->secret_db, (char *) *import_file)) {
-            fprintf(stderr, "Error: Failed to import secrets from: %s", *import_file);
             cleanup_main();
             free_args(&cmd_args);
+            fprintf(stderr, "Error: Failed to import secrets from: %s", *import_file);
             return EXIT_FAILURE;
         }
 
@@ -166,9 +174,9 @@ int main(int argc, char **argv) {
 
     if (*export_file != NULL) {
         if (strlen(*export_file) > FILE_PATH_LEN) {
-            fprintf(stderr, "Warning: Export file path must not be more than: %d\n", FILE_PATH_LEN);
             cleanup_main();
             free_args(&cmd_args);
+            fprintf(stderr, "Warning: Export file path must not be more than: %d\n", FILE_PATH_LEN);
             return EXIT_FAILURE;
         }
 
@@ -219,7 +227,6 @@ void cleanup_main(void) {
     }
 }
 
-// A minimal CLI password manager written in C and designed to be simple, dependency-light, and transparent
 void print_help(Args *cmd_args, const char *program) {
     char *description
         = "A lightweight, command-line password/secrets manager designed to be simple, dependency-light,\nand "

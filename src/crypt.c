@@ -52,10 +52,10 @@ bool decrypt(sqlite3 *db, unsigned char *key) {
 
 bool create_new_master_secret(sqlite3 *db) {
     bool ok = true;
+    meta_t *meta = NULL;
     char *new_secret = NULL;
     char *temp_secret = NULL;
     unsigned char *new_key = NULL;
-    meta_t *meta = NULL;
 
     tui_init();
     if ((new_secret = get_secret("New Password: ")) == NULL
@@ -78,7 +78,7 @@ bool create_new_master_secret(sqlite3 *db) {
     if ((meta = calloc(1, sizeof(meta_t) + SALT_LEN)) == NULL) CRXP__OUT_OF_MEMORY();
     if ((new_key = (unsigned char *) sodium_malloc(sizeof(unsigned char) * KEY_LEN)) == NULL) CRXP__OUT_OF_MEMORY();
 
-    randombytes_buf(meta->salt, sizeof(unsigned char) * SALT_LEN);
+    randombytes_buf(meta->salt, SALT_LEN);
     if (!key_gen(new_key, (const char *const) new_secret, meta->salt)) {
         fprintf(stderr, "Error: Failed to Create New Password\n");
         goto defer;

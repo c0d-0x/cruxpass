@@ -171,7 +171,7 @@ char *get_search_parttern(void) {
     tb_clear();
 
     draw_border(start_x, start_y, SEARCH_TXT_MAX + 4, 3, TB_DEFAULT, TB_DEFAULT);
-    tb_print(start_x + 2, start_y, TB_DEFAULT | TB_BOLD, TB_DEFAULT, "| Search |");
+    tb_print(start_x + 2, start_y, COLOR_HEADER, TB_DEFAULT, "| Search |");
     tb_present();
     search_parttern = get_input(NULL, NULL, SEARCH_TXT_MAX, start_x + 2, start_y + 1);
     tb_clear();
@@ -196,7 +196,7 @@ int get_long(char *prompt) {
     tb_clear();
     char input[DIGIT_COUNT_MAX] = {0};
     draw_border(start_x, start_y, MIN_WIN_WIDTH + 4, 3, TB_DEFAULT, TB_DEFAULT);
-    if (prompt != NULL) tb_printf(start_x + 2, start_y, TB_DEFAULT | TB_BOLD, TB_DEFAULT, "| %s |", prompt);
+    if (prompt != NULL) tb_printf(start_x + 2, start_y, COLOR_HEADER, TB_DEFAULT, "| %s |", prompt);
     tb_present();
 
     struct tb_event ev;
@@ -245,7 +245,7 @@ int get_long(char *prompt) {
 void get_random_secret(sqlite3 *db, bank_options_t opt) {
     long ran_len = get_long("Secret length");
     if (ran_len > SECRET_MAX_LEN || ran_len < SECRET_MIN_LEN) {
-        display_notifctn("Warning: Invalid secret len");
+        display_notifctn("Warning: Invalid secret length");
         return;
     }
 

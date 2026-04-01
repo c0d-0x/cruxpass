@@ -9,7 +9,7 @@ extern int records_per_page;
 extern int total_pages;
 
 /**
- * Displays centered ASCII art (4 bytes wide char)
+ * Displays centred ASCII art (4 bytes wide char)
  */
 void draw_art(void) {
     // Font Type: Bloody

@@ -19,11 +19,12 @@
 #include <stdbool.h>
 
 #define DESC_MAX_LEN 256
+#define FIELD_MIN 3
 #define FILE_PATH_LEN 32
 #define MASTER_MAX_LEN 48
 #define MAX_PATH_LEN 256
-#define SECRET_MAX_LEN 128
 #define RAND_SECRET_MAX_LEN 256
+#define SECRET_MAX_LEN 128
 #define SECRET_MIN_LEN 8
 #define USERNAME_MAX_LEN 32
 

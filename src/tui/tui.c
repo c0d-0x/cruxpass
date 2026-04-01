@@ -105,7 +105,7 @@ int tui_main(sqlite3 *db) {
                 draw_table_border(start_x, start_y, table_h);
                 continue;
             } else if (ev.ch == 'n') {
-                if (!queue_is_empty(&search_queue)) {
+                if (!queue_empty(&search_queue)) {
                     int64_t index = dequeue(&search_queue);
 
                     if (index == QUEUE_ERR) {
@@ -136,6 +136,7 @@ int tui_main(sqlite3 *db) {
             } else if (ev.ch == 'u') {
                 if (notify_deleted(records.data[current_position].id)) continue;
                 if (!do_updates(db, &records, current_position)) {
+                    display_notifctn("Warning: Rec update failed");
                     draw_table_border(start_x, start_y, table_h);
                     continue;
                 }
@@ -160,14 +161,14 @@ int tui_main(sqlite3 *db) {
                 if (ev.type != TB_EVENT_KEY) continue;
                 char cc = ev.ch;
                 switch (cc) {
-                    case 'a': opt = (bank_options_t) {.lower = true}; break;
-                    case 'A': opt = (bank_options_t) {.upper = true}; break;
-                    case 'p': opt = (bank_options_t) {.digit = true}; break;
+                    case 'a': opt = (bank_options_t){.lower = true}; break;
+                    case 'A': opt = (bank_options_t){.upper = true}; break;
+                    case 'p': opt = (bank_options_t){.digit = true}; break;
                     case 'r':
-                        opt = (bank_options_t) {.lower = true, .upper = true, .digit = true, .symbols = true};
+                        opt = (bank_options_t){.lower = true, .upper = true, .digit = true, .symbols = true};
                         break;
                     case 'x':
-                        opt = (bank_options_t) {
+                        opt = (bank_options_t){
                             .lower = true, .upper = true, .digit = true, .symbols = true, .ex_ambiguous = true};
                         break;
                     default: continue;

@@ -1,4 +1,4 @@
-A minimal CLI password manager written in C and designed to be simple, dependency-light, and transparent
+A minimal CLI password manager designed to be simple, dependency-light, and transparent
 
 ![cruxpass Screenshot](https://raw.githubusercontent.com/c0d-0x/cruxpass/dev/resources/cruxpass.gif)
 
@@ -201,7 +201,7 @@ Your CSV file should have three columns:
 
 ## Security Details
 
-- **Encryption:** AES-256 in CBC mode
+- **Encryption:** AES-256 in CBC mode and HMACS to avoid malicious DB manipulation. (sqlcipher property)
 - **Key derivation:** Argon2id with 256-bit output
 - **Salt:** 128-bit random salt per database
 - **Memory safety:** Database decrypted only in memory, never written to disk unencrypted
@@ -212,8 +212,8 @@ Your CSV file should have three columns:
 | --------------- | ------- | --------- |
 | Master password | 8 chars | 48 chars  |
 | Stored secrets  | 8 chars | 128 chars |
-| Username        | 8 chars | 32 chars  |
-| Description     | 8 chars | 256 chars |
+| Username        | 3 chars | 32 chars  |
+| Description     | 3 chars | 256 chars |
 
 These limits balance security with usability and can be modified in the source code.
 

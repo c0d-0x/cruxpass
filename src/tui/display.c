@@ -126,7 +126,7 @@ void display_desc(char *description) {
     }
 
     if (desc_len > desc_win_w) wrapped = true;
-    if (term_w < 60 + 4 || term_h < 18 + 2) {
+    if (term_w < 64 || term_h < 20) {
         display_notifctn("Warning: Term width or height too small");
         return;
     }
@@ -135,7 +135,7 @@ void display_desc(char *description) {
     int start_y = (term_h - desc_win_h) / 2;
 
     tb_clear();
-    draw_border(start_x, start_y, desc_win_w + 4, desc_win_h + 2, COLOR_PAGINATION, TB_DEFAULT);
+    draw_border(start_x, start_y, desc_win_w + 4, desc_win_h, COLOR_PAGINATION, TB_DEFAULT);
     tb_print(start_x + 2, start_y, COLOR_HEADER, TB_DEFAULT, "| Description |");
 
     int line = start_y + 2;

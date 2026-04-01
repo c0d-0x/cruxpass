@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 bool enqueue(queue_t *queue, int64_t index) {
-    if (queue_is_empty(queue)) {
+    if (queue_empty(queue)) {
         if ((queue->data = calloc(QUEUE_MAX, sizeof(int64_t))) == NULL) {
             return false;
         }
@@ -13,7 +13,7 @@ bool enqueue(queue_t *queue, int64_t index) {
         queue->capacity = QUEUE_MAX;
     }
 
-    if (queue_is_full(queue)) {
+    if (queue_full(queue)) {
         int64_t *new_data = realloc(queue->data, sizeof(int64_t) * queue->capacity * 2);
         if (new_data == NULL) {
             return false;
@@ -32,7 +32,7 @@ bool enqueue(queue_t *queue, int64_t index) {
 }
 
 int64_t dequeue(queue_t *queue) {
-    if (queue_is_empty(queue)) {
+    if (queue_empty(queue)) {
         return QUEUE_ERR;
     }
 
@@ -41,9 +41,9 @@ int64_t dequeue(queue_t *queue) {
     return index;
 }
 
-bool queue_is_full(queue_t *queue) { return queue->capacity == queue->size && queue->data != NULL; }
+bool queue_full(queue_t *queue) { return queue->capacity == queue->size && queue->data != NULL; }
 
-bool queue_is_empty(queue_t *queue) { return queue->data == NULL; }
+bool queue_empty(queue_t *queue) { return queue->data == NULL; }
 
 void free_queue(queue_t *queue) {
     if (queue->data != NULL) {

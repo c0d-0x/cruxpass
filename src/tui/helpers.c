@@ -62,17 +62,17 @@ bool do_updates(sqlite3 *db, record_array_t *records, int64_t current_position) 
     switch (option) {
         case 0:
             get_input("> username: ", rec.username, USERNAME_MAX_LEN, start_x + 4, start_y);
-            if (strlen(rec.username) == 0) return false;
+            if (strlen(rec.username) < FIELD_MIN) return false;
             flag = UPDATE_USERNAME;
             break;
         case 1:
             get_input("> description: ", rec.description, DESC_MAX_LEN, start_x + 4, start_y);
-            if (strlen(rec.description) == 0) return false;
+            if (strlen(rec.description) < FIELD_MIN) return false;
             flag = UPDATE_DESCRIPTION;
             break;
         case 2:
             get_input("> secret: ", rec.secret, SECRET_MAX_LEN, start_x + 4, start_y);
-            if (strlen(rec.secret) < 8) return false;
+            if (strlen(rec.secret) < SECRET_MIN_LEN) return false;
             flag = UPDATE_SECRET;
             break;
         case 3:
