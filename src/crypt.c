@@ -43,7 +43,7 @@ bool decrypt(sqlite3 *db, unsigned char *key) {
     }
 
     if (sqlite3_exec(db, "SELECT count(*) FROM sqlite_master;", NULL, NULL, NULL) != SQLITE_OK) {
-        fprintf(stderr, "Warning: Wrong password or decryption key\n");
+        fprintf(stderr, "Warning: Wrong password. Try again\n");
         return false;
     }
 

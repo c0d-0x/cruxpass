@@ -134,7 +134,7 @@ void _draw_table(record_array_t *records, queue_t *search_queue, char *search_pa
     uintattr_t fg = TB_DEFAULT;
     uintattr_t bg = TB_DEFAULT;
 
-    /* cleanup cells before redrawing rows */
+    /*NOTE: cleanup cells before redrawing rows */
     for (int i = 1; i < table.height - 1; i++) {
         for (int j = 0; j < TABLE_WIDTH; j++) {
             tb_set_cell(table.start_x + j + 1, table.start_y + i + 2, ' ', COLOR_PAGINATION, TB_DEFAULT);

@@ -185,6 +185,7 @@ int tui_main(sqlite3 *db) {
                     continue;
                 }
                 display_notifctn("Info: TUI reloaded");
+                current_position = 0;
             }
 
         } else if (ev.type == TB_EVENT_RESIZE) {
