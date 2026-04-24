@@ -1,6 +1,14 @@
 CC             := gcc
 
-CFLAGS         := -Wall -Wextra -Wformat-security -Wformat-overflow=2 -O3 -s #-ggdb
+CFLAGS         := -Wall -Wextra -Wformat-security -Wformat-overflow=2
+
+CFLAGS		   += -O3 -s # strip bin
+# Debugging params 
+# CFLAGS 		   += -ggdb
+# CFLAGS 		   += -fsanitize=address 
+# CFLAGS 		   += -fno-omit-frame-pointer
+# CFLAGS		   += -fsanitize-recover=address
+
 
 
 INCLUDE        := -Iinclude -Ilib

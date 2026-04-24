@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <wchar.h>
 
 bool enqueue(queue_t *queue, int64_t index) {
     if (queue_empty(queue)) {
@@ -53,5 +54,6 @@ void free_queue(queue_t *queue) {
         queue->head = 0;
         queue->size = 0;
         queue->tail = 0;
+        queue->data = NULL;
     }
 }

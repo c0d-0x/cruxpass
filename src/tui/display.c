@@ -2,6 +2,7 @@
 #include "database.h"
 #include "tui.h"
 
+#include <sodium/utils.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -32,7 +33,7 @@ void display_notifctn(char *message) {
 }
 
 void display_secret(sqlite3 *db, uint16_t id) {
-    const unsigned char *secret = fetch_secret(db, id);
+    char *secret = fetch_secret(db, id);
     if (secret == NULL) {
         display_notifctn("Error: Failed to fetch secret");
         return;
@@ -61,6 +62,7 @@ void display_secret(sqlite3 *db, uint16_t id) {
         if (ev.type == TB_EVENT_KEY && (ev.key == TB_KEY_ENTER || ev.ch == 'q' || ev.ch == 'Q')) break;
     }
 
+    sodium_memzero((void *) secret, secret_len);
     free((void *) secret);
 }
 

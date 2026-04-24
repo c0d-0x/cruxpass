@@ -15,9 +15,9 @@
 #define IS_DIGIT(ch) ((ch >= 0x30) && (ch <= 0x39))
 
 char *get_input(const char *prompt, char *input, const int input_len, int start_x, int start_y) {
-    bool input_is_dynamic = false;
+    bool dynamic_input = false;
     if (input == NULL) {
-        input_is_dynamic = true;
+        dynamic_input = true;
         if ((input = calloc(1, input_len)) == NULL) {
             tui_cleanup();
             CRXP__OUT_OF_MEMORY();
@@ -40,23 +40,21 @@ char *get_input(const char *prompt, char *input, const int input_len, int start_
 
         if (ev.type == TB_EVENT_KEY) {
             if (ev.key == TB_KEY_ESC || ev.key == TB_KEY_CTRL_C) {
-                if (input_is_dynamic) free(input);
+                if (dynamic_input) free(input);
                 tb_hide_cursor();
                 return NULL;
             } else if (ev.key == TB_KEY_ENTER) {
                 break;
             } else if (ev.key == TB_KEY_BACKSPACE || ev.key == TB_KEY_BACKSPACE2) {
                 if (position > 0) {
-                    position--;
-                    input[position] = '\0';
+                    input[--position] = '\0';
                     tb_set_cell(start_x + prompt_len + position, start_y, ' ', TB_DEFAULT, TB_DEFAULT);
                     tb_set_cursor(start_x + prompt_len + position, start_y);
                     tb_present();
                 }
             } else if (IS_VALID(ev.ch)) {
                 input[position] = (char) ev.ch;
-                tb_set_cell(start_x + prompt_len + position, start_y, ev.ch, TB_DEFAULT, TB_DEFAULT);
-                position++;
+                tb_set_cell(start_x + prompt_len + position++, start_y, ev.ch, TB_DEFAULT, TB_DEFAULT);
                 tb_set_cursor(start_x + prompt_len + position, start_y);
                 tb_present();
             }
@@ -65,7 +63,7 @@ char *get_input(const char *prompt, char *input, const int input_len, int start_
         }
     }
 
-    if (input != NULL && (strlen(input) == 0 && input_is_dynamic)) {
+    if (input != NULL && (strlen(input) == 0 && dynamic_input)) {
         free(input);
         input = NULL;
     }

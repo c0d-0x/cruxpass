@@ -89,7 +89,7 @@ bool do_updates(sqlite3 *db, record_array_t *records, int64_t current_position) 
     if (flag & UPDATE_USERNAME) memcpy(records->data[current_position].username, rec.username, USERNAME_MAX_LEN);
 
     if (!update_record(db, &rec, id, flag)) {
-        display_notifctn("Error: Failed to update record");
+        display_notifctn("Error: Rec not updated");
         return false;
     }
 

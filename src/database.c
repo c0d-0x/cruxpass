@@ -78,7 +78,7 @@ static int create_databases(vault_ctx_t *ctx) {
         return CRXP_ERR;
     }
 
-    if ((meta = malloc(sizeof(meta_t))) == NULL) CRXP__OUT_OF_MEMORY();
+    if ((meta = malloc(sizeof(meta_t) + SALT_LEN)) == NULL) CRXP__OUT_OF_MEMORY();
     meta->version = 0x02;
     randombytes_buf(meta->salt, SALT_LEN);
 
@@ -412,8 +412,8 @@ bool insert_meta(sqlite3 *db, meta_t *meta) {
     return true;
 }
 
-const unsigned char *fetch_secret(sqlite3 *db, const int64_t id) {
-    const unsigned char *secret = NULL;
+char *fetch_secret(sqlite3 *db, const int64_t id) {
+    char *secret = NULL;
     if (sqlite3_bind_int64(sql_stmts[FETCH_SEC_STMT], 1, id) != SQLITE_OK) {
         fprintf(stderr, "Error: Failed to bind sql statement: %s", sqlite3_errmsg(db));
 
@@ -432,7 +432,7 @@ const unsigned char *fetch_secret(sqlite3 *db, const int64_t id) {
 
     char *tmp = (char *) sqlite3_column_text(sql_stmts[FETCH_SEC_STMT], 0);
     int secret_len = sqlite3_column_bytes(sql_stmts[FETCH_SEC_STMT], 0);
-    if (tmp != NULL || secret_len <= SECRET_MAX_LEN) secret = (unsigned char *) strdup(tmp);
+    if (tmp != NULL || secret_len <= SECRET_MAX_LEN) secret = (char *) strdup(tmp);
 
     sqlite3_reset(sql_stmts[FETCH_SEC_STMT]);
     sqlite3_clear_bindings(sql_stmts[FETCH_SEC_STMT]);
