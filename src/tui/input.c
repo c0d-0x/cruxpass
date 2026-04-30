@@ -7,6 +7,7 @@
 #include <sodium/utils.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -123,9 +124,7 @@ char *get_secret(const char *prompt) {
 
             if (!IS_VALID(ev.ch)) continue;
             secret[position] = (char) ev.ch;
-            tb_set_cell(start_x + prompt_len + position, start_y, '*', TB_DEFAULT, TB_DEFAULT);
-
-            position++;
+            tb_set_cell(start_x + prompt_len + position++, start_y, '*', TB_DEFAULT, TB_DEFAULT);
             tb_set_cursor(start_x + prompt_len + position, start_y);
             tb_present();
         } else if (ev.type == TB_EVENT_RESIZE) {
@@ -151,6 +150,12 @@ char *get_secret(const char *prompt) {
     }
 
     tb_hide_cursor();
+    if (position < SECRET_MIN_LEN) {
+        tui_cleanup();
+        fprintf(stderr, "Error: Invalid secret length\n");
+        sodium_free(secret);
+        return NULL;
+    }
     return secret;
 }
 
@@ -215,16 +220,14 @@ int get_long(char *prompt) {
                 break;
             } else if (ev.key == TB_KEY_BACKSPACE || ev.key == TB_KEY_BACKSPACE2) {
                 if (position > 0) {
-                    position--;
-                    input[position] = '\0';
+                    input[position--] = '\0';
                     tb_set_cell(start_x + position, start_y, ' ', TB_DEFAULT, TB_DEFAULT);
                     tb_set_cursor(start_x + position, start_y);
                     tb_present();
                 }
             } else if (IS_DIGIT(ev.ch)) {
                 input[position] = (char) ev.ch;
-                tb_set_cell(start_x + position, start_y, ev.ch, TB_DEFAULT, TB_DEFAULT);
-                position++;
+                tb_set_cell(start_x + position++, start_y, ev.ch, TB_DEFAULT, TB_DEFAULT);
                 tb_set_cursor(start_x + position, start_y);
                 tb_present();
             }

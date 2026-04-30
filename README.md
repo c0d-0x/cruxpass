@@ -103,19 +103,25 @@ sudo make uninstall
 
 ### Command-Line Options
 
-| Short | Long                       | Description                                  |
-| ----- | -------------------------- | -------------------------------------------- |
-| `-h`  | `--help`                   | Show help message                            |
-| `-v`  | `--version`                | Show version                                 |
-| `-s`  | `--save`                   | Save a new password (interactive)            |
-| `-l`  | `--list`                   | Open TUI to browse all passwords             |
-| `-d`  | `--delete <id>`            | Delete password by ID                        |
-| `-g`  | `--generate-rand <length>` | Generate random password (max 256 chars)     |
-| `-x`  | `--exclude-ambiguous`      | Exclude ambiguous characters (use with `-g`) |
-| `-e`  | `--export <file>`          | Export all passwords to CSV                  |
-| `-i`  | `--import <file>`          | Import passwords from CSV                    |
-| `-n`  | `--new-password`           | Change master password                       |
-| `-r`  | `--run-directory`          | Specify custom database directory            |
+| Short | Long                       | Description                                        |
+| ----- | -------------------------- | -------------------------------------------------- |
+| `-h`  | `--help`                   | Show help message                                  |
+| `-v`  | `--version`                | Show version                                       |
+| `-S`  | `--save`                   | Save a new password (interactive)                  |
+| `-l`  | `--list`                   | Open TUI to browse all passwords                   |
+| `-d`  | `--delete <id>`            | Delete password by ID                              |
+| `-g`  | `--generate-rand <length>` | Generate random password (max 256 chars)           |
+| `-a`  | `--lower`                  | Generate only lowercase characters (use with `-g`) |
+| `-A`  | `--upper`                  | Generate only uppercase characters (use with `-g`) |
+| `-p`  | `--pin`                    | Generate a pin (use with `-g`)                     |
+| `-s`  | `--exclude-ambiguous`      | Generate only special characters (use with `-g`)   |
+| `-x`  | `--exclude-ambiguous`      | Exclude ambiguous characters (use with `-g`)       |
+| `-e`  | `--export <file>`          | Export all passwords to CSV                        |
+| `-i`  | `--import <file>`          | Import passwords from CSV                          |
+| `-n`  | `--new-password`           | Change login password                              |
+| `-r`  | `--run-directory`          | Specify custom database directory                  |
+
+#### All options of `-g` can be combined for a more custom output.
 
 ### Examples
 
@@ -126,8 +132,11 @@ cruxpass -g 20
 # Generate password excluding ambiguous characters (0, O, l, 1, etc.)
 cruxpass -xg 20
 
+# Generate a new secret/password with lowercase chars and symbols
+cruxpass -sag 48
+
 # Save a new credential
-cruxpass -s
+cruxpass -S
 
 # List all credentials in TUI
 cruxpass -l
@@ -195,7 +204,7 @@ Your CSV file should have three columns:
 
 **Custom location:** Use `-r <directory>` to specify an alternative path (directory must exist).
 
-**Authentication:** All operations require your master password.
+**Authentication:** All operations require your login password.
 
 ---
 
@@ -208,12 +217,12 @@ Your CSV file should have three columns:
 
 ### Field Limits
 
-| Field           | Minimum | Maximum   |
-| --------------- | ------- | --------- |
-| Master password | 8 chars | 48 chars  |
-| Stored secrets  | 8 chars | 128 chars |
-| Username        | 3 chars | 32 chars  |
-| Description     | 3 chars | 256 chars |
+| Field                 | Minimum | Maximum   |
+| --------------------- | ------- | --------- |
+| Login/Master password | 8 chars | 48 chars  |
+| Stored secrets        | 8 chars | 128 chars |
+| Username              | 3 chars | 32 chars  |
+| Description           | 3 chars | 256 chars |
 
 These limits balance security with usability and can be modified in the source code.
 
@@ -226,5 +235,6 @@ Contributions are welcome! Please:
 - Open an issue for bugs or feature requests
 - Submit pull requests with clear descriptions
 - Follow the existing code style
+- NO LLM GENERATED CODE - ACCEPTED
 
 ---

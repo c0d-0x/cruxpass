@@ -2,6 +2,7 @@
 
 #include <errno.h>
 #include <sodium/utils.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,8 +19,8 @@ char *cruxpass_db_path;
 char *meta_db_path;
 
 char *random_secret(int secret_len, bank_options_t *bank_options) {
-    if (secret_len < SECRET_MIN_LEN || secret_len > RAND_SECRET_MAX_LEN) {
-        printf("Warning: Secret must be at least %d or %d characters long\n", SECRET_MIN_LEN, RAND_SECRET_MAX_LEN);
+    if (secret_len < GEN_SECRET_MIN_LEN || secret_len > RAND_SECRET_MAX_LEN) {
+        printf("Warning: Secret must be at least %d or %d characters long\n", GEN_SECRET_MIN_LEN, RAND_SECRET_MAX_LEN);
         return NULL;
     }
 
@@ -180,6 +181,10 @@ static bool validate_run_dir(char *path) {
         char *home = NULL;
         allocated = true;
         if ((home = getenv("HOME")) == NULL) return false;
+        if (strlen(home) > HOME_PATH_MAX_LEN) {
+            fprintf(stderr, "Error: [ %s ] home path too long, max %u", home, HOME_PATH_MAX_LEN);
+            return false;
+        }
 
         if ((path = calloc(MAX_PATH_LEN + 1, sizeof(char))) == NULL) CRXP__OUT_OF_MEMORY();
         if (snprintf(path, MAX_PATH_LEN, "%s/%s", home, CRUXPASS_RUNDIR) <= 0) {
@@ -192,7 +197,7 @@ static bool validate_run_dir(char *path) {
             return false;
         }
 
-    } else if (strlen(path) > MAX_PATH_LEN - 32) {
+    } else if (strlen(path) > MAX_PATH_LEN - HOME_PATH_MAX_LEN) {
         fprintf(stderr, "Error: Run directory path too long (max: %d characters)\n", MAX_PATH_LEN);
         return false;
     }

@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
     option_version(&cmd_args, "cruxpass-" VERSION);
     const bool *help = option_flag(&cmd_args, "help", "Show this help", .short_name = 'h', .early_exit = true);
     const bool *list = option_flag(&cmd_args, "list", "List all records", .short_name = 'l');
-    const bool *save = option_flag(&cmd_args, "save", "Save a given record", .short_name = 's');
+    const bool *save = option_flag(&cmd_args, "save", "Save a given record", .short_name = 'S');
     const char **import_file = option_path(&cmd_args, "import", "Import records from a csv file", .short_name = 'i');
     const char **export_file
         = option_path(&cmd_args, "export", "Export all records to a csv format", .short_name = 'e');
@@ -43,34 +43,70 @@ int main(int argc, char **argv) {
         = option_long(&cmd_args, "delete", "Deletes a record by id", .short_name = 'd', .default_value = -1);
     const long *gen_secret_len
         = option_long(&cmd_args, "generate-rand", "Generates a random secret of a given length", .short_name = 'g');
-    const bool *unambiguous = option_flag(
-        &cmd_args, "exclude-ambiguous",
-        "Exclude ambiguous characters when generating a random secret (combine with -g)", .short_name = 'x');
+    const bool *pin
+        = option_flag(&cmd_args, "pin", "Generates a random pin of a given length (combined -g)", .short_name = 'p');
+
+    const bool *unambiguous
+        = option_flag(&cmd_args, "exclude-ambiguous",
+                      "Generates a random secret excluding ambiguous characters (combined -g)", .short_name = 'x');
+    const bool *symbols = option_flag(
+        &cmd_args, "symbols", "Generates a symbols' random secret of a given length (combined -g)", .short_name = 's');
+    const bool *lower_case
+        = option_flag(&cmd_args, "lower", "Generates an all lower case random secret of a given length (combined -g)",
+                      .short_name = 'a');
+    const bool *upper_case
+        = option_flag(&cmd_args, "upper", "Generates an all upper case random pin of a given length (combined -g)",
+                      .short_name = 'A');
+
     const char **cruxpass_run_dir = option_path(
         &cmd_args, "run-directory", "Specify the directory path where the database will be stored.", .short_name = 'r');
 
     char **pos_args = NULL;
     int pos_args_len = parse_args(&cmd_args, argc, argv, &pos_args);
-    bool wrong_gen_flags = *unambiguous && *gen_secret_len == 0;
 
-    if (*help || pos_args_len != 0 || argc == 1 || wrong_gen_flags) {
+    if ((*gen_secret_len == 0) & (*upper_case || *lower_case || *pin || *unambiguous || *symbols)) {
+        fprintf(stderr, "Warning: -[ a, A, p, x, s ] has to be combined with -g\n");
+        free_args(&cmd_args);
+        return EXIT_FAILURE;
+    }
+
+    if (*help || pos_args_len != 0 || argc == 1) {
         print_help(&cmd_args, argv[0]);
         free_args(&cmd_args);
         return EXIT_SUCCESS;
     }
 
     if (*gen_secret_len != 0) {
-        // clang-format off
-        bank_options_t bank_options = {
-            .upper= true, 
-            .lower= true, 
-            .digit = true,
-            .symbols = true, 
-            .ex_ambiguous = (unambiguous != NULL)? *unambiguous: false
-        };
-        // clang-format on
+        bank_options_t opt = {0};
+        if (!(*pin) && !(*upper_case) && !(*lower_case) && !(*symbols)) {
+            opt.upper = true;
+            opt.lower = true;
+            opt.digit = true;
+            opt.symbols = true;
+        }
+
+        if (*unambiguous) {
+            opt.ex_ambiguous = true;
+        }
+
+        if (*symbols) {
+            opt.symbols = true;
+        }
+
+        if (*pin) {
+            opt.digit = true;
+        }
+
+        if (*upper_case) {
+            opt.upper = true;
+        }
+
+        if (*lower_case) {
+            opt.lower = true;
+        }
+
         char *secret = NULL;
-        if ((secret = random_secret(*gen_secret_len, &bank_options)) == NULL) {
+        if ((secret = random_secret(*gen_secret_len, &opt)) == NULL) {
             free_args(&cmd_args);
             return EXIT_FAILURE;
         }
@@ -82,7 +118,7 @@ int main(int argc, char **argv) {
     }
 
     if (*cruxpass_run_dir != NULL) {
-        if (strlen(*cruxpass_run_dir) >= MAX_PATH_LEN - 16) {
+        if (strlen(*cruxpass_run_dir) >= MAX_PATH_LEN - HOME_PATH_MAX_LEN) {
             fprintf(stderr, "Error: Path to run-directory too long.\n");
             free_args(&cmd_args);
             return EXIT_FAILURE;
