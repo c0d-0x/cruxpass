@@ -57,16 +57,7 @@ sudo pacman -S sqlcipher libsodium
 </details>
 
 <details>
-<summary>Fedora</summary>
-
-```bash
-sudo dnf install sqlcipher-devel libsodium-devel
-```
-
-</details>
-
-<details>
-<summary>RHEL / Rocky / Alma</summary>
+<summary>RHEL / Fedora / Rocky / Alma</summary>
 
 ```bash
 sudo dnf install sqlcipher-devel libsodium-devel
@@ -114,7 +105,7 @@ sudo make uninstall
 | `-a`  | `--lower`                  | Generate only lowercase characters (use with `-g`) |
 | `-A`  | `--upper`                  | Generate only uppercase characters (use with `-g`) |
 | `-p`  | `--pin`                    | Generate a pin (use with `-g`)                     |
-| `-s`  | `--exclude-ambiguous`      | Generate only special characters (use with `-g`)   |
+| `-s`  | `--symbols`                | Generate only special characters (use with `-g`)   |
 | `-x`  | `--exclude-ambiguous`      | Exclude ambiguous characters (use with `-g`)       |
 | `-e`  | `--export <file>`          | Export all passwords to CSV                        |
 | `-i`  | `--import <file>`          | Import passwords from CSV                          |
@@ -132,7 +123,7 @@ cruxpass -g 20
 # Generate password excluding ambiguous characters (0, O, l, 1, etc.)
 cruxpass -xg 20
 
-# Generate a new secret/password with lowercase chars and symbols
+# Generate a secret/password with lowercase chars and symbols
 cruxpass -sag 48
 
 # Save a new credential
