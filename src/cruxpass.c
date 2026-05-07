@@ -8,8 +8,6 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <time.h>
-#include <unistd.h>
 #include <wchar.h>
 
 #include "crypt.h"
@@ -32,8 +30,7 @@ char *random_secret(int secret_len, bank_options_t *bank_options) {
     }
 
     const int bank_len = strlen(secret_bank);
-    if ((secret = calloc(1, secret_len)) == NULL) CRXP__OUT_OF_MEMORY();
-
+    if ((secret = malloc(sizeof(char) * secret_len + 1)) == NULL) CRXP__OUT_OF_MEMORY();
     if (sodium_init() == -1) {
         free(secret_bank);
         free(secret);
@@ -41,6 +38,7 @@ char *random_secret(int secret_len, bank_options_t *bank_options) {
         return NULL;
     }
 
+    secret[secret_len] = '\0';
     for (int i = 0; i < secret_len; i++) {
         secret[i] = secret_bank[(int) randombytes_uniform(bank_len)];
     }
