@@ -155,7 +155,6 @@ void display_desc(char *description) {
     tb_poll_event(&ev);
 }
 
-// TODO: save and generate new secrets from TUI
 void display_ran_secret(sqlite3 *db, const char *secret_str) {
     int sec_len = strlen((char *) secret_str);
     int sec_win_w = (sec_len + 2 < (MIN_WIN_WIDTH + 2)) ? MIN_WIN_WIDTH : sec_len + 2;

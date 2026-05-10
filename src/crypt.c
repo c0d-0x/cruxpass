@@ -80,19 +80,21 @@ bool create_new_master_secret(sqlite3 *db) {
     randombytes_buf(meta->salt, SALT_LEN);
     if (!key_gen(new_key, (const char *const) new_secret, meta->salt)) {
         fprintf(stderr, "Error: Failed to Create New Password\n");
+        ok = false;
         goto defer;
     }
 
     if (sqlite3_rekey(db, new_key, KEY_LEN) != SQLITE_OK) {
         fprintf(stderr, "Error: Failed to change password: %s", sqlite3_errmsg(db));
+        ok = false;
         goto defer;
     }
 
     if (!update_meta(NULL, meta)) {
+        ok = false;
         goto defer;
     }
 
-    ok = false;
 defer:
     free(meta);
     sodium_memzero(new_secret, sizeof(new_secret));
@@ -102,7 +104,7 @@ defer:
     sodium_free(temp_secret);
     sodium_free(new_secret);
     sodium_free(new_key);
-    return !ok;
+    return ok;
 }
 
 /**

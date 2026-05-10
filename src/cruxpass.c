@@ -124,6 +124,7 @@ int import_secrets(sqlite3 *db, const char *import_file) {
 
     if ((rec = malloc(sizeof(secret_t))) == NULL) CRXP__OUT_OF_MEMORY();
 
+    // TODO: propre csv parsing
     while (fgets(buf, BUFFMAX, fp) != NULL) {
         buf[strcspn(buf, "\n")] = '\0';
 

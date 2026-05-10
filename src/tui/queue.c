@@ -38,7 +38,7 @@ int64_t dequeue(queue_t *queue) {
     }
 
     int64_t index = queue->data[queue->head];
-    queue->head = (queue->head + 1) % queue->size;
+    queue->head = (queue->head + 1) % queue->capacity;
     return index;
 }
 

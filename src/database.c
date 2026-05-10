@@ -431,8 +431,7 @@ char *fetch_secret(sqlite3 *db, const int64_t id) {
     }
 
     char *tmp = (char *) sqlite3_column_text(sql_stmts[FETCH_SEC_STMT], 0);
-    int secret_len = sqlite3_column_bytes(sql_stmts[FETCH_SEC_STMT], 0);
-    if (tmp != NULL || secret_len <= SECRET_MAX_LEN) secret = (char *) strdup(tmp);
+    if (tmp != NULL) secret = (char *) strdup(tmp);
 
     sqlite3_reset(sql_stmts[FETCH_SEC_STMT]);
     sqlite3_clear_bindings(sql_stmts[FETCH_SEC_STMT]);
