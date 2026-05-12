@@ -90,7 +90,7 @@ void display_help(void);
 void display_desc(char *description);
 void display_notifctn(char *message);
 void display_ran_secret(sqlite3 *db, const char *secret);
-void display_secret(sqlite3 *db, uint16_t id);
+void display_secret(const char *secret);
 
 bool select_next(queue_t *queue);
 

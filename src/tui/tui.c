@@ -145,7 +145,9 @@ int tui_main(sqlite3 *db) {
                 draw_table_border(start_x, start_y, table_h);
             } else if (ev.key == TB_KEY_ENTER) {
                 if (notify_deleted(records.data[current_position].id)) continue;
-                display_secret(db, records.data[current_position].id);
+                if (!fetch_secret(db, records.data[current_position].id)) {
+                    display_notifctn("Error: Failed to fetch secret");
+                };
                 draw_table_border(start_x, start_y, table_h);
             } else if (ev.ch == 'L') {
                 if (notify_deleted(records.data[current_position].id)) continue;

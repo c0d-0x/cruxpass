@@ -412,28 +412,23 @@ bool insert_meta(sqlite3 *db, meta_t *meta) {
     return true;
 }
 
-char *fetch_secret(sqlite3 *db, const int64_t id) {
-    char *secret = NULL;
+bool fetch_secret(MAYBE_UNUSED sqlite3 *db, const int64_t id) {
     if (sqlite3_bind_int64(sql_stmts[FETCH_SEC_STMT], 1, id) != SQLITE_OK) {
-        fprintf(stderr, "Error: Failed to bind sql statement: %s", sqlite3_errmsg(db));
-
         sqlite3_reset(sql_stmts[FETCH_SEC_STMT]);
         sqlite3_clear_bindings(sql_stmts[FETCH_SEC_STMT]);
-        return NULL;
+        return false;
     }
 
     if (sqlite3_step(sql_stmts[FETCH_SEC_STMT]) != SQLITE_ROW) {
-        fprintf(stderr, "Error: Failed to execute statement: %s\n", sqlite3_errmsg(db));
-
         sqlite3_reset(sql_stmts[FETCH_SEC_STMT]);
         sqlite3_clear_bindings(sql_stmts[FETCH_SEC_STMT]);
-        return NULL;
+        return false;
     }
 
-    char *tmp = (char *) sqlite3_column_text(sql_stmts[FETCH_SEC_STMT], 0);
-    if (tmp != NULL) secret = (char *) strdup(tmp);
+    const char *tmp = (char *) sqlite3_column_text(sql_stmts[FETCH_SEC_STMT], 0);
 
+    display_secret(tmp);
     sqlite3_reset(sql_stmts[FETCH_SEC_STMT]);
     sqlite3_clear_bindings(sql_stmts[FETCH_SEC_STMT]);
-    return secret;
+    return true;
 }

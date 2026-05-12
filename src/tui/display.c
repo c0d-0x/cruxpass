@@ -30,15 +30,13 @@ void display_notifctn(char *message) {
     raise(SIGWINCH);
 }
 
-void display_secret(sqlite3 *db, uint16_t id) {
-    char *secret = fetch_secret(db, id);
+void display_secret(const char *secret) {
     if (secret == NULL) {
-        display_notifctn("Error: Failed to fetch secret");
+        display_notifctn("Error: Empty secret");
         return;
     }
 
     int secret_len = strlen((char *) secret);
-
     int term_w = tb_width();
     int term_h = tb_height();
 
@@ -59,9 +57,6 @@ void display_secret(sqlite3 *db, uint16_t id) {
     while (tb_poll_event(&ev) == TB_OK) {
         if (ev.type == TB_EVENT_KEY && (ev.key == TB_KEY_ENTER || ev.ch == 'q' || ev.ch == 'Q')) break;
     }
-
-    sodium_memzero((void *) secret, secret_len);
-    free((void *) secret);
 }
 
 void display_help(void) {
