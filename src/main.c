@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
     char **pos_args = NULL;
     int pos_args_len = parse_args(&cmd_args, argc, argv, &pos_args);
 
-    if ((*gen_secret_len == 0) & (*upper_case || *lower_case || *pin || *unambiguous || *symbols)) {
+    if ((*gen_secret_len == 0) && (*upper_case || *lower_case || *pin || *unambiguous || *symbols)) {
         fprintf(stderr, "Warning: -[ a, A, p, x, s ] has to be combined with -g\n");
         free_args(&cmd_args);
         return EXIT_FAILURE;
@@ -148,7 +148,7 @@ int main(int argc, char **argv) {
     }
 
     if (*new_password) {
-        if (!create_new_master_secret(ctx->secret_db)) {
+        if (!rotate_master_secret(ctx->secret_db)) {
             fprintf(stderr, "Error: Failed to create a new master password\n");
             cleanup_main();
             free_args(&cmd_args);

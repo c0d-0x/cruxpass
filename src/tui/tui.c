@@ -85,10 +85,10 @@ int tui_main(sqlite3 *db) {
             } else if (ev.ch == 'j' || ev.key == TB_KEY_ARROW_DOWN) {
                 if (current_position < records.size - 1) current_position++;
             } else if (ev.ch == 'h' || ev.key == TB_KEY_ARROW_LEFT) {
-                current_position = (current_page - 1) * records_per_page;
+                current_position = (int64_t) (current_page - 1) * records_per_page;
                 if (current_position < 0) current_position = 0;
             } else if (ev.ch == 'l' || ev.key == TB_KEY_ARROW_RIGHT) {
-                current_position = (current_page + 1) * records_per_page;
+                current_position = (int64_t) (current_page + 1) * records_per_page;
                 if (current_position >= records.size) current_position = records.size - 1;
             } else if (ev.ch == 'g' || ev.key == TB_KEY_HOME) {
                 current_position = 0;

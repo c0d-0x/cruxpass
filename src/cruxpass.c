@@ -89,20 +89,20 @@ int export_secrets(sqlite3 *db, const char *export_file) {
  */
 static int process_field(char *field, const int max_length, char *token, const char *field_name, size_t line_number) {
     if (token == NULL) {
-        fprintf(stderr, "Error: Missing %s at line %ld\n", field_name, line_number);
+        fprintf(stderr, "Error: Missing %s at line %zu\n", field_name, line_number);
         return CRXP_ERR;
     }
 
     if ((const int) strlen(token) > max_length) {
-        fprintf(stderr, "Error: %s at line %ld is more than %d characters\n", field_name, line_number, max_length);
+        fprintf(stderr, "Error: %s at line %zu is more than %d characters\n", field_name, line_number, max_length);
         return CRXP_ERR;
     }
 
     if (strlen(token) < FIELD_MIN && (max_length != SECRET_MAX_LEN)) {
-        fprintf(stderr, "Error: %s at line %ld is less than %d characters\n", field_name, line_number, FIELD_MIN);
+        fprintf(stderr, "Error: %s at line %zu is less than %d characters\n", field_name, line_number, FIELD_MIN);
         return CRXP_ERR;
     } else if (strlen(token) < SECRET_MIN_LEN && (max_length == SECRET_MAX_LEN)) {
-        fprintf(stderr, "Error: %s at line %ld is less than %d characters\n", field_name, line_number, SECRET_MIN_LEN);
+        fprintf(stderr, "Error: %s at line %zu is less than %d characters\n", field_name, line_number, SECRET_MIN_LEN);
         return CRXP_ERR;
     }
 
@@ -143,7 +143,7 @@ int import_secrets(sqlite3 *db, const char *import_file) {
             continue;
         }
 
-        if (!insert_record(db, rec)) fprintf(stderr, "Error: Failed to insert record at line: %ld", line_number);
+        if (!insert_record(db, rec)) fprintf(stderr, "Error: Failed to insert record at line: %zu", line_number);
         line_number++;
     }
 
