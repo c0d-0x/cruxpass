@@ -167,7 +167,7 @@ char *get_search_parttern(void) {
     int start_x = (term_w - (SEARCH_TXT_MAX + 2)) / 2;
     int start_y = (term_h - 4) / 2;
     if (start_x <= 0 || start_y <= 0) {
-        display_notifctn("Warning: Term width or height too small");
+        send_notifctn("Warning: Term width or height too small");
         return NULL;
     }
 
@@ -189,7 +189,7 @@ int get_long(char *prompt) {
     int term_h = tb_height();
 
     if (term_w < 64) {
-        display_notifctn("Warning: Term width too small");
+        send_notifctn("Warning: Term width too small");
         return (-1);
     }
 
@@ -246,7 +246,7 @@ int get_long(char *prompt) {
 void get_random_secret(sqlite3 *db, bank_options_t opt) {
     long ran_len = get_long("Secret length");
     if (ran_len > SECRET_MAX_LEN || ran_len < SECRET_MIN_LEN) {
-        display_notifctn("Warning: Invalid secret length");
+        send_notifctn("Warning: Invalid secret length");
         return;
     }
 

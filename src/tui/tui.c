@@ -1,6 +1,3 @@
-#include <stdbool.h>
-#include "cruxpass.h"
-#include "termbox2.h"
 #define TB_IMPL
 #include "tui.h"
 
@@ -16,7 +13,7 @@ int records_per_page = 30;
 
 bool tui_init(void) {
     if (tb_init() != TB_OK) {
-        fprintf(stderr, "Error: Failed to initialize TUS\n");
+        fprintf(stderr, "Error: Failed to initialize TUI\n");
         return false;
     }
 
@@ -32,7 +29,7 @@ void tui_cleanup(void) {
 
 static bool notify_deleted(int64_t id) {
     if (id == DELETED) {
-        display_notifctn("Note: Record not found");
+        send_notifctn("Note: Record not found");
         return true;
     }
     return false;
@@ -109,14 +106,14 @@ int tui_main(sqlite3 *db) {
                     int64_t index = dequeue(&search_queue);
 
                     if (index == QUEUE_ERR) {
-                        display_notifctn("Error: Dequeue failed");
+                        send_notifctn("Error: Dequeue failed");
                         continue;
                     }
 
                     current_position = index;
                     continue;
                 } else {
-                    display_notifctn("Note: Match not found");
+                    send_notifctn("Note: Match not found");
                 }
             } else if (ev.ch == '?') {
                 display_help();
@@ -126,27 +123,27 @@ int tui_main(sqlite3 *db) {
             } else if (ev.ch == 'd') {
                 if (notify_deleted(records.data[current_position].id)) continue;
                 if (!delete_record(db, records.data[current_position].id)) {
-                    display_notifctn("Error: Deletion failed");
+                    send_notifctn("Error: Deletion failed");
                     continue;
                 }
 
-                display_notifctn("Note: Record deleted");
+                send_notifctn("Note: Record deleted");
                 records.data[current_position].id = DELETED;
 
             } else if (ev.ch == 'u') {
                 if (notify_deleted(records.data[current_position].id)) continue;
                 if (!do_updates(db, &records, current_position)) {
-                    display_notifctn("Warning: Rec update failed");
+                    send_notifctn("Warning: Rec update failed");
                     draw_table_border(start_x, start_y, table_h);
                     continue;
                 }
 
-                display_notifctn("Note: Record updated");
+                send_notifctn("Note: Record updated");
                 draw_table_border(start_x, start_y, table_h);
             } else if (ev.key == TB_KEY_ENTER) {
                 if (notify_deleted(records.data[current_position].id)) continue;
                 if (!fetch_secret(db, records.data[current_position].id)) {
-                    display_notifctn("Error: Failed to fetch secret");
+                    send_notifctn("Error: Failed to fetch secret");
                 };
                 draw_table_border(start_x, start_y, table_h);
             } else if (ev.ch == 'L') {
@@ -183,10 +180,10 @@ int tui_main(sqlite3 *db) {
             } else if (ev.key == TB_KEY_CTRL_R) {
                 free_records(&records);
                 if (load_records(db, &records) == 0) {
-                    display_notifctn("Error: TUI Reload failed");
+                    send_notifctn("Error: TUI Reload failed");
                     continue;
                 }
-                display_notifctn("Info: TUI reloaded");
+                send_notifctn("Info: TUI reloaded");
                 current_position = 0;
                 continue;
             }

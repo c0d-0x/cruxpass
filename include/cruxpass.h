@@ -18,8 +18,9 @@
 #include <sqlcipher/sqlite3.h>
 #include <stdbool.h>
 
-#define DESC_MAX_LEN 256
 #define FIELD_MIN 3
+#define BANK_SIZE 80
+#define DESC_MAX_LEN 256
 #define FILE_PATH_LEN 256
 #define MASTER_MAX_LEN 48
 #define MAX_PATH_LEN 512
@@ -66,8 +67,8 @@
 
 typedef struct {
     ssize_t id;
-    char username[USERNAME_MAX_LEN];
-    char secret[SECRET_MAX_LEN];
+    char username[USERNAME_MAX_LEN + 1];
+    char secret[SECRET_MAX_LEN + 1];
     char description[DESC_MAX_LEN];
 } secret_t;
 

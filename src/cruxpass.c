@@ -5,10 +5,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <wchar.h>
 
 #include "crypt.h"
 #include "database.h"
@@ -16,34 +12,34 @@
 char *cruxpass_db_path;
 char *meta_db_path;
 
-char *random_secret(int secret_len, bank_options_t *bank_options) {
+char *random_secret(int secret_len, bank_options_t *opt) {
     if (secret_len < GEN_SECRET_MIN_LEN || secret_len > RAND_SECRET_MAX_LEN) {
         printf("Warning: Secret must be at least %d or %d characters long\n", GEN_SECRET_MIN_LEN, RAND_SECRET_MAX_LEN);
         return NULL;
     }
 
     char *secret = NULL;
-    char *secret_bank = NULL;
-    if ((secret_bank = init_secret_bank(bank_options)) == NULL) {
+    char *bank = NULL;
+    if ((bank = init_secret_bank(opt)) == NULL) {
         fprintf(stderr, "Error: Failed to init secret bank\n");
         return NULL;
     }
 
-    const int bank_len = strlen(secret_bank);
+    const int bank_len = strlen(bank);
     if ((secret = malloc(sizeof(char) * secret_len + 1)) == NULL) CRXP__OUT_OF_MEMORY();
     if (sodium_init() == -1) {
-        free(secret_bank);
+        free(bank);
         free(secret);
         fprintf(stderr, "Error: Failed to initialize libsodium\n");
         return NULL;
     }
 
-    secret[secret_len] = '\0';
     for (int i = 0; i < secret_len; i++) {
-        secret[i] = secret_bank[(int) randombytes_uniform(bank_len)];
+        secret[i] = bank[(int) randombytes_uniform(bank_len)];
     }
 
-    free(secret_bank);
+    free(bank);
+    secret[secret_len] = '\0';
     return secret;
 }
 
@@ -153,7 +149,7 @@ int import_secrets(sqlite3 *db, const char *import_file) {
 }
 
 static bool create_run_dir(const char *path) {
-    int ret = mkdir(path, 0776);
+    int ret = mkdir(path, 0600);
     if (ret == 0) fprintf(stderr, "Info: Run directory created\n");
     else if (errno != EEXIST) {
         fprintf(stderr, "Error: Failed to create run directory: %s\n", strerror(errno));
@@ -246,47 +242,31 @@ vault_ctx_t *initcrux(char *run_dir) {
     }
 }
 
-char *init_secret_bank(const bank_options_t *options) {
-    char all_upper[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    char all_lower[] = "abcdefghijklmnopqrstuvwxyz";
-    char all_numbers[] = "0123456789";
-    char all_symbols[] = "#%&()_+={}[-]:<@>?";
+char *init_secret_bank(const bank_options_t *opt) {
+    if (opt == NULL) return NULL;
+    char *all_upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    char *all_lower = "abcdefghijklmnopqrstuvwxyz";
+    char *all_numbers = "0123456789";
+    char *all_symbols = "#%&()_+={}[-]:<@>?";
 
-    char unambiguous_upper[] = "ABCDEFGHJKLMNPQRSTUVWXYZ";
-    char unambiguous_lower[] = "abcdefghijkmnopqrstuvwxyz";
-    char unambiguous_numbers[] = "123456789";
-    char unambiguous_symbols[] = "#%&()_+={}[-]:<@>?";
+    char *unambiguous_upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+    char *unambiguous_lower = "abcdefghijkmnopqrstuvwxyz";
+    char *unambiguous_numbers = "123456789";
+    char *unambiguous_symbols = "#%&()_+={}[-]:<@>?";
 
-    if (options == NULL) return NULL;
-    size_t bank_len = 0;
-
-    if (options->ex_ambiguous) {
-        if (options->upper) bank_len += strlen(unambiguous_upper);
-        if (options->lower) bank_len += strlen(unambiguous_lower);
-        if (options->digit) bank_len += strlen(unambiguous_numbers);
-        if (options->symbols) bank_len += strlen(unambiguous_symbols);
-    } else {
-        if (options->upper) bank_len += strlen(all_upper);
-        if (options->lower) bank_len += strlen(all_lower);
-        if (options->digit) bank_len += strlen(all_numbers);
-        if (options->symbols) bank_len += strlen(all_symbols);
-    }
-
-    if (bank_len == 0) return NULL;
-    bank_len += 1;
     char *bank = NULL;
-    if ((bank = calloc(bank_len, sizeof(char))) == NULL) CRXP__OUT_OF_MEMORY();
+    if ((bank = calloc(BANK_SIZE, sizeof(char))) == NULL) CRXP__OUT_OF_MEMORY();
 
-    if (options->ex_ambiguous) {
-        if (options->upper) strcat(bank, unambiguous_upper);
-        if (options->lower) strcat(bank, unambiguous_lower);
-        if (options->digit) strcat(bank, unambiguous_numbers);
-        if (options->symbols) strcat(bank, unambiguous_symbols);
+    if (opt->ex_ambiguous) {
+        if (opt->upper) strcat(bank, unambiguous_upper);
+        if (opt->lower) strcat(bank, unambiguous_lower);
+        if (opt->digit) strcat(bank, unambiguous_numbers);
+        if (opt->symbols) strcat(bank, unambiguous_symbols);
     } else {
-        if (options->upper) strcat(bank, all_upper);
-        if (options->lower) strcat(bank, all_lower);
-        if (options->digit) strcat(bank, all_numbers);
-        if (options->symbols) strcat(bank, all_symbols);
+        if (opt->upper) strcat(bank, all_upper);
+        if (opt->lower) strcat(bank, all_lower);
+        if (opt->digit) strcat(bank, all_numbers);
+        if (opt->symbols) strcat(bank, all_symbols);
     }
 
     return bank;

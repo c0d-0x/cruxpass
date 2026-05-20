@@ -426,8 +426,9 @@ bool fetch_secret(MAYBE_UNUSED sqlite3 *db, const int64_t id) {
     }
 
     const char *tmp = (char *) sqlite3_column_text(sql_stmts[FETCH_SEC_STMT], 0);
+    int len = sqlite3_column_bytes(sql_stmts[FETCH_SEC_STMT], 0);
 
-    display_secret(tmp);
+    display_secret(tmp, len);
     sqlite3_reset(sql_stmts[FETCH_SEC_STMT]);
     sqlite3_clear_bindings(sql_stmts[FETCH_SEC_STMT]);
     return true;

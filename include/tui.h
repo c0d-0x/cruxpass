@@ -52,10 +52,10 @@ typedef struct {
 } record_array_t;
 
 typedef struct {
-    int start_x;
-    int start_y;
     int width;
     int height;
+    int start_x;
+    int start_y;
     int64_t cursor;
 } table_t;
 
@@ -88,9 +88,9 @@ bool do_updates(sqlite3 *db, record_array_t *records, int64_t current_position);
 
 void display_help(void);
 void display_desc(char *description);
-void display_notifctn(char *message);
+void send_notifctn(char *message);
 void display_ran_secret(sqlite3 *db, const char *secret);
-void display_secret(const char *secret);
+void display_secret(const char *secret, int len);
 
 bool select_next(queue_t *queue);
 

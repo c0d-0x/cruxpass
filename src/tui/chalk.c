@@ -29,21 +29,21 @@ void draw_art(void) {
     int art_lines = LEN(ascii_art);
     int art_width = wcslen(ascii_art[0]);
 
-    int coord_y = (term_h / 2) - (art_lines / 2) - 3;
-    int coord_x = (term_w - art_width) / 2;
+    int start_y = (term_h / 2) - (art_lines / 2) - 3;
+    int start_x = (term_w - art_width) / 2;
 
-    if (coord_y < 0) coord_y = 0;
-    if (coord_x < 0) coord_x = 0;
+    if (start_y < 0) start_y = 0;
+    if (start_x < 0) start_x = 0;
 
     tb_clear();
     for (int i = 0; i < art_lines; i++) {
         art_width = wcslen(ascii_art[i]);
         for (int j = 0; j < art_width; j++) {
-            tb_set_cell(coord_x++, coord_y, ascii_art[i][j], TB_DEFAULT, TB_DEFAULT);
+            tb_set_cell(start_x++, start_y, ascii_art[i][j], TB_DEFAULT, TB_DEFAULT);
         }
 
-        coord_x -= art_width;
-        coord_y++;
+        start_x -= art_width;
+        start_y++;
     }
 
     tb_present();
@@ -146,7 +146,7 @@ void _draw_table(record_array_t *records, queue_t *search_queue, char *search_pa
             if (records->data[i].id != DELETED
                 && (strstr(records->data[i].username, search_parttern) != NULL
                     || strstr(records->data[i].description, search_parttern) != NULL)) {
-                if (!enqueue(search_queue, i)) display_notifctn("Error: Failed to enqueue record");
+                if (!enqueue(search_queue, i)) send_notifctn("Error: Failed to enqueue record");
             }
         }
     }

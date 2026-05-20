@@ -7,7 +7,7 @@
 #include <string.h>
 #include <wchar.h>
 
-void display_notifctn(char *message) {
+void send_notifctn(char *message) {
     int term_w = tb_width();
     int message_len = strlen(message) + 4;
     if (term_w <= message_len) {
@@ -30,25 +30,24 @@ void display_notifctn(char *message) {
     raise(SIGWINCH);
 }
 
-void display_secret(const char *secret) {
+void display_secret(const char *secret, int len) {
     if (secret == NULL) {
-        display_notifctn("Error: Empty secret");
+        send_notifctn("Error: Empty secret");
         return;
     }
 
-    int secret_len = strlen((char *) secret);
     int term_w = tb_width();
     int term_h = tb_height();
 
-    int start_x = (term_w - (secret_len + 2)) / 2;
+    int start_x = (term_w - (len + 2)) / 2;
     int start_y = (term_h - 4) / 2;
     if (start_x <= 0 || start_y <= 0) {
-        display_notifctn("Warning: Term width or height too small");
+        send_notifctn("Warning: Term width or height too small");
         return;
     }
 
     tb_clear();
-    draw_border(start_x, start_y, secret_len + 4, 3, COLOR_PAGINATION, TB_DEFAULT);
+    draw_border(start_x, start_y, len + 4, 3, COLOR_PAGINATION, TB_DEFAULT);
     tb_print(start_x + 2, start_y, COLOR_HEADER, TB_DEFAULT, "| Secret |");
     tb_print(start_x + 2, start_y + 1, TB_DEFAULT | TB_BOLD, TB_DEFAULT, (char *) secret);
     tb_present();
@@ -67,7 +66,7 @@ void display_help(void) {
     int term_h = tb_height();
 
     if (term_w < 60 + 4 || term_h < 18 + 2) {
-        display_notifctn("Warning: Term width or height too small");
+        send_notifctn("Warning: Term width or height too small");
         return;
     }
 
@@ -103,7 +102,7 @@ void display_help(void) {
 
 void display_desc(char *description) {
     if (description == NULL) {
-        display_notifctn("Warning: Record has no desc");
+        send_notifctn("Warning: Record has no desc");
         return;
     }
 
@@ -116,13 +115,13 @@ void display_desc(char *description) {
     int desc_len = strlen(description);
 
     if (desc_len <= DESC_WIDTH) {
-        display_notifctn("Info: Record fits on screen");
+        send_notifctn("Info: Record fits on screen");
         return;
     }
 
     if (desc_len > desc_win_w) wrapped = true;
     if (term_w < 64 || term_h < 20) {
-        display_notifctn("Warning: Term width or height too small");
+        send_notifctn("Warning: Term width or height too small");
         return;
     }
 
@@ -159,7 +158,7 @@ void display_ran_secret(sqlite3 *db, const char *secret_str) {
     int term_h = tb_height();
 
     if (term_w < sec_win_w) {
-        display_notifctn("Warning: Term width too small");
+        send_notifctn("Warning: Term width too small");
         return;
     }
 
@@ -191,11 +190,13 @@ void display_ran_secret(sqlite3 *db, const char *secret_str) {
             if (strlen(rec.username) == 0 || strlen(rec.description) == 0) return;
             memcpy(rec.secret, secret_str, SECRET_MAX_LEN);
             if (!insert_record(db, &rec)) {
-                display_notifctn("Error: Failed to saved secret");
+                send_notifctn("Error: Failed to saved secret");
                 return;
             };
 
-            display_notifctn("Info: secret saved");
+            sodium_memzero((char *) secret_str, sec_len);
+            sodium_memzero((char *) rec.secret, sec_len);
+            send_notifctn("Info: secret saved");
             break;
         }
     }

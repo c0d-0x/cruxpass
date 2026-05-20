@@ -39,6 +39,7 @@ bool decrypt(sqlite3 *db, unsigned char *key) {
 
     if (sqlite3_exec(db, "PRAGMA cipher_memory_security = ON;", NULL, NULL, NULL) != SQLITE_OK) {
         fprintf(stderr, "Error: Failed to enable memory security: %s\n", sqlite3_errmsg(db));
+        return false;
     }
 
     if (sqlite3_exec(db, "SELECT count(*) FROM sqlite_master;", NULL, NULL, NULL) != SQLITE_OK) {
