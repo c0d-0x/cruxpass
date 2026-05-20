@@ -1,6 +1,5 @@
 # CHANGELOG
 
-## [Unreleased] - 2026-01-16
 
 ### BREAKING
 
@@ -15,10 +14,11 @@
 
 ### Security
 
-- Use explicit ARGON2ID13 for key derivation.
+- Use explicit ARGON2ID1 for key derivation.
 - Zero sensitive memory before deallocation to reduce memory exposure of secrets.
 - Enabled SQLite cipher memory security.
 - Fail early on allocation errors and disable direct DB stderr output.
+- Fixed memory and int overflow bugs in the TUI
 
 ### Changed
 
