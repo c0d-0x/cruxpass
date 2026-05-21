@@ -149,7 +149,7 @@ int import_secrets(sqlite3 *db, const char *import_file) {
 }
 
 static bool create_run_dir(const char *path) {
-    int ret = mkdir(path, 0600);
+    int ret = mkdir(path, 0776);
     if (ret == 0) fprintf(stderr, "Info: Run directory created\n");
     else if (errno != EEXIST) {
         fprintf(stderr, "Error: Failed to create run directory: %s\n", strerror(errno));
@@ -197,7 +197,7 @@ static bool validate_run_dir(char *path) {
         return false;
     }
 
-    struct stat file_stat;
+    struct stat file_stat = {0};
     if (stat(path, &file_stat) != 0) {
         fprintf(stderr, "Error: [ %s ] is either missing or not a valid directory\n", path);
         if (allocated) free(path);

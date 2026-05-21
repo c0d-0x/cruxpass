@@ -252,6 +252,7 @@ void sig_handler(int sig) {
 }
 
 void cleanup_main(void) {
+    tui_cleanup();
     sqlite3_close(ctx->secret_db);
     cleanup_stmts();
     if (cruxpass_db_path != NULL) free(cruxpass_db_path);
