@@ -252,7 +252,7 @@ char *init_secret_bank(const bank_options_t *opt) {
     char *unambiguous_upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
     char *unambiguous_lower = "abcdefghijkmnopqrstuvwxyz";
     char *unambiguous_numbers = "123456789";
-    char *unambiguous_symbols = "#%&()_+={}[-]:<@>?";
+    char *unambiguous_symbols = "#%&()_+={}[-]:@?";
 
     char *bank = NULL;
     if ((bank = calloc(BANK_SIZE, sizeof(char))) == NULL) CRXP__OUT_OF_MEMORY();
