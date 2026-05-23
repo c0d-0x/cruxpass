@@ -19,7 +19,7 @@
 #include <stdbool.h>
 
 #define FIELD_MIN 3
-#define BANK_SIZE 80
+#define BANK_SIZE 92
 #define DESC_MAX_LEN 256
 #define FILE_PATH_LEN 256
 #define MASTER_MAX_LEN 48

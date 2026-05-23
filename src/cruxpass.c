@@ -247,7 +247,7 @@ char *init_secret_bank(const bank_options_t *opt) {
     char *all_upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     char *all_lower = "abcdefghijklmnopqrstuvwxyz";
     char *all_numbers = "0123456789";
-    char *all_symbols = "#%&()_+={}[-]:<@>?";
+    char *all_symbols = "#%&()_+={}[-]:<@>?!";
 
     char *unambiguous_upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
     char *unambiguous_lower = "abcdefghijkmnopqrstuvwxyz";
