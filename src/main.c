@@ -112,6 +112,8 @@ int main(int argc, char **argv) {
         }
 
         fprintf(stdout, "secret: %s\n", secret);
+        sodium_memzero(secret, sizeof(secret));
+
         free(secret);
         free_args(&cmd_args);
         return EXIT_SUCCESS;
@@ -253,8 +255,8 @@ void sig_handler(int sig) {
 
 void cleanup_main(void) {
     tui_cleanup();
-    sqlite3_close(ctx->secret_db);
     cleanup_stmts();
+    sqlite3_close(ctx->secret_db);
     if (cruxpass_db_path != NULL) free(cruxpass_db_path);
     if (meta_db_path != NULL) free(meta_db_path);
 

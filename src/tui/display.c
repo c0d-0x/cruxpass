@@ -7,10 +7,10 @@
 #include <string.h>
 #include <wchar.h>
 
-void send_notifctn(char *message) {
+void send_notifctn(char *msg) {
     int term_w = tb_width();
-    int message_len = strlen(message) + 4;
-    if (term_w <= message_len) {
+    int msg_len = strlen(msg) + 4;
+    if (term_w <= msg_len) {
         tb_clear();
         tb_print(2, 2 / 2, COLOR_STATUS, TB_DEFAULT, "Error: Terminal width too small");
         tb_present();
@@ -20,11 +20,17 @@ void send_notifctn(char *message) {
         return;
     }
 
-    int start_x = term_w - (message_len + 3);
+    int start_x = term_w - (msg_len + 3);
     int start_y = 1;
 
-    tb_print(start_x + 2, start_y + 2, COLOR_STATUS, TB_DEFAULT, message);
-    draw_border(start_x, start_y, message_len + 2, 5, COLOR_STATUS, TB_DEFAULT);
+    for (int i = 1; i < 4; i++) {
+        for (int j = 0; j < msg_len + 1; j++) {
+            tb_set_cell(start_x + j + 1, start_y + i, ' ', COLOR_PAGINATION, TB_DEFAULT);
+        }
+    }
+
+    tb_print(start_x + 2, start_y + 2, COLOR_STATUS, TB_DEFAULT, msg);
+    draw_border(start_x, start_y, msg_len + 2, 5, COLOR_STATUS, TB_DEFAULT);
     struct tb_event ev;
     tb_peek_event(&ev, 2000);
     raise(SIGWINCH);
@@ -59,8 +65,8 @@ void display_secret(const char *secret, int len) {
 }
 
 void display_help(void) {
-    int help_win_w = 50;
-    int help_win_h = 15;
+    int win_w = 50;
+    int win_h = 15;
 
     int term_w = tb_width();
     int term_h = tb_height();
@@ -70,11 +76,11 @@ void display_help(void) {
         return;
     }
 
-    int start_x = (term_w - (help_win_w)) / 2;
-    int start_y = (term_h - help_win_h) / 2;
+    int start_x = (term_w - (win_w)) / 2;
+    int start_y = (term_h - win_h) / 2;
 
     tb_clear();
-    draw_border(start_x, start_y, help_win_w + 4, help_win_h + 2, COLOR_PAGINATION, TB_DEFAULT);
+    draw_border(start_x, start_y, win_w + 4, win_h + 2, COLOR_PAGINATION, TB_DEFAULT);
     tb_print(start_x + 2, start_y, COLOR_HEADER, TB_DEFAULT, "| Help |");
 
     int line = start_y + 2;
@@ -106,8 +112,8 @@ void display_desc(char *description) {
         return;
     }
 
-    int desc_win_w = 64;
-    int desc_win_h = 8;
+    int win_w = 64;
+    int win_h = 8;
     bool wrapped = false;
 
     int term_w = tb_width();
@@ -119,25 +125,25 @@ void display_desc(char *description) {
         return;
     }
 
-    if (desc_len > desc_win_w) wrapped = true;
+    if (desc_len > win_w) wrapped = true;
     if (term_w < 64 || term_h < 20) {
         send_notifctn("Warning: Term width or height too small");
         return;
     }
 
-    int start_x = (term_w - (desc_win_w)) / 2;
-    int start_y = (term_h - desc_win_h) / 2;
+    int start_x = (term_w - (win_w)) / 2;
+    int start_y = (term_h - win_h) / 2;
 
     tb_clear();
-    draw_border(start_x, start_y, desc_win_w + 4, desc_win_h, COLOR_PAGINATION, TB_DEFAULT);
+    draw_border(start_x, start_y, win_w + 4, win_h, COLOR_PAGINATION, TB_DEFAULT);
     tb_print(start_x + 2, start_y, COLOR_HEADER, TB_DEFAULT, "| Description |");
 
     int line = start_y + 2;
     char *tmp = description;
 
     do {
-        tb_printf(start_x + 2, line++, TB_DEFAULT | TB_BOLD, TB_DEFAULT, "%-*.*s", desc_win_w, desc_win_w, tmp);
-        tmp += desc_win_w;
+        tb_printf(start_x + 2, line++, TB_DEFAULT | TB_BOLD, TB_DEFAULT, "%-*.*s", win_w, win_w, tmp);
+        tmp += win_w;
         if (tmp - description >= desc_len) break;
     } while (wrapped);
 
@@ -151,22 +157,22 @@ void display_desc(char *description) {
 
 void display_ran_secret(sqlite3 *db, const char *secret_str) {
     int sec_len = strlen((char *) secret_str);
-    int sec_win_w = (sec_len + 2 < (MIN_WIN_WIDTH + 2)) ? MIN_WIN_WIDTH : sec_len + 2;
-    int sec_win_h = 4;
+    int win_w = (sec_len + 2 < (MIN_WIN_WIDTH + 2)) ? MIN_WIN_WIDTH : sec_len + 2;
+    int win_h = 4;
 
     int term_w = tb_width();
     int term_h = tb_height();
 
-    if (term_w < sec_win_w) {
+    if (term_w < win_w) {
         send_notifctn("Warning: Term width too small");
         return;
     }
 
-    int start_x = (term_w - (sec_win_w)) / 2;
-    int start_y = (term_h - sec_win_h) / 2;
+    int start_x = (term_w - (win_w)) / 2;
+    int start_y = (term_h - win_h) / 2;
 
     tb_clear();
-    draw_border(start_x, start_y, sec_win_w + 2, sec_win_h + 2, COLOR_PAGINATION, TB_DEFAULT);
+    draw_border(start_x, start_y, win_w + 2, win_h + 2, COLOR_PAGINATION, TB_DEFAULT);
     tb_print(start_x + 2, start_y, COLOR_HEADER, TB_DEFAULT, "| Random Secret |");
 
     int line = start_y + 2;

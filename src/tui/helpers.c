@@ -2,6 +2,7 @@
 #include "database.h"
 #include "tui.h"
 
+#include <sodium/utils.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
@@ -89,9 +90,11 @@ bool do_updates(sqlite3 *db, record_array_t *records, int64_t current_position) 
     if (flag & UPDATE_USERNAME) memcpy(records->data[current_position].username, rec.username, USERNAME_MAX_LEN);
 
     if (!update_record(db, &rec, id, flag)) {
+        if (flag & UPDATE_SECRET) sodium_memzero(rec.secret, SECRET_MAX_LEN);
         send_notifctn("Error: Rec not updated");
         return false;
     }
 
+    if (flag & UPDATE_SECRET) sodium_memzero(rec.secret, SECRET_MAX_LEN);
     return true;
 }

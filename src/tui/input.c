@@ -60,6 +60,7 @@ char *get_input(const char *prompt, char *input, const int input_len, int start_
                 tb_present();
             }
         } else if (ev.type == TB_EVENT_RESIZE) {
+            tb_present();
             continue;
         }
     }
@@ -181,7 +182,7 @@ char *get_search_parttern(void) {
     return search_parttern;
 }
 
-int get_long(char *prompt) {
+bool get_long(char *prompt, long *out) {
     int sec_win_h = 3;
     int sec_win_w = MIN_WIN_WIDTH;
 
@@ -190,7 +191,7 @@ int get_long(char *prompt) {
 
     if (term_w < 64) {
         send_notifctn("Warning: Term width too small");
-        return (-1);
+        return false;
     }
 
     int start_x = (term_w - sec_win_w) / 2;
@@ -237,21 +238,24 @@ int get_long(char *prompt) {
     }
 
     tb_hide_cursor();
-    long result = strtol(input, NULL, 10);
-    if (errno == ERANGE) return (-1);
+    *out = strtol(input, NULL, 10);
+    if (errno == ERANGE) return false;
 
-    return result;
+    return true;
 }
 
 void get_random_secret(sqlite3 *db, bank_options_t opt) {
-    long ran_len = get_long("Secret length");
+    long ran_len = 0;
+    if (!get_long("Secret length", &ran_len)) return;
+
     if (ran_len > SECRET_MAX_LEN || ran_len < SECRET_MIN_LEN) {
         send_notifctn("Warning: Invalid secret length");
         return;
     }
 
-    char *secret_str = random_secret(ran_len, &opt);
-    if (secret_str == NULL) return;
-    display_ran_secret(db, secret_str);
-    free(secret_str);
+    char *secret = random_secret(ran_len, &opt);
+    if (secret == NULL) return;
+    display_ran_secret(db, secret);
+    sodium_memzero(secret, sizeof(secret));
+    free(secret);
 }

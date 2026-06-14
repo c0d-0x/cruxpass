@@ -38,13 +38,13 @@ int64_t dequeue(queue_t *queue) {
     }
 
     int64_t index = queue->data[queue->head];
-    queue->head = (queue->head + 1) % queue->capacity;
+    queue->head = (queue->head + 1) % queue->size;
     return index;
 }
 
-bool queue_full(queue_t *queue) { return queue->capacity == queue->size && queue->data != NULL; }
+bool queue_full(queue_t *queue) { return queue != NULL && queue->capacity == queue->size && queue->data != NULL; }
 
-bool queue_empty(queue_t *queue) { return queue->data == NULL; }
+bool queue_empty(queue_t *queue) { return queue == NULL || queue->data == NULL; }
 
 void free_queue(queue_t *queue) {
     if (queue->data != NULL) {
@@ -54,6 +54,5 @@ void free_queue(queue_t *queue) {
         queue->head = 0;
         queue->size = 0;
         queue->tail = 0;
-        queue->data = NULL;
     }
 }

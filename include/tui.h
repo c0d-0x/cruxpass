@@ -72,7 +72,7 @@ void tui_cleanup(void);
 int tui_main(sqlite3 *db);
 int tui_pipeline(void *data, int argc, char **argv, char **column_name);
 
-int get_long(char *prompt);
+bool get_long(char *prompt, long *out);
 char *get_search_parttern(void);
 char *get_secret(const char *prompt);
 void get_random_secret(sqlite3 *db, bank_options_t opt);
