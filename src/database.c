@@ -68,12 +68,12 @@ static int create_databases(vault_ctx_t *ctx) {
 
     tui_init();
     tb_clear();
-    tb_print(0, 2, TB_DEFAULT, TB_DEFAULT, "Create a new master password for cruxpass.");
+    tb_print(0, 2, TB_DEFAULT, TB_DEFAULT, "Create a new login password/secret for cruxpass.");
     tb_present();
-    char *master_psswd = get_input("> Enter password: ", NULL, MASTER_MAX_LEN, 0, 3);
+    char *login_secret = get_input("> Enter password: ", NULL, LOGIN_MAX_LEN, 0, 3);
     tui_cleanup();
 
-    if (master_psswd == NULL || strlen(master_psswd) < SECRET_MIN_LEN) {
+    if (strlen(login_secret) < SECRET_MIN_LEN) {
         fprintf(stderr, "Error: password invalid\n");
         return CRXP_ERR;
     }
@@ -83,15 +83,17 @@ static int create_databases(vault_ctx_t *ctx) {
     randombytes_buf(meta->salt, SALT_LEN);
 
     if ((key = (unsigned char *) sodium_malloc(KEY_LEN)) == NULL) CRXP__OUT_OF_MEMORY();
-    if (!key_gen(key, master_psswd, meta->salt)) {
+    if (!key_gen(key, login_secret, meta->salt)) {
+        sodium_memzero(login_secret, LOGIN_MAX_LEN);
         sodium_memzero(key, KEY_LEN);
         sodium_free(key);
-        free(master_psswd);
+        free(login_secret);
         free(meta);
         return CRXP_ERR;
     }
 
-    free(master_psswd);
+    sodium_memzero(login_secret, LOGIN_MAX_LEN);
+    free(login_secret);
     if (!decrypt(ctx->secret_db, key)) {
         sodium_memzero(key, KEY_LEN);
         sodium_free(key);
@@ -354,10 +356,8 @@ bool update_meta(sqlite3 *db, meta_t *meta) {
     char *sql_fmt_str = NULL;
     sqlite3_stmt *sql_stmt = NULL;
     if (db == NULL) {
+        if ((db = open_db(meta_db_path, SQLITE_OPEN_READWRITE)) == NULL) return false;
         db_self = true;
-        if ((db = open_db(meta_db_path, SQLITE_OPEN_READWRITE)) == NULL) {
-            return false;
-        }
     }
 
     sql_fmt_str = "UPDATE meta SET salt = ? WHERE id = ?;";
@@ -379,10 +379,8 @@ bool insert_meta(sqlite3 *db, meta_t *meta) {
     sql_fmt_str = "INSERT INTO meta (salt, version) VALUES (?, ?);";
 
     if (db == NULL) {
+        if ((db = open_db(meta_db_path, SQLITE_OPEN_READWRITE)) == NULL) return NULL;
         db_self = true;
-        if ((db = open_db(meta_db_path, SQLITE_OPEN_READWRITE)) == NULL) {
-            return NULL;
-        }
     }
 
     if (sqlite3_prepare_v2(db, sql_fmt_str, -1, &sql_stmt, NULL) != SQLITE_OK) {

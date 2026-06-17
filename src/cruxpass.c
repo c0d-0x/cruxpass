@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <wchar.h>
 
 #include "crypt.h"
 #include "database.h"
@@ -107,11 +109,11 @@ static int process_field(char *field, const int max_length, char *token, const c
 }
 
 int import_secrets(sqlite3 *db, const char *import_file) {
-    FILE *fp;
-    size_t line_number = 1;
-    char *saveptr;
-    char buf[BUFFMAX + 1];
+    FILE *fp = NULL;
+    char *saveptr = NULL;
     secret_t *rec = NULL;
+    size_t line_number = 1;
+    char buf[BUFFMAX + 1] = {0};
 
     if ((fp = fopen(import_file, "r")) == NULL) {
         fprintf(stderr, "Error: Failed to open %s: %s", import_file, strerror(errno));
@@ -255,7 +257,8 @@ char *init_secret_bank(const bank_options_t *opt) {
     char *unambiguous_symbols = "#%&()_+={}[-]:@?";
 
     char *bank = NULL;
-    if ((bank = calloc(BANK_SIZE, sizeof(char))) == NULL) CRXP__OUT_OF_MEMORY();
+    if ((bank = malloc(sizeof(char) * BANK_SIZE)) == NULL) CRXP__OUT_OF_MEMORY();
+    sodium_memzero(bank, sizeof(char) * BANK_SIZE);
 
     if (opt->ex_ambiguous) {
         if (opt->upper) strcat(bank, unambiguous_upper);

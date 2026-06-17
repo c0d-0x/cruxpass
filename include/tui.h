@@ -67,6 +67,15 @@ typedef struct {
     int64_t *data;
 } queue_t;
 
+/**
+ * NOTE: No readline to handle term input and cruxpass
+ * relies fully on termbox2 events for input handling (TUI).
+ * Because of this, a single ptty is shared between the
+ * tui and the main application term. This means operations
+ * with std(i/o) messes up the tui. As a result, tui_init() has to
+ * called before any tui functions are called and tui_cleanup() afterwards.
+ */
+
 bool tui_init(void);
 void tui_cleanup(void);
 int tui_main(sqlite3 *db);

@@ -19,7 +19,7 @@
 #define SALT_LEN 16
 #define BUFFMAX SECRET_MAX_LEN + USERNAME_MAX_LEN + DESC_MAX_LEN + 1
 
-bool rotate_master_secret(sqlite3 *db);
+bool rotate_login_secret(sqlite3 *db);
 unsigned char *authenticate(vault_ctx_t *ctx);
 bool decrypt(sqlite3 *db, unsigned char *key);
 bool key_gen(unsigned char *key, const char *const passd_str, unsigned char *salt);

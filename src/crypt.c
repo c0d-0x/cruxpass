@@ -50,7 +50,7 @@ bool decrypt(sqlite3 *db, unsigned char *key) {
     return true;
 }
 
-bool rotate_master_secret(sqlite3 *db) {
+bool rotate_login_secret(sqlite3 *db) {
     bool ok = true;
     meta_t *meta = NULL;
     char *new_secret = NULL;
@@ -61,7 +61,7 @@ bool rotate_master_secret(sqlite3 *db) {
     if ((new_secret = get_secret("New Password: ")) == NULL) {
         tui_cleanup();
         fprintf(stderr, "Warn: Could not get user input\n");
-        sodium_memzero(new_secret, sizeof(char) * MASTER_MAX_LEN);
+        sodium_memzero(new_secret, sizeof(char) * LOGIN_MAX_LEN);
         sodium_free(new_key);
         return !ok;
     }
@@ -69,8 +69,8 @@ bool rotate_master_secret(sqlite3 *db) {
     if ((temp_secret = get_secret("Confirm New Password: ")) == NULL) {
         tui_cleanup();
         fprintf(stderr, "Warn: Could not get user input\n");
-        sodium_memzero(new_secret, sizeof(char) * MASTER_MAX_LEN);
-        sodium_memzero(temp_secret, sizeof(char) * MASTER_MAX_LEN);
+        sodium_memzero(new_secret, sizeof(char) * LOGIN_MAX_LEN);
+        sodium_memzero(temp_secret, sizeof(char) * LOGIN_MAX_LEN);
 
         sodium_free(new_secret);
         sodium_free(temp_secret);
@@ -78,10 +78,10 @@ bool rotate_master_secret(sqlite3 *db) {
     }
 
     tui_cleanup();
-    if (strncmp(new_secret, temp_secret, MASTER_MAX_LEN) != 0) {
+    if (strncmp(new_secret, temp_secret, LOGIN_MAX_LEN) != 0) {
         fprintf(stderr, "Error: Passwords do not match\n");
-        sodium_memzero(new_secret, sizeof(char) * MASTER_MAX_LEN);
-        sodium_memzero(temp_secret, sizeof(char) * MASTER_MAX_LEN);
+        sodium_memzero(new_secret, sizeof(char) * LOGIN_MAX_LEN);
+        sodium_memzero(temp_secret, sizeof(char) * LOGIN_MAX_LEN);
 
         sodium_free(new_secret);
         sodium_free(temp_secret);
@@ -111,8 +111,8 @@ bool rotate_master_secret(sqlite3 *db) {
 
 defer:
     free(meta);
-    sodium_memzero(new_secret, sizeof(char) * MASTER_MAX_LEN);
-    sodium_memzero(temp_secret, sizeof(char) * MASTER_MAX_LEN);
+    sodium_memzero(new_secret, sizeof(char) * LOGIN_MAX_LEN);
+    sodium_memzero(temp_secret, sizeof(char) * LOGIN_MAX_LEN);
     sodium_memzero(new_key, KEY_LEN);
 
     sodium_free(temp_secret);
@@ -126,7 +126,7 @@ defer:
  */
 unsigned char *authenticate(vault_ctx_t *ctx) {
     meta_t *meta = NULL;
-    char *master_passd = NULL;
+    char *login_secret = NULL;
     unsigned char *key = NULL;
 
     if ((meta = fetch_meta()) == NULL) {
@@ -134,7 +134,7 @@ unsigned char *authenticate(vault_ctx_t *ctx) {
     }
 
     tui_init();
-    if ((master_passd = get_secret("Master Password: ")) == NULL) {
+    if ((login_secret = get_secret("Login Password: ")) == NULL) {
         tui_cleanup();
         free(meta);
         return NULL;
@@ -142,20 +142,20 @@ unsigned char *authenticate(vault_ctx_t *ctx) {
     tui_cleanup();
 
     if ((key = (unsigned char *) sodium_malloc(sizeof(unsigned char) * KEY_LEN)) == NULL) CRXP__OUT_OF_MEMORY();
-    if (!key_gen(key, master_passd, meta->salt)) {
+    if (!key_gen(key, login_secret, meta->salt)) {
         fprintf(stderr, "Error: Failed to generate description key\n");
-        sodium_memzero(master_passd, sizeof(char) * MASTER_MAX_LEN);
+        sodium_memzero(login_secret, sizeof(char) * LOGIN_MAX_LEN);
         sodium_memzero(key, KEY_LEN);
 
-        sodium_free(master_passd);
+        sodium_free(login_secret);
         sodium_free(key);
         free(meta);
         return NULL;
     }
 
     free(meta);
-    sodium_memzero(master_passd, sizeof(char) * MASTER_MAX_LEN);
-    sodium_free(master_passd);
+    sodium_memzero(login_secret, sizeof(char) * LOGIN_MAX_LEN);
+    sodium_free(login_secret);
 
     if (!decrypt(ctx->secret_db, key)) {
         sodium_memzero(key, KEY_LEN);

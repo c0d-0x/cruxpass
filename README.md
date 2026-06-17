@@ -208,12 +208,12 @@ Your CSV file should have three columns:
 
 ### Field Limits
 
-| Field                 | Minimum | Maximum   |
-| --------------------- | ------- | --------- |
-| Login/Master password | 8 chars | 48 chars  |
-| Stored secrets        | 8 chars | 128 chars |
-| Username              | 3 chars | 32 chars  |
-| Description           | 3 chars | 256 chars |
+| Field          | Minimum | Maximum   |
+| -------------- | ------- | --------- |
+| Login password | 8 chars | 48 chars  |
+| Stored secrets | 8 chars | 128 chars |
+| Username       | 3 chars | 32 chars  |
+| Description    | 3 chars | 256 chars |
 
 These limits balance security with usability and can be modified in the source code.
 

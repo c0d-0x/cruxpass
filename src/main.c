@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
     const char **import_file = option_path(&cmd_args, "import", "Import records from a csv file", .short_name = 'i');
     const char **export_file
         = option_path(&cmd_args, "export", "Export all records to a csv format", .short_name = 'e');
-    const bool *new_password = option_flag(&cmd_args, "new-password", "Change your master password", .short_name = 'n');
+    const bool *new_password = option_flag(&cmd_args, "new-password", "Change your login password", .short_name = 'n');
     const long *record_id
         = option_long(&cmd_args, "delete", "Deletes a record by id", .short_name = 'd', .default_value = -1);
     const long *gen_secret_len
@@ -150,14 +150,14 @@ int main(int argc, char **argv) {
     }
 
     if (*new_password) {
-        if (!rotate_master_secret(ctx->secret_db)) {
-            fprintf(stderr, "Error: Failed to create a new master password\n");
+        if (!rotate_login_secret(ctx->secret_db)) {
+            fprintf(stderr, "Error: Failed to create a new login password\n");
             cleanup_main();
             free_args(&cmd_args);
             return EXIT_FAILURE;
         }
 
-        fprintf(stderr, "Note: Master password changed successfully.\n");
+        fprintf(stderr, "Note: Login password changed successfully.\n");
     }
 
     if (*save) {
@@ -237,11 +237,15 @@ int main(int argc, char **argv) {
     }
 
     if (*list) {
-        tui_main(ctx->secret_db);
+        if (tui_main(ctx->secret_db) == CRXP_ERR) {
+            cleanup_main();
+            free_args(&cmd_args);
+            return EXIT_FAILURE;
+        };
     }
 
-    free_args(&cmd_args);
     cleanup_main();
+    free_args(&cmd_args);
     return EXIT_SUCCESS;
 }
 
@@ -270,7 +274,7 @@ void print_help(Args *cmd_args, const char *program) {
     char *description
         = "A lightweight, command-line password/secrets manager designed to be simple, dependency-light,\nand "
           "transparent. "
-          "It uses an SQLCipher database to manage entries storage, accessed via a master password.\n";
+          "It uses an SQLCipher database to manage entries storage, accessed via a login password.\n";
     char *footer = "It emphasizes simplicity, security, and efficiency for devs and terminal wizards.";
 
     fprintf(stdout, "usage: %s [options]\n\n", program);

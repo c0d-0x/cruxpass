@@ -1,6 +1,5 @@
 # CHANGELOG
 
-
 ### BREAKING
 
 - Replaced password-hash storage with salt-only metadata. `auth.db` is replaced with `meta.db` and only a `128 bit` salt and DB version are stored in the meta table.
@@ -8,7 +7,7 @@
 
 #### Why salt-only storage?
 
-- Earlier versions of cruxpass authenticated users by comparing a hashed master password with a value stored in `auth.db`.
+- Earlier versions of cruxpass authenticated users by comparing a hashed login password with a value stored in `auth.db`.
 - Storing the password hash and the salt in `auth.db` increased the attack surface and hence the new approach.
 - This was unnecessary, as SQLCipher already handles authentication through database encryption.
 
@@ -33,7 +32,7 @@
 
 - Public header and API revisions:
   - Description length increased: 100 → 255
-  - Master password length increased: 45 → 48
+  - Login password length increased: 45 → 48
   - New limit added: generated secrets up to 256 characters
 
 - Storage vs generation size implication:

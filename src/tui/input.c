@@ -81,14 +81,14 @@ char *get_secret(const char *prompt) {
     draw_art();
     int term_w = tb_width();
     int term_h = tb_height();
-    if ((secret = (char *) sodium_malloc(MASTER_MAX_LEN + 1)) == NULL) {
+    if ((secret = (char *) sodium_malloc(LOGIN_MAX_LEN + 1)) == NULL) {
         tui_cleanup();
         CRXP__OUT_OF_MEMORY();
     }
 
     int start_y = (term_h / 2) + 3;
-    int start_x = (term_w - prompt_len - MASTER_MAX_LEN) / 2 - 1;
-    sodium_memzero((void *const) secret, MASTER_MAX_LEN + 1);
+    int start_x = (term_w - prompt_len - LOGIN_MAX_LEN) / 2 - 1;
+    sodium_memzero((void *const) secret, LOGIN_MAX_LEN + 1);
 
     if (start_x < 0) start_x = 0;
     if (start_y >= term_h - 1) start_y = term_h - 2;
@@ -99,7 +99,7 @@ char *get_secret(const char *prompt) {
 
     int position = 0;
     struct tb_event ev = {0};
-    while (position < MASTER_MAX_LEN) {
+    while (position < LOGIN_MAX_LEN) {
         tb_poll_event(&ev);
         if (ev.type == TB_EVENT_KEY) {
             if (ev.key == TB_KEY_ENTER) {
@@ -107,7 +107,7 @@ char *get_secret(const char *prompt) {
             }
 
             if (ev.key == TB_KEY_ESC || ev.key == TB_KEY_CTRL_C) {
-                sodium_memzero((void *const) secret, MASTER_MAX_LEN + 1);
+                sodium_memzero((void *const) secret, LOGIN_MAX_LEN + 1);
                 sodium_free(secret);
                 tb_hide_cursor();
                 return NULL;
@@ -134,7 +134,7 @@ char *get_secret(const char *prompt) {
             term_w = ev.w;
             term_h = ev.h;
             start_y = (term_h / 2) + 4;
-            start_x = (term_w - prompt_len - MASTER_MAX_LEN) / 2;
+            start_x = (term_w - prompt_len - LOGIN_MAX_LEN) / 2;
 
             if (start_x < 0) start_x = 0;
             if (start_y >= term_h - 1) start_y = term_h - 2;
