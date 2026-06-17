@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
     int pos_args_len = parse_args(&cmd_args, argc, argv, &pos_args);
 
     if ((*gen_secret_len == 0) && (*upper_case || *lower_case || *pin || *unambiguous || *symbols)) {
-        fprintf(stderr, "Warning: -[ a, A, p, x, s ] has to be combined with -g\n");
+        fprintf(stderr, "Warning: -[ a, A, p, x, s ] must be combined with -g\n");
         free_args(&cmd_args);
         return EXIT_FAILURE;
     }
@@ -252,8 +252,7 @@ int main(int argc, char **argv) {
 void sig_handler(int sig) {
     cleanup_main();
     tui_cleanup();
-    fprintf(stdout, "Warning: Signal %d Received\n", sig);
-    fprintf(stdout, "Warning: Terminating cruxpass\n");
+    fprintf(stdout, "Warning: Signal \"%s\" Received\n", strsignal(sig));
     exit(EXIT_FAILURE);
 }
 
@@ -273,9 +272,8 @@ void cleanup_main(void) {
 void print_help(Args *cmd_args, const char *program) {
     char *description
         = "A lightweight, command-line password/secrets manager designed to be simple, dependency-light,\nand "
-          "transparent. "
-          "It uses an SQLCipher database to manage entries storage, accessed via a login password.\n";
-    char *footer = "It emphasizes simplicity, security, and efficiency for devs and terminal wizards.";
+          "transparent. It uses an SQLCipher database to manage entries, and storage accessed via a login password.\n";
+    char *footer = "Its philosophy is simplicity, security, and efficiency for devs and terminal wizards.";
 
     fprintf(stdout, "usage: %s [options]\n\n", program);
     fprintf(stdout, "%s\n", description);
