@@ -1,5 +1,12 @@
 # CHANGELOG
-
+### Bugs and minor fixes
+- UDB on search queue in the TUI [here](https://github.com/c0d-0x/cruxpass/commit/0e75594da72b13c128bf772b365c97b3b7eda3b3).
+- Logging and error.
+- Clear notification rendering.
+- Immediate strict zero-out on secrets.
+- Dropped some characters from the ambeguous list.
+  
+## [v2.0.0](https://github.com/c0d-0x/cruxpass/releases/tag/v2.0.0)
 ### BREAKING
 
 - Replaced password-hash storage with salt-only metadata. `auth.db` is replaced with `meta.db` and only a `128 bit` salt and DB version are stored in the meta table.
