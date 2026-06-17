@@ -32,7 +32,7 @@ char *get_input(const char *prompt, char *input, const int input_len, int start_
     }
 
     int position = 0;
-    struct tb_event ev;
+    struct tb_event ev = {0};
     tb_set_cursor(start_x + prompt_len, start_y);
     tb_present();
 
@@ -203,7 +203,7 @@ bool get_long(char *prompt, long *out) {
     if (prompt != NULL) tb_printf(start_x + 2, start_y, COLOR_HEADER, TB_DEFAULT, "| %s |", prompt);
     tb_present();
 
-    struct tb_event ev;
+    struct tb_event ev = {0};
     int position = 0;
     start_x += 2;
     start_y++;

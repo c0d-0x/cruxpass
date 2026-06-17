@@ -18,7 +18,7 @@ static int updates_menu(void) {
     int start_y = (term_h / 2) - 5;
     if (start_y < 0) start_y = 0;
 
-    struct tb_event ev;
+    struct tb_event ev = {0};
 
     draw_update_menu(option, start_x, start_y);
     while (true) {

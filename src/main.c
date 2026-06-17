@@ -6,7 +6,7 @@
 #include <sys/types.h>
 
 #ifndef VERSION
-#define VERSION "v2.0.0"
+#define VERSION "v2.0.1"
 #endif
 
 #define ARGS_HIDE_DEFAULTS

@@ -31,7 +31,7 @@ void send_notifctn(char *msg) {
 
     tb_print(start_x + 2, start_y + 2, COLOR_STATUS, TB_DEFAULT, msg);
     draw_border(start_x, start_y, msg_len + 2, 5, COLOR_STATUS, TB_DEFAULT);
-    struct tb_event ev;
+    struct tb_event ev = {0};
     tb_peek_event(&ev, 2000);
     raise(SIGWINCH);
 }
@@ -58,7 +58,7 @@ void display_secret(const char *secret, int len) {
     tb_print(start_x + 2, start_y + 1, TB_DEFAULT | TB_BOLD, TB_DEFAULT, (char *) secret);
     tb_present();
 
-    struct tb_event ev;
+    struct tb_event ev = {0};
     while (tb_poll_event(&ev) == TB_OK) {
         if (ev.type == TB_EVENT_KEY && (ev.key == TB_KEY_ENTER || ev.ch == 'q' || ev.ch == 'Q')) break;
     }
@@ -102,7 +102,7 @@ void display_help(void) {
     tb_print(start_x + 2, line, TB_DEFAULT, TB_DEFAULT, "Press any key to close...");
 
     tb_present();
-    struct tb_event ev;
+    struct tb_event ev = {0};
     tb_poll_event(&ev);
 }
 
@@ -151,7 +151,7 @@ void display_desc(char *description) {
     tb_print(start_x + 2, line, TB_DEFAULT, TB_DEFAULT, "Press any key to close...");
 
     tb_present();
-    struct tb_event ev;
+    struct tb_event ev = {0};
     tb_poll_event(&ev);
 }
 
@@ -181,7 +181,7 @@ void display_ran_secret(sqlite3 *db, const char *secret_str) {
     tb_print(start_x + 2, line, TB_DEFAULT, TB_DEFAULT, "Press s to save or q to close");
 
     tb_present();
-    struct tb_event ev;
+    struct tb_event ev = {0};
     while (tb_poll_event(&ev) == TB_OK) {
         if (ev.type == TB_EVENT_KEY && (ev.key == TB_KEY_ESC || ev.ch == 'q' || ev.ch == 'Q')) break;
         if (ev.ch == 's' || ev.ch == 'S') {
