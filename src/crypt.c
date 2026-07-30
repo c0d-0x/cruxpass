@@ -33,6 +33,7 @@ bool decrypt(sqlite3 *db, unsigned char *key) {
         return false;
     }
 
+    // TODO: wrap to pin_db_settings
     if (sqlite3_exec(db, "PRAGMA cipher_log_level = NONE;", NULL, NULL, NULL) != SQLITE_OK) {
         fprintf(stderr, "Error: Failed to disable logging to STDERR: %s\n", sqlite3_errmsg(db));
     }

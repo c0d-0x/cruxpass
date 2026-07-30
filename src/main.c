@@ -85,25 +85,11 @@ int main(int argc, char **argv) {
             opt.symbols = true;
         }
 
-        if (*unambiguous) {
-            opt.ex_ambiguous = true;
-        }
-
-        if (*symbols) {
-            opt.symbols = true;
-        }
-
-        if (*pin) {
-            opt.digit = true;
-        }
-
-        if (*upper_case) {
-            opt.upper = true;
-        }
-
-        if (*lower_case) {
-            opt.lower = true;
-        }
+        if (*unambiguous) opt.ex_ambiguous = true;
+        if (*symbols) opt.symbols = true;
+        if (*pin) opt.digit = true;
+        if (*upper_case) opt.upper = true;
+        if (*lower_case) opt.lower = true;
 
         char *secret = NULL;
         if ((secret = random_secret(*gen_secret_len, &opt)) == NULL) {
@@ -195,15 +181,15 @@ int main(int argc, char **argv) {
     if (*import_file != NULL) {
         if (strlen(*import_file) > FILE_PATH_LEN) {
             cleanup_main();
-            free_args(&cmd_args);
             fprintf(stderr, "Warning: Import file name too long [MAX: %d character long]\n", FILE_PATH_LEN);
+            free_args(&cmd_args);
             return EXIT_FAILURE;
         }
 
         if (!import_secrets(ctx->secret_db, (char *) *import_file)) {
             cleanup_main();
-            free_args(&cmd_args);
             fprintf(stderr, "Error: Failed to import secrets from: %s", *import_file);
+            free_args(&cmd_args);
             return EXIT_FAILURE;
         }
 
@@ -260,6 +246,7 @@ void cleanup_main(void) {
     tui_cleanup();
     cleanup_stmts();
     sqlite3_close(ctx->secret_db);
+    free(ctx);
     if (cruxpass_db_path != NULL) free(cruxpass_db_path);
     if (meta_db_path != NULL) free(meta_db_path);
 

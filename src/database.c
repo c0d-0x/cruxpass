@@ -160,6 +160,11 @@ int init_sqlite(void) {
     vault_ctx_t ctx = {0};
     meta_t *meta = NULL;
 
+    if ((meta = fetch_meta()) != NULL) {
+        free(meta);
+        return CRXP_OK;
+    }
+
     if ((ctx.secret_db = open_db(cruxpass_db_path, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX))
         == NULL) {
         return CRXP_ERR;
@@ -170,14 +175,6 @@ int init_sqlite(void) {
         return CRXP_ERR;
     }
 
-    if ((meta = fetch_meta()) != NULL) {
-        free(meta);
-        sqlite3_close(ctx.meta_db);
-        sqlite3_close(ctx.secret_db);
-        return CRXP_OK;
-    }
-
-    free(meta);
     if (!create_databases(&ctx)) {
         sqlite3_close(ctx.meta_db);
         sqlite3_close(ctx.secret_db);
@@ -187,6 +184,36 @@ int init_sqlite(void) {
     sqlite3_close(ctx.meta_db);
     sqlite3_close(ctx.secret_db);
     return CRXP_OKK;
+}
+
+// NOTE: inserts a record(default)  by an array of str_view_t
+int insert_view_record(sqlite3 *db, str_view_t *views) {
+    if (views == NULL) {
+        fprintf(stderr, "Error: Empty record\n");
+        return CRXP_ERR;
+    }
+
+    // clang-format off
+        if (sqlite3_bind_text(sql_stmts[INSERT_REC_STMT], 1, views[VIEW_UNAME].str, views[VIEW_UNAME].len, SQLITE_STATIC) != SQLITE_OK
+            || sqlite3_bind_text(sql_stmts[INSERT_REC_STMT], 2, views[VIEW_SECRET].str, views[VIEW_SECRET].len, SQLITE_STATIC) != SQLITE_OK
+            || sqlite3_bind_text(sql_stmts[INSERT_REC_STMT], 3, views[VIEW_DESC].str, views[VIEW_DESC].len, SQLITE_STATIC) != SQLITE_OK) {
+            fprintf(stderr, "Error: Failed to bind sql statement: %s\n", sqlite3_errmsg(db));
+            sqlite3_reset(sql_stmts[INSERT_REC_STMT]);
+            sqlite3_clear_bindings(sql_stmts[INSERT_REC_STMT]);
+            return CRXP_ERR;
+        }
+    // clang-format on
+
+    if (sqlite3_step(sql_stmts[INSERT_REC_STMT]) != SQLITE_DONE) {
+        fprintf(stderr, "Error: Failed to execute statement: %s\n", sqlite3_errmsg(db));
+        sqlite3_reset(sql_stmts[INSERT_REC_STMT]);
+        sqlite3_clear_bindings(sql_stmts[INSERT_REC_STMT]);
+        return CRXP_ERR;
+    }
+
+    sqlite3_reset(sql_stmts[INSERT_REC_STMT]);
+    sqlite3_clear_bindings(sql_stmts[INSERT_REC_STMT]);
+    return CRXP_OK;
 }
 
 int insert_record(sqlite3 *db, secret_t *record) {
@@ -390,7 +417,7 @@ bool insert_meta(sqlite3 *db, meta_t *meta) {
         return false;
     }
 
-    if (sqlite3_bind_text(sql_stmt, 1, (char *) meta->salt, -1, SQLITE_STATIC) != SQLITE_OK
+    if (sqlite3_bind_text(sql_stmt, 1, (char *) meta->salt, SALT_LEN, SQLITE_STATIC) != SQLITE_OK
         || sqlite3_bind_int(sql_stmt, 2, meta->version) != SQLITE_OK) {
         fprintf(stderr, "Error: Failed to bind sql statement: %s", sqlite3_errmsg(db));
         sqlite3_finalize(sql_stmt);

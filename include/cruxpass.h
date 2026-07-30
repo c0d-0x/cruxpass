@@ -30,6 +30,10 @@
 #define SECRET_MIN_LEN 8
 #define GEN_SECRET_MIN_LEN 4
 #define USERNAME_MAX_LEN 32
+#define CSV_COLUMN 3
+#define CSV_HEADER_UNAME "Username"
+#define CSV_HEADER_PWD "Password"
+#define CSV_HEADER_DSC "Description"
 
 #ifndef CRUXPASS_DB
 #define CRUXPASS_DB "cruxpass.db"
@@ -82,6 +86,17 @@ typedef enum {
     CRXP_OK,
     CRXP_OKK
 } ERROR_T;
+
+typedef struct {
+    int len;
+    char *str;
+} str_view_t;
+
+typedef enum {
+    VIEW_UNAME,
+    VIEW_SECRET,
+    VIEW_DESC
+} index_t;
 
 typedef struct {
     bool upper;

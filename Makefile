@@ -25,7 +25,6 @@ BIN            := bin/cruxpass
 BIN_NAME	   := cruxpass
 
 PREFIX         := /usr/
-OLD_PREFIX_BIN := /usr/local/bin/cruxpass
 
 BASH_COMPLETION_PATH := /usr/share/bash-completion/completions/$(BIN_NAME)
 ZSH_COMPLETION_PATH  := /usr/share/zsh/site-functions/_$(BIN_NAME)
@@ -51,13 +50,6 @@ install: clean
 	@install -d $(PREFIX)/bin
 	@install -m 0755 $(BIN) $(PREFIX)/bin
 
-# migrating from /usr/local/bin/ to /usr/bin/
-# Because bin used to be installed in: /usr/local/bin/ 
-	@echo "Checking for $(OLD_PREFIX_BIN)"
-	@if [ -f "$(OLD_PREFIX_BIN)" ]; then \
-		echo "Removing system-local copy: $(OLD_PREFIX_BIN)"; \
-		 rm -f "$(OLD_PREFIX_BIN)"; \
-	fi
 	@echo '[+] Installation complete.'
 
 .PHONY: all clean install run seed uninstall

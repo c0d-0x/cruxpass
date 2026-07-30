@@ -80,74 +80,118 @@ int export_secrets(sqlite3 *db, const char *export_file) {
 }
 
 /**
- * @field: password_t field
  * @max_length: field MAX, a const
  * @field_name: for error handling
- * @line_number also for error handling
+ * @line_num for error handling
+ * Verifies: length requirements of a given field
  */
-static int process_field(char *field, const int max_length, char *token, const char *field_name, size_t line_number) {
-    if (token == NULL) {
-        fprintf(stderr, "Error: Missing %s at line %zu\n", field_name, line_number);
+static int verify_field(const int max_length, str_view_t view, const char *field_name, size_t line_num) {
+    if (view.str == NULL || view.len == 0) {
+        fprintf(stderr, "Error: Missing %s at line %zu\n", field_name, line_num);
         return CRXP_ERR;
     }
 
-    if ((const int) strlen(token) > max_length) {
-        fprintf(stderr, "Error: %s at line %zu is more than %d characters\n", field_name, line_number, max_length);
+    if (view.len > max_length) {
+        fprintf(stderr, "Error: %s at line %zu is more than %d characters\n", field_name, line_num, max_length);
         return CRXP_ERR;
     }
 
-    if (strlen(token) < FIELD_MIN && (max_length != SECRET_MAX_LEN)) {
-        fprintf(stderr, "Error: %s at line %zu is less than %d characters\n", field_name, line_number, FIELD_MIN);
+    if (view.len < FIELD_MIN && (max_length != SECRET_MAX_LEN)) {
+        fprintf(stderr, "Error: %s at line %zu is less than %d characters\n", field_name, line_num, FIELD_MIN);
         return CRXP_ERR;
-    } else if (strlen(token) < SECRET_MIN_LEN && (max_length == SECRET_MAX_LEN)) {
-        fprintf(stderr, "Error: %s at line %zu is less than %d characters\n", field_name, line_number, SECRET_MIN_LEN);
+    } else if (view.len < SECRET_MIN_LEN && (max_length == SECRET_MAX_LEN)) {
+        fprintf(stderr, "Error: %s at line %zu is less than %d characters\n", field_name, line_num, SECRET_MIN_LEN);
         return CRXP_ERR;
     }
 
-    strncpy(field, token, max_length);
+    // memcpy(field, view.str, view.len);  // TODO: explore zero copy alternatives
+    // field[view.len] = '\0';
     return CRXP_OK;
+}
+
+static char *find_char(char *str, char cc) {
+    if (str == NULL) return NULL;
+    while (*str != '\0' && cc != *str && *str != '\n') str++;
+    if ((*str) == '\0' || *str == '\n') return NULL;
+
+    return str;
+}
+
+static int count_char(char *str, char cc) {
+    int i = 0;
+    char *tmp = str;
+    while ((tmp = find_char(str, cc)) != NULL && ++i) str += (size_t) (tmp - str) + 1;
+
+    return i;
+}
+
+static int chup_bychar(char *buff, str_view_t *views, char cc) {
+    if (views == NULL || buff == NULL) return 0;
+
+    int i = 0;
+    char *tmp = buff;
+    while (i < CSV_COLUMN && tmp != NULL) {
+        tmp = find_char(buff, cc);
+        views[i].str = buff;
+        views[i].len = (tmp != NULL) ? (int) (tmp - buff) : (int) (strlen(buff) - 1);
+
+        buff += views[i].len + 1;
+        i++;
+    };
+
+    return i;
 }
 
 int import_secrets(sqlite3 *db, const char *import_file) {
     FILE *fp = NULL;
-    char *saveptr = NULL;
+    char *buf = NULL;
+    bool ok = true;
+    size_t line_num = 1;
     secret_t *rec = NULL;
-    size_t line_number = 1;
-    char buf[BUFFMAX + 1] = {0};
+    str_view_t views[CSV_COLUMN] = {0};
 
     if ((fp = fopen(import_file, "r")) == NULL) {
         fprintf(stderr, "Error: Failed to open %s: %s", import_file, strerror(errno));
         return CRXP_ERR;
     }
 
-    if ((rec = malloc(sizeof(secret_t))) == NULL) CRXP__OUT_OF_MEMORY();
+    if ((rec = sodium_malloc(sizeof(secret_t))) == NULL) CRXP__OUT_OF_MEMORY();
+    if ((buf = sodium_malloc(sizeof(char) * BUFFMAX + 1)) == NULL) CRXP__OUT_OF_MEMORY();
 
-    // TODO: propre csv parsing
     while (fgets(buf, BUFFMAX, fp) != NULL) {
         buf[strcspn(buf, "\n")] = '\0';
+        if (count_char(buf, ',') != 2) {
+            fprintf(stderr, "Error: Invalid row in %s line: %zu\n", import_file, line_num++);
+            ok = false;
+            break;
+        }
 
-        if (!process_field(rec->username, USERNAME_MAX_LEN, strtok_r(buf, ",", &saveptr), "Username", line_number)) {
-            line_number++;
+        chup_bychar(buf, views, ',');
+        if (!verify_field(USERNAME_MAX_LEN, views[VIEW_UNAME], CSV_HEADER_UNAME, line_num)) {
+            line_num++;
             continue;
         }
 
-        if (!process_field(rec->secret, SECRET_MAX_LEN, strtok_r(NULL, ",", &saveptr), "Password", line_number)) {
-            line_number++;
+        if (!verify_field(SECRET_MAX_LEN, views[VIEW_SECRET], CSV_HEADER_PWD, line_num)) {
+            line_num++;
             continue;
         }
 
-        if (!process_field(rec->description, DESC_MAX_LEN, strtok_r(NULL, ",", &saveptr), "Description", line_number)) {
-            line_number++;
+        if (!verify_field(DESC_MAX_LEN, views[VIEW_DESC], CSV_HEADER_DSC, line_num)) {
+            line_num++;
             continue;
         }
 
-        if (!insert_record(db, rec)) fprintf(stderr, "Error: Failed to insert record at line: %zu", line_number);
-        line_number++;
+        if (!insert_view_record(db, views)) fprintf(stderr, "Error: Failed to insert record at line: %zu", line_num);
+        line_num++;
     }
 
     fclose(fp);
-    free(rec);
-    return CRXP_OK;
+    sodium_memzero((void *) buf, BUFFMAX);
+    sodium_memzero((void *) rec, sizeof(secret_t));
+    sodium_free(buf);
+    sodium_free(rec);
+    return (!ok) ? CRXP_ERR : CRXP_OK;
 }
 
 static bool create_run_dir(const char *path) {
