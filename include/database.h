@@ -30,6 +30,7 @@ bool prepare_stmt(vault_ctx_t *ctx);
 void cleanup_stmts(void);
 
 int init_sqlite(void);
+bool pin_db(sqlite3 *db);
 sqlite3 *open_db(char *db_name, int flags);
 
 meta_t *fetch_meta(void);

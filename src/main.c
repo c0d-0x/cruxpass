@@ -193,7 +193,7 @@ int main(int argc, char **argv) {
             return EXIT_FAILURE;
         }
 
-        fprintf(stderr, "Info: secrets imported successfully from: %s\n", *import_file);
+        fprintf(stderr, "Info: Secrets imported successfully from: %s\n", *import_file);
     }
 
     if (*export_file != NULL) {
@@ -209,17 +209,19 @@ int main(int argc, char **argv) {
             cleanup_main();
             free_args(&cmd_args);
             return EXIT_FAILURE;
-        };
+        }
 
-        fprintf(stderr, "Info: secrets exported successfully to: %s\n", *export_file);
+        fprintf(stderr, "Info: Secrets exported successfully to: %s\n", *export_file);
     }
 
     if (*record_id != -1) {
-        if (!delete_record(ctx->secret_db, *record_id)) {
+        if (delete_record(ctx->secret_db, *record_id) == CRXP_ERR) {
             cleanup_main();
             free_args(&cmd_args);
             return EXIT_FAILURE;
         }
+
+        fprintf(stdout, "Info: Record: %zu deleted\n", *record_id);
     }
 
     if (*list) {
@@ -238,7 +240,7 @@ int main(int argc, char **argv) {
 void sig_handler(int sig) {
     cleanup_main();
     tui_cleanup();
-    fprintf(stdout, "Warning: Signal \"%s\" Received\n", strsignal(sig));
+    fprintf(stdout, "Info: Signal \"%s\" Received\n", strsignal(sig));
     exit(EXIT_FAILURE);
 }
 

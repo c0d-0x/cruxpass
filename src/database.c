@@ -147,13 +147,56 @@ void cleanup_stmts(void) {
 
 sqlite3 *open_db(char *db_name, int flags) {
     sqlite3 *db = NULL;
-    int rc = sqlite3_open_v2(db_name, &db, flags, NULL);
-    if (rc != SQLITE_OK) {
-        fprintf(stderr, "Error: failed to open %s: %s\n", db_name, sqlite3_errmsg(db));
+    if (sqlite3_open_v2(db_name, &db, flags, NULL) != SQLITE_OK) {
+        sqlite3_close(db);
         return NULL;
     }
 
     return db;
+}
+
+bool pin_db(sqlite3 *db) {
+    char sql[64] = {0};
+
+    if (sqlite3_exec(db, "PRAGMA cipher_log_level = NONE;", NULL, NULL, NULL) != SQLITE_OK) {
+        fprintf(stderr, "Error: Failed to disable logging to STDERR: %s\n", sqlite3_errmsg(db));
+    }
+
+    if (sqlite3_exec(db, "PRAGMA cipher_memory_security = ON;", NULL, NULL, NULL) != SQLITE_OK) {
+        fprintf(stderr, "Error: Failed to enable memory security: %s\n", sqlite3_errmsg(db));
+        return false;
+    }
+
+    if (sqlite3_exec(db, "PRAGMA cipher_use_hmac = ON;", NULL, NULL, NULL) != SQLITE_OK) {
+        fprintf(stderr, "Error: Failed to pin per-page HMAC: %s\n", sqlite3_errmsg(db));
+        return false;
+    }
+
+    snprintf(sql, 64, "PRAGMA cipher_hmac_algorithm = %s;", CRXP_HMAC_ALGORITHM);
+    if (sqlite3_exec(db, sql, NULL, NULL, NULL) != SQLITE_OK) {
+        fprintf(stderr, "Error: Failed to pin HMAC algorithm: %s\n", sqlite3_errmsg(db));
+        return false;
+    }
+
+    snprintf(sql, 64, "PRAGMA cipher_kdf_algorithm = %s;", CRXP_KDF_ALGORITHM);
+    if (sqlite3_exec(db, sql, NULL, NULL, NULL) != SQLITE_OK) {
+        fprintf(stderr, "Error: Failed to pin KDF algorithm: %s\n", sqlite3_errmsg(db));
+        return false;
+    }
+
+    snprintf(sql, 64, "PRAGMA kdf_iter = %d;", CRXP_KDF_ITER);
+    if (sqlite3_exec(db, sql, NULL, NULL, NULL) != SQLITE_OK) {
+        fprintf(stderr, "Error: Failed to pin KDF iteration count: %s\n", sqlite3_errmsg(db));
+        return false;
+    }
+
+    snprintf(sql, 64, "PRAGMA cipher_page_size = %d;", CRXP_CIPHER_PAGE_SIZE);
+    if (sqlite3_exec(db, sql, NULL, NULL, NULL) != SQLITE_OK) {
+        fprintf(stderr, "Error: Failed to pin cipher page size: %s\n", sqlite3_errmsg(db));
+        return false;
+    }
+
+    return true;
 }
 
 int init_sqlite(void) {
@@ -167,11 +210,13 @@ int init_sqlite(void) {
 
     if ((ctx.secret_db = open_db(cruxpass_db_path, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX))
         == NULL) {
+        fprintf(stderr, "Error: failed to open %s: %s\n", cruxpass_db_path, sqlite3_errmsg(ctx.secret_db));
         return CRXP_ERR;
     }
 
     if ((ctx.meta_db = open_db(meta_db_path, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX))
         == NULL) {
+        fprintf(stderr, "Error: failed to open %s: %s\n", meta_db_path, sqlite3_errmsg(ctx.meta_db));
         return CRXP_ERR;
     }
 
@@ -258,8 +303,13 @@ int delete_record(sqlite3 *db, int record_id) {
         return CRXP_ERR;
     }
 
-    sqlite3_reset(sql_stmts[DELETE_REC_STMT]);
-    sqlite3_clear_bindings(sql_stmts[DELETE_REC_STMT]);
+    if (sqlite3_total_changes(db) == 0) {
+        fprintf(stderr, "Error: record with %d not found\n", record_id);
+        sqlite3_reset(sql_stmts[DELETE_REC_STMT]);
+        sqlite3_clear_bindings(sql_stmts[DELETE_REC_STMT]);
+        return CRXP_ERR;
+    }
+
     return CRXP_OK;
 }
 

@@ -33,16 +33,7 @@ bool decrypt(sqlite3 *db, unsigned char *key) {
         return false;
     }
 
-    // TODO: wrap to pin_db_settings
-    if (sqlite3_exec(db, "PRAGMA cipher_log_level = NONE;", NULL, NULL, NULL) != SQLITE_OK) {
-        fprintf(stderr, "Error: Failed to disable logging to STDERR: %s\n", sqlite3_errmsg(db));
-    }
-
-    if (sqlite3_exec(db, "PRAGMA cipher_memory_security = ON;", NULL, NULL, NULL) != SQLITE_OK) {
-        fprintf(stderr, "Error: Failed to enable memory security: %s\n", sqlite3_errmsg(db));
-        return false;
-    }
-
+    if (!pin_db(db)) return false;
     if (sqlite3_exec(db, "SELECT count(*) FROM sqlite_master;", NULL, NULL, NULL) != SQLITE_OK) {
         fprintf(stderr, "Warning: Wrong password. Try again\n");
         return false;
@@ -123,7 +114,7 @@ defer:
 }
 
 /**
- * Decrypts the db and returns an encryption key.
+ * Decrypts the db and returns an encryption key open success.
  */
 unsigned char *authenticate(vault_ctx_t *ctx) {
     meta_t *meta = NULL;

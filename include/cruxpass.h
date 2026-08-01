@@ -30,10 +30,16 @@
 #define SECRET_MIN_LEN 8
 #define GEN_SECRET_MIN_LEN 4
 #define USERNAME_MAX_LEN 32
-#define CSV_COLUMN 3
+
+#define CSV_COLUMN_MAX 3
 #define CSV_HEADER_UNAME "Username"
-#define CSV_HEADER_PWD "Password"
-#define CSV_HEADER_DSC "Description"
+#define CSV_HEADER_SECRET "Secret"
+#define CSV_HEADER_DESC "Description"
+
+#define CRXP_KDF_ITER 256000
+#define CRXP_CIPHER_PAGE_SIZE 4096
+#define CRXP_KDF_ALGORITHM "PBKDF2_HMAC_SHA512"
+#define CRXP_HMAC_ALGORITHM "HMAC_SHA512"
 
 #ifndef CRUXPASS_DB
 #define CRUXPASS_DB "cruxpass.db"

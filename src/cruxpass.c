@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <wchar.h>
 
 #include "crypt.h"
 #include "database.h"
@@ -46,7 +45,7 @@ char *random_secret(int secret_len, bank_options_t *opt) {
 }
 
 int export_secrets(sqlite3 *db, const char *export_file) {
-    FILE *fp;
+    FILE *fp = NULL;
     const unsigned char *username = NULL;
     const unsigned char *description = NULL;
     const unsigned char *secret = NULL;
@@ -130,10 +129,10 @@ static int chup_bychar(char *buff, str_view_t *views, char cc) {
 
     int i = 0;
     char *tmp = buff;
-    while (i < CSV_COLUMN && tmp != NULL) {
+    while (i < CSV_COLUMN_MAX && tmp != NULL) {
         tmp = find_char(buff, cc);
         views[i].str = buff;
-        views[i].len = (tmp != NULL) ? (int) (tmp - buff) : (int) (strlen(buff) - 1);
+        views[i].len = (tmp != NULL) ? (int) (tmp - buff) : (int) (strlen(buff));
 
         buff += views[i].len + 1;
         i++;
@@ -148,7 +147,7 @@ int import_secrets(sqlite3 *db, const char *import_file) {
     bool ok = true;
     size_t line_num = 1;
     secret_t *rec = NULL;
-    str_view_t views[CSV_COLUMN] = {0};
+    str_view_t views[CSV_COLUMN_MAX] = {0};
 
     if ((fp = fopen(import_file, "r")) == NULL) {
         fprintf(stderr, "Error: Failed to open %s: %s", import_file, strerror(errno));
@@ -162,8 +161,8 @@ int import_secrets(sqlite3 *db, const char *import_file) {
         buf[strcspn(buf, "\n")] = '\0';
         if (count_char(buf, ',') != 2) {
             fprintf(stderr, "Error: Invalid row in %s line: %zu\n", import_file, line_num++);
-            ok = false;
-            break;
+            line_num++;
+            continue;
         }
 
         chup_bychar(buf, views, ',');
@@ -172,12 +171,12 @@ int import_secrets(sqlite3 *db, const char *import_file) {
             continue;
         }
 
-        if (!verify_field(SECRET_MAX_LEN, views[VIEW_SECRET], CSV_HEADER_PWD, line_num)) {
+        if (!verify_field(SECRET_MAX_LEN, views[VIEW_SECRET], CSV_HEADER_SECRET, line_num)) {
             line_num++;
             continue;
         }
 
-        if (!verify_field(DESC_MAX_LEN, views[VIEW_DESC], CSV_HEADER_DSC, line_num)) {
+        if (!verify_field(DESC_MAX_LEN, views[VIEW_DESC], CSV_HEADER_DESC, line_num)) {
             line_num++;
             continue;
         }
