@@ -231,17 +231,17 @@ int init_sqlite(void) {
     return CRXP_OKK;
 }
 
-// NOTE: inserts a record(default)  by an array of str_view_t
-int insert_view_record(sqlite3 *db, str_view_t *views) {
-    if (views == NULL) {
+// NOTE: inserts a record by an array of str_view_t
+int insert_view_record(sqlite3 *db, str_view_t *view_tab) {
+    if (view_tab == NULL) {
         fprintf(stderr, "Error: Empty record\n");
         return CRXP_ERR;
     }
 
     // clang-format off
-        if (sqlite3_bind_text(sql_stmts[INSERT_REC_STMT], 1, views[VIEW_UNAME].str, views[VIEW_UNAME].len, SQLITE_STATIC) != SQLITE_OK
-            || sqlite3_bind_text(sql_stmts[INSERT_REC_STMT], 2, views[VIEW_SECRET].str, views[VIEW_SECRET].len, SQLITE_STATIC) != SQLITE_OK
-            || sqlite3_bind_text(sql_stmts[INSERT_REC_STMT], 3, views[VIEW_DESC].str, views[VIEW_DESC].len, SQLITE_STATIC) != SQLITE_OK) {
+        if (sqlite3_bind_text(sql_stmts[INSERT_REC_STMT], 1, view_tab[VIEW_UNAME].str, view_tab[VIEW_UNAME].len, SQLITE_STATIC) != SQLITE_OK
+            || sqlite3_bind_text(sql_stmts[INSERT_REC_STMT], 2, view_tab[VIEW_SECRET].str, view_tab[VIEW_SECRET].len, SQLITE_STATIC) != SQLITE_OK
+            || sqlite3_bind_text(sql_stmts[INSERT_REC_STMT], 3, view_tab[VIEW_DESC].str, view_tab[VIEW_DESC].len, SQLITE_STATIC) != SQLITE_OK) {
             fprintf(stderr, "Error: Failed to bind sql statement: %s\n", sqlite3_errmsg(db));
             sqlite3_reset(sql_stmts[INSERT_REC_STMT]);
             sqlite3_clear_bindings(sql_stmts[INSERT_REC_STMT]);
@@ -261,6 +261,7 @@ int insert_view_record(sqlite3 *db, str_view_t *views) {
     return CRXP_OK;
 }
 
+// NOTE: inserts a record by a secret_t
 int insert_record(sqlite3 *db, secret_t *record) {
     if (record == NULL) {
         fprintf(stderr, "Error: Empty record\n");
@@ -394,7 +395,7 @@ meta_t *fetch_meta(void) {
     }
 
     if (sqlite3_bind_int64(sql_stmt, 1, id) != SQLITE_OK) {
-        fprintf(stderr, "Error: Failed to bind sql statement: %s", sqlite3_errmsg(meta_db));
+        fprintf(stderr, "Error: Failed to bind sql statement: %s\n", sqlite3_errmsg(meta_db));
         sqlite3_finalize(sql_stmt);
         sqlite3_close(meta_db);
         free(meta);

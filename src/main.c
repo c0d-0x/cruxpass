@@ -85,11 +85,11 @@ int main(int argc, char **argv) {
             opt.symbols = true;
         }
 
-        if (*unambiguous) opt.ex_ambiguous = true;
-        if (*symbols) opt.symbols = true;
         if (*pin) opt.digit = true;
+        if (*symbols) opt.symbols = true;
         if (*upper_case) opt.upper = true;
         if (*lower_case) opt.lower = true;
+        if (*unambiguous) opt.ex_ambiguous = true;
 
         char *secret = NULL;
         if ((secret = random_secret(*gen_secret_len, &opt)) == NULL) {
@@ -113,7 +113,7 @@ int main(int argc, char **argv) {
         }
     }
 
-    struct sigaction sigact;
+    struct sigaction sigact = {0};
     sigemptyset(&sigact.sa_mask);
     sigact.sa_handler = sig_handler;
     sigact.sa_flags = SA_RESTART;
@@ -249,9 +249,9 @@ void cleanup_main(void) {
     cleanup_stmts();
     sqlite3_close(ctx->secret_db);
     free(ctx);
+
     if (cruxpass_db_path != NULL) free(cruxpass_db_path);
     if (meta_db_path != NULL) free(meta_db_path);
-
     if (key != NULL) {
         sodium_memzero(key, KEY_LEN);
         sodium_free(key);

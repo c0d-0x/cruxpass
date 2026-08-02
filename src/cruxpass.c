@@ -103,8 +103,6 @@ static int verify_field(const int max_length, str_view_t view, const char *field
         return CRXP_ERR;
     }
 
-    // memcpy(field, view.str, view.len);  // TODO: explore zero copy alternatives
-    // field[view.len] = '\0';
     return CRXP_OK;
 }
 
@@ -144,19 +142,15 @@ static int chup_bychar(char *buff, str_view_t *views, char cc) {
 int import_secrets(sqlite3 *db, const char *import_file) {
     FILE *fp = NULL;
     char *buf = NULL;
-    bool ok = true;
     size_t line_num = 1;
-    secret_t *rec = NULL;
-    str_view_t views[CSV_COLUMN_MAX] = {0};
+    str_view_t view_tab[CSV_COLUMN_MAX] = {0};
 
     if ((fp = fopen(import_file, "r")) == NULL) {
         fprintf(stderr, "Error: Failed to open %s: %s", import_file, strerror(errno));
         return CRXP_ERR;
     }
 
-    if ((rec = sodium_malloc(sizeof(secret_t))) == NULL) CRXP__OUT_OF_MEMORY();
     if ((buf = sodium_malloc(sizeof(char) * BUFFMAX + 1)) == NULL) CRXP__OUT_OF_MEMORY();
-
     while (fgets(buf, BUFFMAX, fp) != NULL) {
         buf[strcspn(buf, "\n")] = '\0';
         if (count_char(buf, ',') != 2) {
@@ -165,37 +159,34 @@ int import_secrets(sqlite3 *db, const char *import_file) {
             continue;
         }
 
-        chup_bychar(buf, views, ',');
-        if (!verify_field(USERNAME_MAX_LEN, views[VIEW_UNAME], CSV_HEADER_UNAME, line_num)) {
+        chup_bychar(buf, view_tab, ',');
+        if (!verify_field(USERNAME_MAX_LEN, view_tab[VIEW_UNAME], CSV_HEADER_UNAME, line_num)) {
             line_num++;
             continue;
         }
 
-        if (!verify_field(SECRET_MAX_LEN, views[VIEW_SECRET], CSV_HEADER_SECRET, line_num)) {
+        if (!verify_field(SECRET_MAX_LEN, view_tab[VIEW_SECRET], CSV_HEADER_SECRET, line_num)) {
             line_num++;
             continue;
         }
 
-        if (!verify_field(DESC_MAX_LEN, views[VIEW_DESC], CSV_HEADER_DESC, line_num)) {
+        if (!verify_field(DESC_MAX_LEN, view_tab[VIEW_DESC], CSV_HEADER_DESC, line_num)) {
             line_num++;
             continue;
         }
 
-        if (!insert_view_record(db, views)) fprintf(stderr, "Error: Failed to insert record at line: %zu", line_num);
+        if (!insert_view_record(db, view_tab)) fprintf(stderr, "Error: Failed to insert record at line: %zu", line_num);
         line_num++;
     }
 
     fclose(fp);
     sodium_memzero((void *) buf, BUFFMAX);
-    sodium_memzero((void *) rec, sizeof(secret_t));
     sodium_free(buf);
-    sodium_free(rec);
-    return (!ok) ? CRXP_ERR : CRXP_OK;
+    return CRXP_OK;
 }
 
 static bool create_run_dir(const char *path) {
-    int ret = mkdir(path, 0776);
-    if (ret == 0) fprintf(stderr, "Info: Run directory created\n");
+    if (mkdir(path, 0776) == 0) fprintf(stderr, "Info: Run directory created\n");
     else if (errno != EEXIST) {
         fprintf(stderr, "Error: Failed to create run directory: %s\n", strerror(errno));
         fprintf(stderr, "Run Directory: %s\n", path);
@@ -207,7 +198,6 @@ static bool create_run_dir(const char *path) {
 
 static char *set_path(char *path, char *file_name) {
     char *full_path = NULL;
-
     if (path == NULL || file_name == NULL) return NULL;
     if ((full_path = calloc(MAX_PATH_LEN, sizeof(char))) == NULL) CRXP__OUT_OF_MEMORY();
     if (snprintf(full_path, MAX_PATH_LEN, "%s/%s", path, file_name) <= 0) return NULL;
@@ -259,15 +249,12 @@ static bool validate_run_dir(char *path) {
     meta_db_path = set_path(path, META_DB);
 
     if (allocated) free(path);
-    if (cruxpass_db_path == NULL || meta_db_path == NULL) return false;
-
     return true;
 }
 
 vault_ctx_t *initcrux(char *run_dir) {
     vault_ctx_t *ctx = NULL;
     if (!validate_run_dir(run_dir)) return NULL;
-
     if (sodium_init() == -1) {
         fprintf(stderr, "Error: Failed to initialize libsodium\n");
         return NULL;
