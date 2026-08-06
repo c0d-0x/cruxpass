@@ -4,6 +4,7 @@
 
 #include <sodium/utils.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
 
@@ -155,8 +156,8 @@ void display_desc(char *description) {
     tb_poll_event(&ev);
 }
 
-void display_ran_secret(sqlite3 *db, const char *secret_str) {
-    int sec_len = strlen((char *) secret_str);
+void display_ran_secret(sqlite3 *db, const char *sec_str, int sec_len) {
+    if (sec_len > SECRET_MAX_LEN || sec_len < SECRET_MIN_LEN || sec_str == NULL) return;
     int win_w = (sec_len + 2 < (MIN_WIN_WIDTH + 2)) ? MIN_WIN_WIDTH : sec_len + 2;
     int win_h = 4;
 
@@ -176,32 +177,39 @@ void display_ran_secret(sqlite3 *db, const char *secret_str) {
     tb_print(start_x + 2, start_y, COLOR_HEADER, TB_DEFAULT, "| Random Secret |");
 
     int line = start_y + 2;
-    tb_printf(start_x + 2, line++, TB_DEFAULT | TB_BOLD, TB_DEFAULT, "%-*.*s", sec_len, sec_len, secret_str);
+    tb_printf(start_x + 2, line++, TB_DEFAULT | TB_BOLD, TB_DEFAULT, "%-*.*s", sec_len, sec_len, sec_str);
     line++;
     tb_print(start_x + 2, line, TB_DEFAULT, TB_DEFAULT, "Press s to save or q to close");
 
     tb_present();
     struct tb_event ev = {0};
+    secret_t *rec = NULL;
     while (tb_poll_event(&ev) == TB_OK) {
         if (ev.type == TB_EVENT_KEY && (ev.key == TB_KEY_ESC || ev.ch == 'q' || ev.ch == 'Q')) break;
         if (ev.ch == 's' || ev.ch == 'S') {
             start_y = 1;
             start_x = 2;
-            secret_t rec = {0};
+            if ((rec = malloc(sizeof(secret_t))) == NULL) CRXP__OUT_OF_MEMORY();
 
             tb_clear();
-            get_input("> username: ", rec.username, USERNAME_MAX_LEN, start_x + 4, start_y++);
-            get_input("> description: ", rec.description, DESC_MAX_LEN, start_x + 4, start_y++);
+            get_input("> username: ", rec->username, USERNAME_MAX_LEN, start_x + 4, start_y++);
+            get_input("> description: ", rec->description, DESC_MAX_LEN, start_x + 4, start_y++);
 
-            if (strlen(rec.username) == 0 || strlen(rec.description) == 0) return;
-            memcpy(rec.secret, secret_str, SECRET_MAX_LEN);
-            if (!insert_record(db, &rec)) {
+            if (strlen(rec->username) == 0 || strlen(rec->description) == 0) {
+                free(rec);
+                return;
+            }
+
+            memcpy(rec->secret, sec_str, sec_len);
+            if (!insert_record(db, rec)) {
+                free(rec);
                 send_notifctn("Error: Failed to saved secret");
                 return;
             };
 
-            sodium_memzero((char *) rec.secret, sec_len);
+            sodium_memzero((char *) rec->secret, sec_len);
             send_notifctn("Info: secret saved");
+            free(rec);
             break;
         }
     }

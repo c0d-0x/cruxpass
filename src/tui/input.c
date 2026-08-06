@@ -252,7 +252,7 @@ void get_random_secret(sqlite3 *db, bank_options_t opt) {
 
     char *secret = random_secret(ran_len, &opt);
     if (secret == NULL) return;
-    display_ran_secret(db, secret);
-    sodium_memzero(secret, sizeof(secret));
+    display_ran_secret(db, secret, ran_len);
+    sodium_memzero(secret, ran_len);
     free(secret);
 }

@@ -98,7 +98,7 @@ bool do_updates(sqlite3 *db, record_array_t *records, int64_t current_position);
 void display_help(void);
 void display_desc(char *description);
 void send_notifctn(char *message);
-void display_ran_secret(sqlite3 *db, const char *secret);
+void display_ran_secret(sqlite3 *db, const char *sec_str, int sec_len);
 void display_secret(const char *secret, int len);
 
 bool select_next(queue_t *queue);

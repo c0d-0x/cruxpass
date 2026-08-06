@@ -1,5 +1,31 @@
 # cruxpass internals
 
+## Source Layout
+
+```
+├── include
+│   ├── cruxpass.h          # Types, constants
+│   ├── crypt.h             # Key derivation, authentication, decryption
+│   ├── database.h          # Database operations
+│   └── tui.h               # TUI interface
+├── lib
+│   ├── args.h              # CLI argument parsing
+│   └── termbox2.h          # Vendored terminal library
+└── src
+    ├── cruxpass.c           # Core logic (import/export, secret generation)
+    ├── crypt.c              # Cryptography concerning logic
+    ├── database.c           # SQLite/SQLCipher operations
+    ├── main.c               # Entry point
+    └── tui
+        ├── chalk.c          # drawig, color, and styling
+        ├── display.c        # Screen rendering
+        ├── helpers.c        # TUI utilities and wrappers
+        ├── input.c          # Input handling
+        ├── pipeline.c       # Feeds the TUI with records
+        ├── queue.c          # Search result queue
+        └── tui.c            # TUI main loop
+```
+
 ## Authentication
 
 There is no stored password hash. Decryption success **is** the authentication.
@@ -75,29 +101,3 @@ Built on **termbox2** (vendored as `lib/termbox2.h`).
 
 - **Layout:** Rendering, pagination, and the detail viewer are recomputed from
   `tb_width()`/`tb_height()` on every redraw, so resize events are just another event.
-
-## Source Layout
-
-```
-├── include
-│   ├── cruxpass.h          # Types, constants
-│   ├── crypt.h             # Key derivation, authentication, decryption
-│   ├── database.h          # Database operations
-│   └── tui.h               # TUI interface
-├── lib
-│   ├── args.h              # CLI argument parsing
-│   └── termbox2.h          # Vendored terminal library
-└── src
-    ├── cruxpass.c           # Core logic (import/export, secret generation)
-    ├── crypt.c              # Cryptography concerning logic
-    ├── database.c           # SQLite/SQLCipher operations
-    ├── main.c               # Entry point
-    └── tui
-        ├── chalk.c          # drawig, color, and styling
-        ├── display.c        # Screen rendering
-        ├── helpers.c        # TUI utilities and wrappers
-        ├── input.c          # Input handling
-        ├── pipeline.c       # Feeds the TUI with records
-        ├── queue.c          # Search result queue
-        └── tui.c            # TUI main loop
-```
