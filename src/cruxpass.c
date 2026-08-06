@@ -82,7 +82,7 @@ int export_secrets(sqlite3 *db, const char *export_file) {
  * @max_length: field MAX, a const
  * @field_name: for error handling
  * @line_num for error handling
- * Verifies: length requirements of a given field
+ * Verifies: length requirements and each character of a given field
  */
 static int verify_field(const int max_length, str_view_t view, const char *field_name, size_t line_num) {
     if (view.str == NULL || view.len == 0) {
@@ -101,6 +101,13 @@ static int verify_field(const int max_length, str_view_t view, const char *field
     } else if (view.len < SECRET_MIN_LEN && (max_length == SECRET_MAX_LEN)) {
         fprintf(stderr, "Error: %s at line %zu is less than %d characters\n", field_name, line_num, SECRET_MIN_LEN);
         return CRXP_ERR;
+    }
+
+    for (int i = 0; i < view.len; i++) {
+        if (!IS_VALID(view.str[i])) {
+            fprintf(stderr, "Error: %s at line %zu has an invalid character '%c'\n", field_name, line_num, view.str[i]);
+            return CRXP_ERR;
+        }
     }
 
     return CRXP_OK;
@@ -144,6 +151,7 @@ int import_secrets(sqlite3 *db, const char *import_file) {
     char *buf = NULL;
     size_t line_num = 1;
     str_view_t view_tab[CSV_COLUMN_MAX] = {0};
+    bool saved = false;
 
     if ((fp = fopen(import_file, "r")) == NULL) {
         fprintf(stderr, "Error: Failed to open %s: %s", import_file, strerror(errno));
@@ -177,12 +185,14 @@ int import_secrets(sqlite3 *db, const char *import_file) {
 
         if (!insert_view_record(db, view_tab)) fprintf(stderr, "Error: Failed to insert record at line: %zu", line_num);
         line_num++;
+        sodium_memzero((void *) buf, BUFFMAX);
+        saved = true;
     }
 
     fclose(fp);
     sodium_memzero((void *) buf, BUFFMAX);
     sodium_free(buf);
-    return CRXP_OK;
+    return (saved) ? CRXP_OK : CRXP_ERR;
 }
 
 static bool create_run_dir(const char *path) {

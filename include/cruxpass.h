@@ -53,6 +53,9 @@
 #define CRUXPASS_RUNDIR ".local/share/cruxpass"  // default ~/.local/share/cruxpass/
 #endif
 
+#define IS_VALID(ch) (((ch >= 0x20) && (ch <= 0x7E) && (ch != 0x2C)))
+#define IS_DIGIT(ch) ((ch >= 0x30) && (ch <= 0x39))
+
 #define CRXP__FATAL(...)              \
     do {                              \
         fprintf(stderr, "Error: ");   \

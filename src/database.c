@@ -73,8 +73,13 @@ static int create_databases(vault_ctx_t *ctx) {
     char *login_secret = get_input("> Enter password: ", NULL, LOGIN_MAX_LEN, 0, 3);
     tui_cleanup();
 
+    if (login_secret == NULL) {
+        fprintf(stderr, "Error: Invalid password\n");
+        return CRXP_ERR;
+    }
+
     if (strlen(login_secret) < SECRET_MIN_LEN) {
-        fprintf(stderr, "Error: password invalid\n");
+        fprintf(stderr, "Error: Password length less that minimum: %d\n", SECRET_MIN_LEN);
         return CRXP_ERR;
     }
 

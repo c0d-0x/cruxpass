@@ -200,7 +200,6 @@ void display_ran_secret(sqlite3 *db, const char *secret_str) {
                 return;
             };
 
-            sodium_memzero((char *) secret_str, sec_len);
             sodium_memzero((char *) rec.secret, sec_len);
             send_notifctn("Info: secret saved");
             break;

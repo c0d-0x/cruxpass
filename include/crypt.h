@@ -14,7 +14,6 @@
 #include <stdint.h>
 #include "cruxpass.h"
 
-#define GEN_KEY 0x01
 #define KEY_LEN 32
 #define SALT_LEN 16
 #define BUFFMAX SECRET_MAX_LEN + USERNAME_MAX_LEN + DESC_MAX_LEN + 1

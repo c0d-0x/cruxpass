@@ -12,9 +12,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#define IS_VALID(ch) (((ch >= 0x20) && (ch <= 0x7E) && (ch != 0x2C)))
-#define IS_DIGIT(ch) ((ch >= 0x30) && (ch <= 0x39))
-
 char *get_input(const char *prompt, char *input, const int input_len, int start_x, int start_y) {
     bool dynamic_input = false;
     if (input == NULL) {

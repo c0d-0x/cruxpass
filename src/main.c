@@ -188,7 +188,7 @@ int main(int argc, char **argv) {
 
         if (!import_secrets(ctx->secret_db, (char *) *import_file)) {
             cleanup_main();
-            fprintf(stderr, "Error: Failed to import secrets from: %s", *import_file);
+            fprintf(stderr, "Error: Failed to import secrets from: %s\n", *import_file);
             free_args(&cmd_args);
             return EXIT_FAILURE;
         }
