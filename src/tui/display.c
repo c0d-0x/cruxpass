@@ -66,7 +66,7 @@ void display_secret(const char *secret, int len) {
 }
 
 void display_help(void) {
-    int win_w = 50;
+    int win_w = 56;
     int win_h = 15;
 
     int term_w = tb_width();
@@ -90,7 +90,7 @@ void display_help(void) {
     tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " d - Delete record        n - Next search result");
     tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " / - Search               L - Show description");
     tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " ? - Show this help       q/Q - Quit");
-    tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " Ctrl+r - Reload tui");
+    tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " Ctrl+r - Reload tui      Esc - Clear search heighlight");
     tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " r - a/A/p/r/x Regenerate secret");
 
     line++;

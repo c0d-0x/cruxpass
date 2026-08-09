@@ -75,7 +75,7 @@ int tui_main(sqlite3 *db) {
         if (tb_poll_event(&ev) != TB_OK) continue;
 
         if (ev.type == TB_EVENT_KEY) {
-            if (ev.key == TB_KEY_ESC || ev.key == TB_KEY_CTRL_C || ev.ch == 'q' || ev.ch == 'Q') {
+            if (ev.key == TB_KEY_CTRL_C || ev.ch == 'q' || ev.ch == 'Q') {
                 break;
             } else if (ev.ch == 'k' || ev.key == TB_KEY_ARROW_UP) {
                 if (current_position > 0) current_position--;
@@ -91,13 +91,19 @@ int tui_main(sqlite3 *db) {
                 current_position = 0;
             } else if (ev.ch == 'G' || ev.key == TB_KEY_END) {
                 current_position = records.size - 1;
+            } else if (ev.key == TB_KEY_ESC) {
+                if (search_pattern != NULL) {
+                    free(search_pattern);
+                    search_pattern = NULL;
+                }
+
             } else if (ev.ch == '/') {
                 if (search_pattern != NULL) {
                     free(search_pattern);
                     search_pattern = NULL;
                 }
 
-                free_queue(&search_queue);
+                queue_free(&search_queue);
                 search_pattern = get_search_parttern();
                 draw_table_border(start_x, start_y, table_h);
                 continue;
@@ -187,7 +193,6 @@ int tui_main(sqlite3 *db) {
                 current_position = 0;
                 continue;
             }
-
         } else if (ev.type == TB_EVENT_RESIZE) {
             term_width = ev.w;
             term_height = ev.h;
@@ -205,7 +210,7 @@ int tui_main(sqlite3 *db) {
 
     tui_cleanup();
     free_records(&records);
-    free_queue(&search_queue);
+    queue_free(&search_queue);
     if (search_pattern != NULL) free(search_pattern);
     return CRXP_OK;
 }

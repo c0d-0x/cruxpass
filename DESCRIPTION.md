@@ -97,11 +97,11 @@ on library defaults. This matters because SQLCipher's defaults have changed acro
 
 Import does not use a CSV library. It reads the file line by line with `fgets()` and
 splits each line into three `str_view_t` fields (pointer + length) by scanning for
-commas in place. No per-field heap allocation.
+commas in place.
 
 - Malformed or oversized rows are skipped with a line-numbered error.
 - Valid rows go through a single prepared, bound `INSERT` statement
-  (`insert_view_record`), which is reused across all rows rather than re-preparing SQL per line.
+  (`insert_view_record`), which is reused across all rows.
 
 ## Random Secret Generation
 

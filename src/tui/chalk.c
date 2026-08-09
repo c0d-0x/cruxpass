@@ -164,7 +164,7 @@ void _draw_table(record_array_t *records, queue_t *search_queue, char *search_pa
         }
 
         if (search_parttern != NULL) {
-            if (strstr(rec->username, search_parttern) != NULL || strstr(rec->description, search_parttern) != NULL) {
+            if (queue_index_in(search_queue, i)) {
                 fg = TB_DEFAULT;
                 bg = COLOR_SEARCH;
             }

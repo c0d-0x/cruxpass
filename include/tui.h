@@ -60,7 +60,7 @@ typedef struct {
 } table_t;
 
 typedef struct {
-    int size;
+    int count;
     int head;
     int tail;
     int capacity;
@@ -105,9 +105,10 @@ bool select_next(queue_t *queue);
 
 int64_t dequeue(queue_t *queue);
 bool enqueue(queue_t *queue, int64_t id);
-bool queue_full(queue_t *queue);
 bool queue_empty(queue_t *queue);
-void free_queue(queue_t *queue);
+bool queue_full(queue_t *queue);
+bool queue_index_in(queue_t *queue, int elem);
+void queue_free(queue_t *queue);
 
 bool add_record(record_array_t *arr, record_t rec);
 void free_records(record_array_t *arr);
