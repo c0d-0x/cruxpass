@@ -236,7 +236,7 @@ int init_sqlite(void) {
     return CRXP_OKK;
 }
 
-// NOTE: inserts a record by an array of str_view_t
+// NOTE: inserts a record by an array of str_view_t [3]
 int insert_view_record(sqlite3 *db, str_view_t *view_tab) {
     if (view_tab == NULL) {
         fprintf(stderr, "Error: Empty record\n");
@@ -386,7 +386,7 @@ meta_t *fetch_meta(void) {
     sqlite3_stmt *sql_stmt = NULL;
     meta_t *meta = NULL;
     char *sql_str = "SELECT salt, version FROM meta WHERE id = ?;";
-    int id = 1;
+    int id = 0x01;
     if ((meta_db = open_db(meta_db_path, SQLITE_OPEN_READWRITE)) == NULL) {
         return NULL;
     }
@@ -493,7 +493,7 @@ bool insert_meta(sqlite3 *db, meta_t *meta) {
     return true;
 }
 
-bool fetch_secret(MAYBE_UNUSED sqlite3 *db, const int64_t id) {
+bool fetch_secret(const int64_t id) {
     if (sqlite3_bind_int64(sql_stmts[FETCH_SEC_STMT], 1, id) != SQLITE_OK) {
         sqlite3_reset(sql_stmts[FETCH_SEC_STMT]);
         sqlite3_clear_bindings(sql_stmts[FETCH_SEC_STMT]);

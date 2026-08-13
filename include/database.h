@@ -44,5 +44,5 @@ int insert_view_record(sqlite3 *db, str_view_t *views);
 int load_records(sqlite3 *db, record_array_t *records);
 int update_record(sqlite3 *db, secret_t *secret, int id, uint8_t flags);
 
-bool fetch_secret(sqlite3 *db, const int64_t id);
+bool fetch_secret(const int64_t id);
 #endif  // !SQLITE_H

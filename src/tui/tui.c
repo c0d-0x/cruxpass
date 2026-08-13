@@ -7,8 +7,8 @@
 
 #include "database.h"
 
-int total_pages;
-int current_page;
+int total_pages = 0;
+int current_page = 0;
 int records_per_page = 30;
 
 bool tui_init(void) {
@@ -148,7 +148,7 @@ int tui_main(sqlite3 *db) {
                 draw_table_border(start_x, start_y, table_h);
             } else if (ev.key == TB_KEY_ENTER) {
                 if (notify_deleted(records.data[current_position].id)) continue;
-                if (!fetch_secret(db, records.data[current_position].id)) {
+                if (!fetch_secret(records.data[current_position].id)) {
                     send_notifctn("Error: Failed to fetch secret");
                 };
                 draw_table_border(start_x, start_y, table_h);

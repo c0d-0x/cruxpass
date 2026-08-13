@@ -213,7 +213,8 @@ bool get_long(char *prompt, long *out) {
         if (ev.type == TB_EVENT_KEY) {
             if (ev.key == TB_KEY_ESC || ev.key == TB_KEY_CTRL_C) {
                 tb_hide_cursor();
-                return (-1);
+                return -1;
+
             } else if (ev.key == TB_KEY_ENTER) {
                 break;
             } else if (ev.key == TB_KEY_BACKSPACE || ev.key == TB_KEY_BACKSPACE2) {

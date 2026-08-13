@@ -136,11 +136,10 @@ static int chup_bychar(char *buff, str_view_t *views, char cc) {
     char *tmp = buff;
     while (i < CSV_COLUMN_MAX && tmp != NULL) {
         tmp = find_char(buff, cc);
+
         views[i].str = buff;
         views[i].len = (tmp != NULL) ? (int) (tmp - buff) : (int) (strlen(buff));
-
-        buff += views[i].len + 1;
-        i++;
+        buff += views[i++].len + 1;
     };
 
     return i;
@@ -184,9 +183,9 @@ int import_secrets(sqlite3 *db, const char *import_file) {
         }
 
         if (!insert_view_record(db, view_tab)) fprintf(stderr, "Error: Failed to insert record at line: %zu", line_num);
-        line_num++;
         sodium_memzero((void *) buf, BUFFMAX);
-        saved = true;
+        if (!saved) saved = true;
+        line_num++;
     }
 
     fclose(fp);
