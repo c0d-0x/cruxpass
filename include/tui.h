@@ -35,9 +35,8 @@
 #define BORDER_BOTTOM_RIGHT 0x256F  // ╯
 
 #define LEN(arr) (sizeof(arr) / sizeof((arr)[0]))
-#define draw_table(records, search_queue, search_parttern, ...) \
-    _draw_table((records), (search_queue), (search_parttern),   \
-                (table_t) {.width = TABLE_WIDTH, .start_y = 1, __VA_ARGS__})
+#define draw_table(records, search_parttern, ...) \
+    _draw_table((records), (search_parttern), (table_t) {.width = TABLE_WIDTH, .start_y = 1, __VA_ARGS__})
 
 typedef struct {
     int64_t id;
@@ -89,7 +88,7 @@ char *get_input(const char *prompt, char *input, const int text_len, int cod_y, 
 
 void draw_art(void);
 void draw_border(int start_x, int start_y, int width, int height, uintattr_t fg, uintattr_t bg);
-void _draw_table(record_array_t *records, queue_t *search_queue, char *search_parttern, table_t table);
+void _draw_table(record_array_t *records, char **search_parttern, table_t table);
 void draw_update_menu(int option, int start_x, int start_y);
 void draw_table_border(int start_x, int start_y, int table_h);
 
@@ -109,6 +108,7 @@ bool queue_empty(queue_t *queue);
 bool queue_full(queue_t *queue);
 bool queue_index_in(queue_t *queue, int elem);
 void queue_free(queue_t *queue);
+void queue_reset(queue_t *queue);
 
 bool add_record(record_array_t *arr, record_t rec);
 void free_records(record_array_t *arr);

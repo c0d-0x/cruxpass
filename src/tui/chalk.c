@@ -1,12 +1,15 @@
 #include "termbox2.h"
 #include "tui.h"
 
+#include <sodium/utils.h>
 #include <stdint.h>
 #include <wchar.h>
 
 extern int current_page;
 extern int records_per_page;
 extern int total_pages;
+extern queue_t search_queue;
+extern queue_t highlight_queue;
 
 /**
  * Displays centred ASCII art (4 bytes wide char)
@@ -120,7 +123,7 @@ void draw_table_border(int start_x, int start_y, int table_h) {
     }
 }
 
-void _draw_table(record_array_t *records, queue_t *search_queue, char *search_parttern, table_t table) {
+void _draw_table(record_array_t *records, char **search_pattern, table_t table) {
     total_pages = records->size / records_per_page;
 
     int start_index = current_page * records_per_page;
@@ -136,19 +139,27 @@ void _draw_table(record_array_t *records, queue_t *search_queue, char *search_pa
 
     /*NOTE: cleanup cells before redrawing rows */
     for (int i = 1; i < table.height - 1; i++) {
-        for (int j = 0; j < TABLE_WIDTH; j++) {
+        for (int j = 0; j < TABLE_WIDTH; j++)
             tb_set_cell(table.start_x + j + 1, table.start_y + i + 2, ' ', COLOR_PAGINATION, TB_DEFAULT);
-        }
     }
 
-    if (search_parttern != NULL) {
+    if (*search_pattern != NULL) {
+        queue_free(&search_queue);
+        queue_reset(&highlight_queue);
+
         for (int64_t i = 0; i < records->size; i++) {
             if (records->data[i].id != DELETED
-                && (strstr(records->data[i].username, search_parttern) != NULL
-                    || strstr(records->data[i].description, search_parttern) != NULL)) {
-                if (!enqueue(search_queue, i)) send_notifctn("Error: Failed to enqueue record");
+                && (strstr(records->data[i].username, *search_pattern) != NULL
+                    || strstr(records->data[i].description, *search_pattern) != NULL)) {
+                if (!enqueue(&search_queue, i)) send_notifctn("Error: Failed to enqueue record");
             }
         }
+
+        free(*search_pattern);
+        *search_pattern = NULL;
+        highlight_queue.data = search_queue.data;
+        highlight_queue.count = search_queue.count;
+        highlight_queue.capacity = search_queue.capacity;
     }
 
     for (int64_t i = start_index; i < end_index; i++) {
@@ -163,8 +174,8 @@ void _draw_table(record_array_t *records, queue_t *search_queue, char *search_pa
             continue;
         }
 
-        if (search_parttern != NULL) {
-            if (queue_index_in(search_queue, i)) {
+        if (!queue_empty(&highlight_queue)) {
+            if (queue_index_in(&highlight_queue, i)) {
                 fg = TB_DEFAULT;
                 bg = COLOR_SEARCH;
             }

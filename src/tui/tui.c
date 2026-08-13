@@ -10,6 +10,8 @@
 int total_pages = 0;
 int current_page = 0;
 int records_per_page = 30;
+queue_t search_queue = {0};
+queue_t highlight_queue = {0};
 
 bool tui_init(void) {
     if (tb_init() != TB_OK) {
@@ -37,7 +39,6 @@ static bool notify_deleted(int64_t id) {
 
 int tui_main(sqlite3 *db) {
     struct tb_event ev = {0};
-    queue_t search_queue = {0};
     char *search_pattern = NULL;
     int64_t current_position = 0;
     record_array_t records = {0, 0, NULL};
@@ -66,14 +67,10 @@ int tui_main(sqlite3 *db) {
     while (1) {
         records_per_page = term_height - 8;
         if (records_per_page < 1) records_per_page = 1;
-
         current_page = current_position / records_per_page;
-
-        draw_table(&records, &search_queue, search_pattern, .start_x = start_x, .height = table_h,
-                   .cursor = current_position);
+        draw_table(&records, &search_pattern, .start_x = start_x, .height = table_h, .cursor = current_position);
 
         if (tb_poll_event(&ev) != TB_OK) continue;
-
         if (ev.type == TB_EVENT_KEY) {
             if (ev.key == TB_KEY_CTRL_C || ev.ch == 'q' || ev.ch == 'Q') {
                 break;
@@ -92,25 +89,16 @@ int tui_main(sqlite3 *db) {
             } else if (ev.ch == 'G' || ev.key == TB_KEY_END) {
                 current_position = records.size - 1;
             } else if (ev.key == TB_KEY_ESC) {
-                if (search_pattern != NULL) {
-                    free(search_pattern);
-                    search_pattern = NULL;
-                }
-
+                if (!queue_empty(&search_queue)) queue_free(&search_queue);
+                queue_reset(&highlight_queue);
+                send_notifctn("Info: Highlights cleared");
             } else if (ev.ch == '/') {
-                if (search_pattern != NULL) {
-                    free(search_pattern);
-                    search_pattern = NULL;
-                }
-
-                queue_free(&search_queue);
                 search_pattern = get_search_parttern();
                 draw_table_border(start_x, start_y, table_h);
                 continue;
             } else if (ev.ch == 'n') {
                 if (!queue_empty(&search_queue)) {
                     int64_t index = dequeue(&search_queue);
-
                     if (index == QUEUE_ERR) {
                         send_notifctn("Error: Dequeue failed");
                         continue;
@@ -118,9 +106,8 @@ int tui_main(sqlite3 *db) {
 
                     current_position = index;
                     continue;
-                } else {
-                    send_notifctn("Note: Match not found");
-                }
+                } else send_notifctn("Note: Match not found");
+
             } else if (ev.ch == '?') {
                 display_help();
                 draw_table_border(start_x, start_y, table_h);

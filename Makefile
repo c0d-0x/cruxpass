@@ -2,9 +2,9 @@ CC             := gcc
 
 CFLAGS         := -Wall -Wextra -Wformat-security -Wformat-overflow=2
 
-CFLAGS		   += -O3 -s # strip bin
+# CFLAGS		   += -O3 -s # strip bin
 # Debugging params 
-# CFLAGS 		   += -ggdb
+CFLAGS 		   += -ggdb
 # CFLAGS 		   += -fsanitize=address 
 # CFLAGS 		   += -fno-omit-frame-pointer
 # CFLAGS		   += -fsanitize-recover=address

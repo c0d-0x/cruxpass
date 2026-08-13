@@ -1,5 +1,16 @@
 # CHANGELOG
 
+- Optimized import functionality:
+  - `csv` file parsing with string views and zero copy imports.
+  - Validation by length and printable characters.
+- Pinned sqlcipher default db parameters.
+- Added project description.
+- Fixes including:
+  - TUI search highlight clearing with Esc key.
+  - Redundant records' searching.
+
+## [v2.0.1](https://github.com/c0d-0x/cruxpass/releases/tag/v2.0.1)
+
 ### Minor bugs fixes
 
 - UDB on search queue in the TUI [here](https://github.com/c0d-0x/cruxpass/commit/0e75594da72b13c128bf772b365c97b3b7eda3b3).

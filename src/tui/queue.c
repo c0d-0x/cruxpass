@@ -1,9 +1,9 @@
 #include "tui.h"
 
+#include <locale.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <wchar.h>
 
 bool enqueue(queue_t *queue, int64_t index) {
     if (queue_empty(queue)) {
@@ -46,12 +46,18 @@ bool queue_full(queue_t *queue) { return queue != NULL && queue->capacity == que
 bool queue_empty(queue_t *queue) { return queue == NULL || queue->data == NULL; }
 
 void queue_free(queue_t *queue) {
-    if (queue->data != NULL) {
+    if (!queue_empty(queue)) {
         free(queue->data);
         queue->data = NULL;
-        queue->capacity = 0;
-        queue->head = 0;
-        queue->count = 0;
-        queue->tail = 0;
     }
+
+    queue->capacity = 0;
+    queue->head = 0;
+    queue->count = 0;
+    queue->tail = 0;
+}
+
+void queue_reset(queue_t *queue) {
+    queue->data = NULL;
+    queue_free(queue);
 }
