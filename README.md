@@ -158,17 +158,18 @@ Launch with `cruxpass -l` or `cruxpass --list`.
 
 ### Actions
 
-| Key       | Action                | Key   | Generates                             |
-| --------- | --------------------- | ----- | ------------------------------------- |
-| `Enter`   | View secret           | `ra`  | Lowercase letters only                |
-| `u`       | Update record         | `rA`  | Uppercase letters only                |
-| `d`       | Delete record         | `rp`  | Digits only (PIN)                     |
-| `/`       | Search                | `rr`  | Lowercase, uppercase, digits, symbols |
-| `n`       | Next search result    | `rx`  | All characters except ambiguous ones  |
-| `L`       | View full description | `Esc` | Clear highlights from a given search  |
-| `?`       | Show help             |       |                                       |
-| `Ctrl+r`  | Reload TUI            |       |                                       |
-| `q` / `Q` | Quit                  |       |                                       |
+| Key       | Action                 | Key   | Generates                             |
+| --------- | ---------------------- | ----- | ------------------------------------- |
+| `Enter`   | View secret            | `ra`  | Lowercase letters only                |
+| `u`       | Update record          | `rA`  | Uppercase letters only                |
+| `d`       | Delete record          | `rp`  | Digits only (PIN)                     |
+| `/`       | Search                 | `rr`  | Lowercase, uppercase, digits, symbols |
+| `n`       | Next search result     | `rx`  | All characters except ambiguous ones  |
+| `N`       | Previous search result | `Esc` | Clear highlights from a given search  |
+| `L`       | View full description  |       |                                       |
+| `?`       | Show help              |       |                                       |
+| `Ctrl+r`  | Reload TUI             |       |                                       |
+| `q` / `Q` | Quit                   |       |                                       |
 
 > [!NOTE]
 > All r/\* actions prompt for length (8-128 characters) and can be saved directly.

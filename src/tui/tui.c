@@ -96,9 +96,9 @@ int tui_main(sqlite3 *db) {
                 search_pattern = get_search_parttern();
                 draw_table_border(start_x, start_y, table_h);
                 continue;
-            } else if (ev.ch == 'n') {
+            } else if (ev.ch == 'n' || ev.ch == 'N') {
                 if (!queue_empty(&search_queue)) {
-                    int64_t index = dequeue(&search_queue);
+                    int64_t index = (ev.ch == 'N') ? dequeue(&search_queue, true) : dequeue(&search_queue, false);
                     if (index == QUEUE_ERR) {
                         send_notifctn("Error: Dequeue failed");
                         continue;

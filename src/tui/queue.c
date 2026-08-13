@@ -26,17 +26,22 @@ bool enqueue(queue_t *queue, int64_t index) {
     return true;
 }
 
-int64_t dequeue(queue_t *queue) {
+int64_t dequeue(queue_t *queue, bool reverse) {
     if (queue_empty(queue)) return QUEUE_ERR;
-
     int64_t index = queue->data[queue->head];
-    queue->head = (queue->head + 1) % queue->count;
+
+    if (reverse) {
+        int next = (queue->head - 1) % queue->count;
+        if (next < 0) next = queue->count - next;
+        queue->head = next;
+    } else queue->head = (queue->head + 1) % queue->count;
+
     return index;
 }
 
 bool queue_index_in(queue_t *queue, int index) {
     for (int i = 0; !queue_empty(queue) && i < queue->count; i++)
-        if (dequeue(queue) == index) return true;
+        if (dequeue(queue, false) == index) return true;
 
     return false;
 }

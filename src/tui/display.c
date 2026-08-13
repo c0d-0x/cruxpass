@@ -66,7 +66,7 @@ void display_secret(const char *secret, int len) {
 }
 
 void display_help(void) {
-    int win_w = 56;
+    int win_w = 64;
     int win_h = 15;
 
     int term_w = tb_width();
@@ -83,15 +83,17 @@ void display_help(void) {
     tb_clear();
     draw_border(start_x, start_y, win_w + 4, win_h + 2, COLOR_PAGINATION, TB_DEFAULT);
     tb_print(start_x + 2, start_y, COLOR_HEADER, TB_DEFAULT, "| Help |");
-
     int line = start_y + 2;
+
+    // clang-format off
     tb_print(start_x + 2, line++, TB_DEFAULT | TB_BOLD, TB_DEFAULT, "Actions:");
-    tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " Enter - View secret      u - Update record");
-    tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " d - Delete record        n - Next search result");
-    tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " / - Search               L - Show description");
-    tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " ? - Show this help       q/Q - Quit");
-    tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " Ctrl+r - Reload tui      Esc - Clear search heighlight");
-    tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " r - a/A/p/r/x Regenerate secret");
+    tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " Enter - View secret                u - Update record");
+    tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " d - Delete record                  n - Next search result");
+    tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " / - Search                         N - Previous search result");
+    tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " ? - Show this help                 L - Show description");
+    tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " Ctrl+r - Reload tui                Esc - Clear search heighlight");
+    tb_print(start_x + 2, line++, TB_DEFAULT, TB_DEFAULT, " r - a/A/p/r/x Regenerate secret    q/Q - Quit");
+    // clang-format on
 
     line++;
     tb_print(start_x + 2, line++, TB_DEFAULT | TB_BOLD, TB_DEFAULT, "Navigation:");

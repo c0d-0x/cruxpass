@@ -8,6 +8,7 @@
 - Fixes including:
   - TUI search highlight clearing with Esc key.
   - Redundant records' searching.
+  - `N` for previous search indexing
 
 ## [v2.0.1](https://github.com/c0d-0x/cruxpass/releases/tag/v2.0.1)
 

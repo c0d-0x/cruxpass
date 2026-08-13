@@ -102,8 +102,8 @@ void display_secret(const char *secret, int len);
 
 bool select_next(queue_t *queue);
 
-int64_t dequeue(queue_t *queue);
 bool enqueue(queue_t *queue, int64_t id);
+int64_t dequeue(queue_t *queue, bool reverse);
 bool queue_empty(queue_t *queue);
 bool queue_full(queue_t *queue);
 bool queue_index_in(queue_t *queue, int elem);
