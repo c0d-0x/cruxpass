@@ -221,6 +221,7 @@ int init_sqlite(void) {
 
     if ((ctx.meta_db = open_db(meta_db_path, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX))
         == NULL) {
+        sqlite3_close(ctx.secret_db);
         fprintf(stderr, "Error: failed to open %s: %s\n", meta_db_path, sqlite3_errmsg(ctx.meta_db));
         return CRXP_ERR;
     }
@@ -316,6 +317,8 @@ int delete_record(sqlite3 *db, int record_id) {
         return CRXP_ERR;
     }
 
+    sqlite3_reset(sql_stmts[DELETE_REC_STMT]);
+    sqlite3_clear_bindings(sql_stmts[DELETE_REC_STMT]);
     return CRXP_OK;
 }
 
@@ -334,7 +337,6 @@ int update_record(sqlite3 *db, secret_t *secret_record, int record_id, uint8_t f
             return CRXP_ERR;
         }
 
-        sqlite3_reset(sql_stmt);
         sqlite3_finalize(sql_stmt);
     }
 
@@ -349,7 +351,6 @@ int update_record(sqlite3 *db, secret_t *secret_record, int record_id, uint8_t f
             return CRXP_ERR;
         }
 
-        sqlite3_reset(sql_stmt);
         sqlite3_finalize(sql_stmt);
     }
 
@@ -364,7 +365,6 @@ int update_record(sqlite3 *db, secret_t *secret_record, int record_id, uint8_t f
             return CRXP_ERR;
         }
 
-        sqlite3_reset(sql_stmt);
         sqlite3_finalize(sql_stmt);
     }
 
