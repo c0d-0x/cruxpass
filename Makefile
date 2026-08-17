@@ -1,10 +1,11 @@
 CC             := gcc
 
 CFLAGS         := -Wall -Wextra -Wformat-security -Wformat-overflow=2
+LDLIBS         := -lpthread -lm
 
-# CFLAGS		   += -O3 -s # strip bin
+CFLAGS		   += -O3 -s # strip bin
 # Debugging params 
-CFLAGS 		   += -ggdb
+# CFLAGS 		   += -ggdb
 # CFLAGS 		   += -fsanitize=address 
 # CFLAGS 		   += -fno-omit-frame-pointer
 # CFLAGS		   += -fsanitize-recover=address
@@ -13,7 +14,10 @@ CFLAGS 		   += -ggdb
 
 INCLUDE        := -Iinclude -Ilib
 
-LDLIBS         := -lsodium -lm -lsqlcipher -ldl -lpthread
+CFLAGS  	   += $(shell pkg-config --cflags sqlcipher)
+CFLAGS  	   += $(shell pkg-config --cflags libsodium)
+LDLIBS		   += $(shell pkg-config --libs libsodium)
+LDLIBS		   += $(shell pkg-config --libs sqlcipher)
 
 SRC            := $(wildcard src/*.c)
 TUI_SRC        := $(wildcard src/tui/*.c)

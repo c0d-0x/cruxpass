@@ -35,6 +35,7 @@ This project runs on **Linux only**. Windows and macOS are not currently support
 
 - `libsqlcipher` - Database encryption
 - `libsodium` - Cryptographic operations
+- `pkg-config` - Library compiler helper
 
 #### Install Dependencies
 
@@ -42,7 +43,7 @@ This project runs on **Linux only**. Windows and macOS are not currently support
 <summary>Debian / Ubuntu / Kali</summary>
 
 ```bash
-sudo apt install libsqlcipher-dev libsodium-dev
+sudo apt install pkg-config libsqlcipher-dev libsodium-dev
 ```
 
 </details>
@@ -51,7 +52,7 @@ sudo apt install libsqlcipher-dev libsodium-dev
 <summary>Arch Linux ;)</summary>
 
 ```bash
-sudo pacman -S sqlcipher libsodium
+sudo pacman -S pkgconf sqlcipher libsodium
 ```
 
 </details>
@@ -60,7 +61,7 @@ sudo pacman -S sqlcipher libsodium
 <summary>RHEL / Fedora / Rocky / Alma</summary>
 
 ```bash
-sudo dnf install sqlcipher-devel libsodium-devel
+sudo dnf install pkgconf-pc sqlcipher-devel libsodium-devel
 ```
 
 </details>
