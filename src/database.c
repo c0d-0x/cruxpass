@@ -3,6 +3,7 @@
 #include <locale.h>
 #include <sodium/core.h>
 #include <sodium/utils.h>
+#include <sqlcipher/sqlite3.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -153,6 +154,7 @@ void cleanup_stmts(void) {
 sqlite3 *open_db(char *db_name, int flags) {
     sqlite3 *db = NULL;
     if (sqlite3_open_v2(db_name, &db, flags, NULL) != SQLITE_OK) {
+        fprintf(stderr, "Error: %s '%s' \n", sqlite3_errmsg(db), db_name);
         sqlite3_close(db);
         return NULL;
     }

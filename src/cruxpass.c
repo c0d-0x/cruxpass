@@ -274,7 +274,7 @@ vault_ctx_t *initcrux(char *run_dir) {
         case CRXP_OKK: fprintf(stderr, "Info: New password created\nWarning: Retry your operation\n"); return NULL;
         case CRXP_OK:
             if ((ctx = malloc(sizeof(vault_ctx_t))) == NULL) CRXP__OUT_OF_MEMORY();
-            if ((ctx->secret_db = open_db(cruxpass_db_path, SQLITE_OPEN_READWRITE)) == NULL) {
+            if ((ctx->secret_db = open_db(cruxpass_db_path, SQLITE_OPEN_READWRITE | SQLITE_OPEN_FULLMUTEX)) == NULL) {
                 free(ctx);
                 return NULL;
             }
