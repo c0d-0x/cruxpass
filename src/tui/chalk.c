@@ -124,11 +124,11 @@ void draw_table_border(int start_x, int start_y, int table_h) {
 }
 
 void _draw_table(record_array_t *records, char **search_pattern, table_t table) {
-    total_pages = records->size / records_per_page;
+    total_pages = records->count / records_per_page;
 
     int start_index = current_page * records_per_page;
     int end_index = start_index + records_per_page;
-    if (end_index > records->size) end_index = records->size;
+    if (end_index > records->count) end_index = records->count;
 
     record_t *rec = NULL;
     int row = table.start_y + 4;
@@ -147,7 +147,7 @@ void _draw_table(record_array_t *records, char **search_pattern, table_t table) 
         queue_free(&search_queue);
         queue_reset(&highlight_queue);
 
-        for (int64_t i = 0; i < records->size; i++) {
+        for (int64_t i = 0; i < records->count; i++) {
             if (records->data[i].id != DELETED
                 && (strstr(records->data[i].username, *search_pattern) != NULL
                     || strstr(records->data[i].description, *search_pattern) != NULL)) {
@@ -190,6 +190,6 @@ void _draw_table(record_array_t *records, char **search_pattern, table_t table) 
                   DESC_WIDTH, DESC_WIDTH, rec->description);
     }
 
-    draw_status(table.height, table.cursor, records->size);
+    draw_status(table.height, table.cursor, records->count);
     tb_present();
 }

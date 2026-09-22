@@ -1,12 +1,13 @@
 #include "cruxpass.h"
 #include "tui.h"
 
+#include <sodium/utils.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 
 bool add_record(record_array_t *vec, record_t rec) {
-    if (vec->size >= vec->capacity) {
+    if (vec->count >= vec->capacity) {
         int new_capacity = vec->capacity == 0 ? 8 : vec->capacity * 2;
         record_t *new_data = realloc(vec->data, new_capacity * sizeof(record_t));
         if (new_data == NULL) {
@@ -17,7 +18,7 @@ bool add_record(record_array_t *vec, record_t rec) {
         vec->capacity = new_capacity;
     }
 
-    vec->data[vec->size++] = rec;
+    vec->data[vec->count++] = rec;
     return true;
 }
 
@@ -40,10 +41,11 @@ int tui_pipeline(void *data, MAYBE_UNUSED int argc, char **argv, MAYBE_UNUSED ch
 
 void free_records(record_array_t *arr) {
     if (arr->data != NULL) {
+        sodium_memzero(arr->data, sizeof(record_t) * arr->count);
         free(arr->data);
         arr->data = NULL;
     }
 
-    arr->size = 0;
+    arr->count = 0;
     arr->capacity = 0;
 }

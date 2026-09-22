@@ -45,8 +45,8 @@ typedef struct {
 } record_t;
 
 typedef struct {
-    int size;
-    int capacity;
+    int64_t count;
+    int64_t capacity;
     record_t *data;
 } record_array_t;
 

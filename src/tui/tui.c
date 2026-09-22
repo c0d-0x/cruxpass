@@ -48,7 +48,7 @@ int tui_main(sqlite3 *db) {
         return CRXP_ERR;
     }
 
-    if (records.size == 0) {
+    if (records.count == 0) {
         fprintf(stderr, "Warning: No records found\n");
         return CRXP_ERR;
     }
@@ -77,17 +77,17 @@ int tui_main(sqlite3 *db) {
             } else if (ev.ch == 'k' || ev.key == TB_KEY_ARROW_UP) {
                 if (current_position > 0) current_position--;
             } else if (ev.ch == 'j' || ev.key == TB_KEY_ARROW_DOWN) {
-                if (current_position < records.size - 1) current_position++;
+                if (current_position < records.count - 1) current_position++;
             } else if (ev.ch == 'h' || ev.key == TB_KEY_ARROW_LEFT) {
                 current_position = (int64_t) (current_page - 1) * records_per_page;
                 if (current_position < 0) current_position = 0;
             } else if (ev.ch == 'l' || ev.key == TB_KEY_ARROW_RIGHT) {
                 current_position = (int64_t) (current_page + 1) * records_per_page;
-                if (current_position >= records.size) current_position = records.size - 1;
+                if (current_position >= records.count) current_position = records.count - 1;
             } else if (ev.ch == 'g' || ev.key == TB_KEY_HOME) {
                 current_position = 0;
             } else if (ev.ch == 'G' || ev.key == TB_KEY_END) {
-                current_position = records.size - 1;
+                current_position = records.count - 1;
             } else if (ev.key == TB_KEY_ESC) {
                 if (!queue_empty(&search_queue)) queue_free(&search_queue);
                 queue_reset(&highlight_queue);
