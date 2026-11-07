@@ -78,7 +78,7 @@ bool rotate_login_secret(sqlite3 *db) {
     }
 
     tui_cleanup();
-    if (cmp_secret(new_secret, temp_secret, LOGIN_MAX_LEN + 1) != 0) {
+    if (cmp_secret(new_secret, temp_secret, LOGIN_MAX_LEN) != 0) {
         fprintf(stderr, "Error: Passwords do not match\n");
         sodium_memzero(new_secret, sizeof(char) * LOGIN_MAX_LEN);
         sodium_memzero(temp_secret, sizeof(char) * LOGIN_MAX_LEN);
