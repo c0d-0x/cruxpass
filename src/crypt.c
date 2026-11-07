@@ -53,8 +53,6 @@ bool rotate_login_secret(sqlite3 *db) {
     if ((new_secret = get_secret("New Password: ")) == NULL) {
         tui_cleanup();
         fprintf(stderr, "Warn: Could not get user input\n");
-        sodium_memzero(new_secret, sizeof(char) * LOGIN_MAX_LEN);
-        sodium_free(new_key);
         return !ok;
     }
 
@@ -62,10 +60,8 @@ bool rotate_login_secret(sqlite3 *db) {
         tui_cleanup();
         fprintf(stderr, "Warn: Could not get user input\n");
         sodium_memzero(new_secret, sizeof(char) * LOGIN_MAX_LEN);
-        sodium_memzero(temp_secret, sizeof(char) * LOGIN_MAX_LEN);
 
         sodium_free(new_secret);
-        sodium_free(temp_secret);
         return !ok;
     }
 
