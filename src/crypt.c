@@ -62,7 +62,6 @@ bool rotate_login_secret(sqlite3 *db) {
         sodium_memzero(new_secret, sizeof(char) * LOGIN_MAX_LEN);
 
         sodium_free(new_secret);
-        sodium_free(temp_secret);
         return !ok;
     }
 
