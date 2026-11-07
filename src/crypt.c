@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <wchar.h>
 
 #include "cruxpass.h"
 #include "database.h"
@@ -42,6 +43,17 @@ bool decrypt(sqlite3 *db, unsigned char *key) {
     return true;
 }
 
+static bool cmp_secret(char *secret_a, char *secret_b, size_t len) {
+    if (secret_a == NULL || secret_b == NULL) return false;
+
+    int8_t ret = 0;
+    for (size_t i = 0; i < len; i++) ret |= secret_a[i] ^ secret_b[i];
+    bool final = (ret) ? true : false;
+
+    sodium_memzero(&ret, sizeof(uint8_t));
+    return final;
+}
+
 bool rotate_login_secret(sqlite3 *db) {
     bool ok = true;
     meta_t *meta = NULL;
@@ -66,7 +78,7 @@ bool rotate_login_secret(sqlite3 *db) {
     }
 
     tui_cleanup();
-    if (strncmp(new_secret, temp_secret, LOGIN_MAX_LEN) != 0) {
+    if (cmp_secret(new_secret, temp_secret, LOGIN_MAX_LEN + 1) != 0) {
         fprintf(stderr, "Error: Passwords do not match\n");
         sodium_memzero(new_secret, sizeof(char) * LOGIN_MAX_LEN);
         sodium_memzero(temp_secret, sizeof(char) * LOGIN_MAX_LEN);
@@ -76,10 +88,11 @@ bool rotate_login_secret(sqlite3 *db) {
         return !ok;
     }
 
-    if ((meta = calloc(1, sizeof(meta_t) + SALT_LEN)) == NULL) CRXP__OUT_OF_MEMORY();
+    if ((meta = malloc(sizeof(meta_t) + SALT_LEN + 1)) == NULL) CRXP__OUT_OF_MEMORY();
     if ((new_key = (unsigned char *) sodium_malloc(sizeof(unsigned char) * KEY_LEN)) == NULL) CRXP__OUT_OF_MEMORY();
 
     randombytes_buf(meta->salt, SALT_LEN);
+    meta->salt[SALT_LEN] = '\0';
     if (!key_gen(new_key, (const char *const) new_secret, meta->salt)) {
         fprintf(stderr, "Error: Failed to Create New Password\n");
         ok = false;

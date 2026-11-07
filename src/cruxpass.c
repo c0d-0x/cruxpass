@@ -153,7 +153,7 @@ int import_secrets(sqlite3 *db, const char *import_file) {
     bool saved = false;
 
     if ((fp = fopen(import_file, "r")) == NULL) {
-        fprintf(stderr, "Error: Failed to open %s: %s", import_file, strerror(errno));
+        fprintf(stderr, "Error: Failed to open %s: %s\n", import_file, strerror(errno));
         return CRXP_ERR;
     }
 
@@ -183,9 +183,9 @@ int import_secrets(sqlite3 *db, const char *import_file) {
         }
 
         if (!insert_view_record(db, view_tab)) fprintf(stderr, "Error: Failed to insert record at line: %zu", line_num);
-        sodium_memzero((void *) buf, BUFFMAX);
-        if (!saved) saved = true;
+        else if (!saved) saved = true;
         line_num++;
+        buf[0] = '\0';
     }
 
     fclose(fp);
@@ -293,7 +293,7 @@ char *init_secret_bank(const bank_options_t *opt) {
     char *unambiguous_upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
     char *unambiguous_lower = "abcdefghijkmnopqrstuvwxyz";
     char *unambiguous_numbers = "123456789";
-    char *unambiguous_symbols = "#%&()_+={}[-]:@";
+    char *unambiguous_symbols = "#%&()_+{}[-]:@";
 
     char *bank = NULL;
     if ((bank = malloc(sizeof(char) * BANK_SIZE)) == NULL) CRXP__OUT_OF_MEMORY();

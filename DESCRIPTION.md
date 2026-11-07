@@ -42,8 +42,8 @@ Every other flag follows the full sequence:
 
 1. `parse_args()` parses the CLI flags and positional arguments.
 2. `initcrux()` resolves the vault path (`~/.local/share/cruxpass` by default, or the directory passed via `-r`/`--run-directory`),
-   opens both databases there, and returns a `vault_ctx_t*` holding `secret_db` and `meta_db`.
-3. `authenticate()` reads the salt from meta_db, derives the key, and confirms it by attempting to decrypt secret_db.
+   opens both databases and returns a `vault_ctx_t*` holding `secret_db` and `meta_db`.
+3. `authenticate()` reads the salt from meta_db, derives the key and confirms its valid by attempting to decrypt secret_db.
 4. The requested action runs: `-S` save, `-i` import, `-e` export, `-d` delete, `-l` list/TUI, or `-n` rotate password.
 5. `cleanup_main()` always runs last, to performs necessary cleanup after main.
 
@@ -60,7 +60,7 @@ Every other flag follows the full sequence:
 
 ## Error Handling Convention
 
-Functions that can fail return the `ERROR_T` enum instead of a plain bool: `CRXP_ERR`, `CRXP_OK`, `CRXP_OKK`.
+Functions that can fail return the `ERROR_T` enum: `CRXP_ERR`, `CRXP_OK`, `CRXP_OKK`.
 
 `CRXP_ERR` always means failure. `CRXP_OK` and `CRXP_OKK` both mean success, but distinguish two different successful states.
 
@@ -81,7 +81,7 @@ Passwords and key buffers are allocated with `sodium_malloc()` and wiped with
 ## SQLCipher PRAGMA Pinning
 
 `pin_db()` explicitly sets every cipher-relevant PRAGMA on each open rather than relying
-on library defaults. This matters because SQLCipher's defaults have changed across versions.
+on library defaults.
 
 | PRAGMA                   | Value              | Why                                                                                 |
 | ------------------------ | ------------------ | ----------------------------------------------------------------------------------- |
@@ -109,12 +109,12 @@ commas in place.
 (uppercase, lowercase, digits, symbols), each with a normal and an "unambiguous"
 variant. The unambiguous variant drops:
 
-| Class   | Omitted            | Reason                             |
-| ------- | ------------------ | ---------------------------------- |
-| Upper   | `I`, `O`           | Visually confusable with `1`, `0`  |
-| Lower   | `l`                | Visually confusable with `1`       |
-| Digits  | `0`                | Visually confusable with `O`       |
-| Symbols | `<`, `>`, `?`, `!` | Shell interpretation / readability |
+| Class   | Omitted                 | Reason                             |
+| ------- | ----------------------- | ---------------------------------- |
+| Upper   | `I`, `O`                | Visually confusable with `1`, `0`  |
+| Lower   | `l`                     | Visually confusable with `1`       |
+| Digits  | `0`                     | Visually confusable with `O`       |
+| Symbols | `<`, `>`, `?`, `!`, `=` | Shell interpretation / readability |
 
 `random_secret()` draws characters one at a time using libsodium's `randombytes_uniform()`,
 a CSPRNG with unbiased modulo reduction.

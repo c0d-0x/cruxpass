@@ -436,18 +436,17 @@ meta_t *fetch_meta(void) {
 }
 
 bool update_meta(sqlite3 *db, meta_t *meta) {
-    int id = 1;
+    int id = 0x1;
     bool db_self = false;
-    char *sql_fmt_str = NULL;
     sqlite3_stmt *sql_stmt = NULL;
     if (db == NULL) {
         if ((db = open_db(meta_db_path, SQLITE_OPEN_READWRITE)) == NULL) return false;
         db_self = true;
     }
 
-    sql_fmt_str = "UPDATE meta SET salt = ? WHERE id = ?;";
+    char *sql_fmt_str = "UPDATE meta SET salt = ? WHERE id = ?;";
     if (!sql_prep_n_exec(db, sql_fmt_str, sql_stmt, (char *) meta->salt, id)) {
-        sqlite3_finalize(sql_stmt);
+        if (sql_stmt != NULL) sqlite3_finalize(sql_stmt);
         if (db_self) sqlite3_close(db);
         return false;
     }
@@ -459,9 +458,8 @@ bool update_meta(sqlite3 *db, meta_t *meta) {
 
 bool insert_meta(sqlite3 *db, meta_t *meta) {
     bool db_self = false;
-    char *sql_fmt_str = NULL;
     sqlite3_stmt *sql_stmt = NULL;
-    sql_fmt_str = "INSERT INTO meta (salt, version) VALUES (?, ?);";
+    char *sql_fmt_str = "INSERT INTO meta (salt, version) VALUES (?, ?);";
 
     if (db == NULL) {
         if ((db = open_db(meta_db_path, SQLITE_OPEN_READWRITE)) == NULL) return NULL;
